@@ -1,0 +1,105 @@
+# Vantage 33M final config — machine I/O template (Beckhoff EK1100 + terminals)
+#
+# EtherCAT chain order (see ethercat-conf.xml), after the 4th servo drive:
+#   EK1100 -> EL1808 -> EL2808 -> EL1808 -> EL2808 -> EL9110 -> EL1808 -> EL2808
+#          -> EL1808 -> EL2808 -> EL4032
+#
+# Everything below is commented out: the EK1100 coupler is not on the test
+# bench yet, so these slaves aren't in ethercat-conf.xml either. Uncomment
+# here and in ethercat-conf.xml together once the coupler is wired in, then
+# verify pin names with `halcmd show pin` — lcec's Beckhoff din-N/dout-N
+# naming below is expected but unverified on this hardware.
+#
+# Each EL1808 is 8 digital inputs (din-0..din-7), each EL2808 is 8 digital
+# outputs (dout-0..dout-7). Net names are placeholders — assign to actual
+# machine signals (e-stop chain, door interlocks, vacuum, dust, tool change,
+# spindle enable — see docs/retrofit-plan.md Phase 4) once wiring is known.
+
+# --- EL1808 #1 (digital inputs, slave idx 5) ---
+# net io-din1-0 <= lcec.0.io-din1.din-0   # TODO: assign
+# net io-din1-1 <= lcec.0.io-din1.din-1   # TODO: assign
+# net io-din1-2 <= lcec.0.io-din1.din-2   # TODO: assign
+# net io-din1-3 <= lcec.0.io-din1.din-3   # TODO: assign
+# net io-din1-4 <= lcec.0.io-din1.din-4   # TODO: assign
+# net io-din1-5 <= lcec.0.io-din1.din-5   # TODO: assign
+# net io-din1-6 <= lcec.0.io-din1.din-6   # TODO: assign
+# net io-din1-7 <= lcec.0.io-din1.din-7   # TODO: assign
+
+# --- EL2808 #1 (digital outputs, slave idx 6) ---
+# net io-dout1-0 => lcec.0.io-dout1.dout-0   # TODO: assign
+# net io-dout1-1 => lcec.0.io-dout1.dout-1   # TODO: assign
+# net io-dout1-2 => lcec.0.io-dout1.dout-2   # TODO: assign
+# net io-dout1-3 => lcec.0.io-dout1.dout-3   # TODO: assign
+# net io-dout1-4 => lcec.0.io-dout1.dout-4   # TODO: assign
+# net io-dout1-5 => lcec.0.io-dout1.dout-5   # TODO: assign
+# net io-dout1-6 => lcec.0.io-dout1.dout-6   # TODO: assign
+# net io-dout1-7 => lcec.0.io-dout1.dout-7   # TODO: assign
+
+# --- EL1808 #2 (digital inputs, slave idx 7) ---
+# net io-din2-0 <= lcec.0.io-din2.din-0   # TODO: assign
+# net io-din2-1 <= lcec.0.io-din2.din-1   # TODO: assign
+# net io-din2-2 <= lcec.0.io-din2.din-2   # TODO: assign
+# net io-din2-3 <= lcec.0.io-din2.din-3   # TODO: assign
+# net io-din2-4 <= lcec.0.io-din2.din-4   # TODO: assign
+# net io-din2-5 <= lcec.0.io-din2.din-5   # TODO: assign
+# net io-din2-6 <= lcec.0.io-din2.din-6   # TODO: assign
+# net io-din2-7 <= lcec.0.io-din2.din-7   # TODO: assign
+
+# --- EL2808 #2 (digital outputs, slave idx 8) ---
+# net io-dout2-0 => lcec.0.io-dout2.dout-0   # TODO: assign
+# net io-dout2-1 => lcec.0.io-dout2.dout-1   # TODO: assign
+# net io-dout2-2 => lcec.0.io-dout2.dout-2   # TODO: assign
+# net io-dout2-3 => lcec.0.io-dout2.dout-3   # TODO: assign
+# net io-dout2-4 => lcec.0.io-dout2.dout-4   # TODO: assign
+# net io-dout2-5 => lcec.0.io-dout2.dout-5   # TODO: assign
+# net io-dout2-6 => lcec.0.io-dout2.dout-6   # TODO: assign
+# net io-dout2-7 => lcec.0.io-dout2.dout-7   # TODO: assign
+
+# --- EL9110 (E-bus power supply feed terminal, slave idx 9) ---
+# No process data / HAL pins — just refreshes E-bus power for the terminals
+# downstream of it in the chain. No wiring needed here.
+
+# --- EL1808 #3 (digital inputs, slave idx 10) ---
+# net io-din3-0 <= lcec.0.io-din3.din-0   # TODO: assign
+# net io-din3-1 <= lcec.0.io-din3.din-1   # TODO: assign
+# net io-din3-2 <= lcec.0.io-din3.din-2   # TODO: assign
+# net io-din3-3 <= lcec.0.io-din3.din-3   # TODO: assign
+# net io-din3-4 <= lcec.0.io-din3.din-4   # TODO: assign
+# net io-din3-5 <= lcec.0.io-din3.din-5   # TODO: assign
+# net io-din3-6 <= lcec.0.io-din3.din-6   # TODO: assign
+# net io-din3-7 <= lcec.0.io-din3.din-7   # TODO: assign
+
+# --- EL2808 #3 (digital outputs, slave idx 11) ---
+# net io-dout3-0 => lcec.0.io-dout3.dout-0   # TODO: assign
+# net io-dout3-1 => lcec.0.io-dout3.dout-1   # TODO: assign
+# net io-dout3-2 => lcec.0.io-dout3.dout-2   # TODO: assign
+# net io-dout3-3 => lcec.0.io-dout3.dout-3   # TODO: assign
+# net io-dout3-4 => lcec.0.io-dout3.dout-4   # TODO: assign
+# net io-dout3-5 => lcec.0.io-dout3.dout-5   # TODO: assign
+# net io-dout3-6 => lcec.0.io-dout3.dout-6   # TODO: assign
+# net io-dout3-7 => lcec.0.io-dout3.dout-7   # TODO: assign
+
+# --- EL1808 #4 (digital inputs, slave idx 12) ---
+# net io-din4-0 <= lcec.0.io-din4.din-0   # TODO: assign
+# net io-din4-1 <= lcec.0.io-din4.din-1   # TODO: assign
+# net io-din4-2 <= lcec.0.io-din4.din-2   # TODO: assign
+# net io-din4-3 <= lcec.0.io-din4.din-3   # TODO: assign
+# net io-din4-4 <= lcec.0.io-din4.din-4   # TODO: assign
+# net io-din4-5 <= lcec.0.io-din4.din-5   # TODO: assign
+# net io-din4-6 <= lcec.0.io-din4.din-6   # TODO: assign
+# net io-din4-7 <= lcec.0.io-din4.din-7   # TODO: assign
+
+# --- EL2808 #4 (digital outputs, slave idx 13) ---
+# net io-dout4-0 => lcec.0.io-dout4.dout-0   # TODO: assign
+# net io-dout4-1 => lcec.0.io-dout4.dout-1   # TODO: assign
+# net io-dout4-2 => lcec.0.io-dout4.dout-2   # TODO: assign
+# net io-dout4-3 => lcec.0.io-dout4.dout-3   # TODO: assign
+# net io-dout4-4 => lcec.0.io-dout4.dout-4   # TODO: assign
+# net io-dout4-5 => lcec.0.io-dout4.dout-5   # TODO: assign
+# net io-dout4-6 => lcec.0.io-dout4.dout-6   # TODO: assign
+# net io-dout4-7 => lcec.0.io-dout4.dout-7   # TODO: assign
+
+# --- EL4032 (2-ch analog output, spindle 0-10V — slave idx 14) ---
+# Spindle speed wiring lives in ethercat.hal (net spindle-voltage-cmd), since
+# it's driven by spindle.0.speed-out-abs rather than a plain machine I/O net.
+# ao-1 is the terminal's second channel, unused here.
