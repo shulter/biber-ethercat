@@ -1,4 +1,4 @@
-# Vantage 33M bench config — dual X gantry servos via EtherCAT
+# Vantage 33M bench config — dual X gantry servos + Y axis servo via EtherCAT
 # Requires: lcec, cia402 HAL components
 
 loadrt [KINS]KINEMATICS
@@ -6,15 +6,17 @@ loadrt [EMCMOT]EMCMOT servo_period_nsec=[EMCMOT]SERVO_PERIOD num_joints=[KINS]JO
 
 loadusr -W lcec_conf ethercat-conf.xml
 loadrt lcec
-loadrt cia402 count=2
+loadrt cia402 count=3
 
 addf lcec.read-all            servo-thread
 addf cia402.0.read-all        servo-thread
 addf cia402.1.read-all        servo-thread
+addf cia402.2.read-all        servo-thread
 addf motion-command-handler   servo-thread
 addf motion-controller      servo-thread
 addf cia402.0.write-all       servo-thread
 addf cia402.1.write-all       servo-thread
+addf cia402.2.write-all       servo-thread
 addf lcec.write-all           servo-thread
 
 setp iocontrol.0.emc-enable-in 1
@@ -62,3 +64,24 @@ net x-right-drv-target-vel cia402.1.drv-target-velocity   => lcec.0.x-right.targ
 
 # Same home switch signal for tandem homing
 net x-home-sw => joint.1.home-sw-in
+
+# --- Y axis (single motor, ball screw via belt reduction) ---
+setp cia402.2.csp-mode 1
+setp cia402.2.pos-scale [JOINT_2]CIA402_POS_SCALE
+
+net y-enable     <= joint.2.amp-enable-out => cia402.2.enable
+net y-amp-fault  => joint.2.amp-fault-in   <= cia402.2.drv-fault
+net y-pos-cmd    <= joint.2.motor-pos-cmd  => cia402.2.pos-cmd
+net y-pos-fb     => joint.2.motor-pos-fb   <= cia402.2.pos-fb
+
+net y-statusword     lcec.0.y.status-word      => cia402.2.statusword
+net y-opmode-display lcec.0.y.mode-display     => cia402.2.opmode-display
+net y-drv-act-pos    lcec.0.y.actual-position  => cia402.2.drv-actual-position
+net y-drv-act-vel    lcec.0.y.actual-velocity  => cia402.2.drv-actual-velocity
+
+net y-controlword    cia402.2.controlword           => lcec.0.y.control-word
+net y-opmode         cia402.2.opmode                => lcec.0.y.control-mode
+net y-drv-target-pos cia402.2.drv-target-position   => lcec.0.y.target-position
+net y-drv-target-vel cia402.2.drv-target-velocity   => lcec.0.y.target-velocity
+
+net y-home-sw => joint.2.home-sw-in <= lcec.0.y.home-switch
