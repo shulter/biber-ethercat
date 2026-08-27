@@ -1,0 +1,64 @@
+# Vantage 33M bench config — dual X gantry servos via EtherCAT
+# Requires: lcec, cia402 HAL components
+
+loadrt [KINS]KINEMATICS
+loadrt [EMCMOT]EMCMOT servo_period_nsec=[EMCMOT]SERVO_PERIOD num_joints=[KINS]JOINTS
+
+loadusr -W lcec_conf ethercat-conf.xml
+loadrt lcec
+loadrt cia402 count=2
+
+addf lcec.read-all            servo-thread
+addf cia402.0.read-all        servo-thread
+addf cia402.1.read-all        servo-thread
+addf motion-command-handler   servo-thread
+addf motion-controller      servo-thread
+addf cia402.0.write-all       servo-thread
+addf cia402.1.write-all       servo-thread
+addf lcec.write-all           servo-thread
+
+setp iocontrol.0.emc-enable-in 1
+
+# --- X gantry left (joint 0) ---
+setp cia402.0.csp-mode 1
+setp cia402.0.pos-scale [JOINT_0]CIA402_POS_SCALE
+
+net x-left-enable     <= joint.0.amp-enable-out => cia402.0.enable
+net x-left-amp-fault  => joint.0.amp-fault-in   <= cia402.0.drv-fault
+net x-left-pos-cmd    <= joint.0.motor-pos-cmd  => cia402.0.pos-cmd
+net x-left-pos-fb     => joint.0.motor-pos-fb   <= cia402.0.pos-fb
+
+net x-left-statusword     lcec.0.x-left.status-word      => cia402.0.statusword
+net x-left-opmode-display lcec.0.x-left.mode-display     => cia402.0.opmode-display
+net x-left-drv-act-pos    lcec.0.x-left.actual-position  => cia402.0.drv-actual-position
+net x-left-drv-act-vel    lcec.0.x-left.actual-velocity  => cia402.0.drv-actual-velocity
+
+net x-left-controlword    cia402.0.controlword           => lcec.0.x-left.control-word
+net x-left-opmode         cia402.0.opmode                => lcec.0.x-left.control-mode
+net x-left-drv-target-pos cia402.0.drv-target-position   => lcec.0.x-left.target-position
+net x-left-drv-target-vel cia402.0.drv-target-velocity   => lcec.0.x-left.target-velocity
+
+# Home switch — wire to x-left drive DI; shared by both gantry joints
+net x-home-sw => joint.0.home-sw-in <= lcec.0.x-left.home-switch
+
+# --- X gantry right (joint 1) ---
+setp cia402.1.csp-mode 1
+setp cia402.1.pos-scale [JOINT_1]CIA402_POS_SCALE
+
+net x-right-enable     <= joint.1.amp-enable-out => cia402.1.enable
+net x-right-amp-fault  => joint.1.amp-fault-in   <= cia402.1.drv-fault
+net x-right-pos-cmd    <= joint.1.motor-pos-cmd  => cia402.1.pos-cmd
+net x-right-pos-fb     => joint.1.motor-pos-fb   <= cia402.1.pos-fb
+
+net x-right-statusword     lcec.0.x-right.status-word      => cia402.1.statusword
+net x-right-opmode-display lcec.0.x-right.mode-display     => cia402.1.opmode-display
+net x-right-drv-act-pos    lcec.0.x-right.actual-position  => cia402.1.drv-actual-position
+net x-right-drv-act-vel    lcec.0.x-right.actual-velocity  => cia402.1.drv-actual-velocity
+
+net x-right-controlword    cia402.1.controlword           => lcec.0.x-right.control-word
+net x-right-opmode         cia402.1.opmode                => lcec.0.x-right.control-mode
+net x-right-drv-target-pos cia402.1.drv-target-position   => lcec.0.x-right.target-position
+net x-right-drv-target-vel cia402.1.drv-target-velocity   => lcec.0.x-right.target-velocity
+
+# Same home switch signal for tandem homing
+net x-home-sw => joint.1.home-sw-in
