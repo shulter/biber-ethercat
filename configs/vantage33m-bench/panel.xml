@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Vantage 33M bench config — PyVCP panel. AXIS renders this in the pane to
+  the right of the g-code preview automatically (see [DISPLAY] PYVCP in
+  vantage33m-bench.ini) — no separate tab, no embedding setup needed.
+
+  Shows live servo torque for the 3 bench servos: a bar graph (0-12 Nm) plus
+  a numeric readout for each. See postgui.hal for the HAL wiring.
+
+  Written by hand, not exported from a PyVCP designer, and hasn't been loaded
+  in a real AXIS/PyVCP yet. Tag names (bar, min_, max_, halpin, text, number,
+  format) match the LinuxCNC Integrator's Manual "PyVCP" chapter as best
+  recalled — if AXIS fails to parse this file on load, check that chapter and
+  adjust tag names/nesting from there.
+-->
+<pyvcp>
+
+<labelframe text="Servo Torque">
+<vbox>
+
+<label>
+  <text>"X Left Torque (Nm)"</text>
+</label>
+<bar>
+  <halpin>"x-left-torque"</halpin>
+  <min_>0</min_>
+  <max_>12</max_>
+</bar>
+<number>
+  <halpin>"x-left-torque-num"</halpin>
+  <format>"%6.2f Nm"</format>
+</number>
+
+<label>
+  <text>"X Right Torque (Nm)"</text>
+</label>
+<bar>
+  <halpin>"x-right-torque"</halpin>
+  <min_>0</min_>
+  <max_>12</max_>
+</bar>
+<number>
+  <halpin>"x-right-torque-num"</halpin>
+  <format>"%6.2f Nm"</format>
+</number>
+
+<label>
+  <text>"Y Torque (Nm)"</text>
+</label>
+<bar>
+  <halpin>"y-torque"</halpin>
+  <min_>0</min_>
+  <max_>12</max_>
+</bar>
+<number>
+  <halpin>"y-torque-num"</halpin>
+  <format>"%6.2f Nm"</format>
+</number>
+
+</vbox>
+</labelframe>
+
+</pyvcp>

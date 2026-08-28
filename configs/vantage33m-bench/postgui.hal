@@ -1,8 +1,8 @@
-# Vantage 33M bench config — postgui HAL: wiring for the embedded GladeVCP
-# torque panel (panel.glade). Loaded via [HAL] POSTGUI_HALFILE, which runs
-# after the AXIS GUI (and its embedded GladeVCP tab, component name
-# "torquemeters") has started — the torquemeters.* pins created by the
-# panel's widgets don't exist until then, so this can't live in ethercat.hal.
+# Vantage 33M bench config — postgui HAL: wiring for the PyVCP torque panel
+# (panel.xml). Loaded via [HAL] POSTGUI_HALFILE, which runs after the AXIS
+# GUI (and its PyVCP panel, component name "pyvcp") has started — the
+# pyvcp.* pins created by the panel's widgets don't exist until then, so
+# this can't live in ethercat.hal.
 #
 # 6077h "torque actual value" (the actual-torque PDO entry mapped in
 # ethercat-conf.xml) is CiA402-standard units: 0.1% of rated torque, raw
@@ -33,6 +33,7 @@ net x-left-torque-f   x-left-torque-conv.out  => x-left-torque-scale.in
 net x-right-torque-f  x-right-torque-conv.out => x-right-torque-scale.in
 net y-torque-f        y-torque-conv.out       => y-torque-scale.in
 
-net x-left-torque-nm   x-left-torque-scale.out  => torquemeters.x-left-torque
-net x-right-torque-nm  x-right-torque-scale.out => torquemeters.x-right-torque
-net y-torque-nm        y-torque-scale.out       => torquemeters.y-torque
+# Each net fans out to both the bar and the numeric readout for that servo.
+net x-left-torque-nm   x-left-torque-scale.out  => pyvcp.x-left-torque  pyvcp.x-left-torque-num
+net x-right-torque-nm  x-right-torque-scale.out => pyvcp.x-right-torque pyvcp.x-right-torque-num
+net y-torque-nm        y-torque-scale.out       => pyvcp.y-torque       pyvcp.y-torque-num
