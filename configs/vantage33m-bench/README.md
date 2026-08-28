@@ -44,8 +44,14 @@ gantry, plus one on the Y axis.
 | Soft limits (Y) | 0–500 mm | 0–1651 mm |
 | Max velocity | 200 mm/s | 1215 mm/s (X) / 967 mm/s (Y) |
 | Max acceleration | 500 mm/s² | 5000 mm/s² |
+| Max jerk | 5000 mm/s³ | 50000 mm/s³ |
 | NO_FORCE_HOMING | 1 | 0 |
 | Joints | 3 (XXY) | 4 (XXYZ) |
+
+This config uses LinuxCNC's jerk-limited (S-curve) trajectory planner: `MAX_JERK` is set at
+`[TRAJ]`, each `[AXIS_x]`, and each `[JOINT_n]` (10× `MAX_ACCELERATION`, see
+`docs/kinematics.md`). It requires a LinuxCNC build with S-curve TP support — if `MAX_JERK` isn't
+recognized by your build, remove those lines to fall back to the trapezoidal planner.
 
 ## Troubleshooting
 

@@ -78,10 +78,16 @@ the `[DISPLAY]` `*_SPINDLE_0_*` settings in `biber3ax.ini`.
 | Soft limits | 0–3780 mm | 0–1651 mm | -155–0 mm |
 | Max velocity | 1215 mm/s | 967 mm/s | 250 mm/s |
 | Max acceleration | 5000 mm/s² | 5000 mm/s² | 5000 mm/s² |
+| Max jerk | 50000 mm/s³ | 50000 mm/s³ | 50000 mm/s³ |
 | pos-scale | 10434.4 | 13107.2 | 26214.4 |
 | Home direction | toward 0 (min) | toward 0 (min) | toward 0 (max, top) |
 
 `NO_FORCE_HOMING = 0` — home switches must be wired and homing completed before jogging.
+
+This config uses LinuxCNC's jerk-limited (S-curve) trajectory planner: `MAX_JERK` is set at
+`[TRAJ]`, each `[AXIS_x]`, and each `[JOINT_n]` (10× the axis's `MAX_ACCELERATION`, see
+`docs/kinematics.md`). It requires a LinuxCNC build with S-curve TP support — if `MAX_JERK` isn't
+recognized by your build, remove those lines to fall back to the trapezoidal planner.
 
 ## Troubleshooting
 

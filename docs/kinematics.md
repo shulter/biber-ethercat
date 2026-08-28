@@ -47,6 +47,21 @@ All axes use 17-bit encoders: **131072 counts/rev** at the motor shaft.
 | Max travel | **155 mm** |
 | Max acceleration | **5000 mm/s²** |
 
+## Jerk Limiting (S-curve Trajectory Planner)
+
+`MAX_JERK` enables LinuxCNC's jerk-limited trajectory planner, which rounds the trapezoidal
+velocity profile into an S-curve. Convention used here: **MAX_JERK = 10 × MAX_ACCELERATION**
+(i.e. accel ramps to full value in ~0.1 s). All axes share the same MAX_ACCELERATION (5000 mm/s²),
+so all axes share the same jerk:
+
+| Parameter | Full machine (`biber3ax.ini`) | Bench (`vantage33m-bench.ini`) |
+|-----------|-------------------------------|--------------------------------|
+| MAX_ACCELERATION (all axes) | 5000 mm/s² | 500 mm/s² |
+| **MAX_JERK (all axes)** | **50000 mm/s³** | **5000 mm/s³** |
+
+Set at `[TRAJ]`, each `[AXIS_x]`, and each `[JOINT_n]` in both configs. If retuning
+`MAX_ACCELERATION` for an axis, recompute its `MAX_JERK` at the same 10× ratio.
+
 ## Gantry Homing
 
 The Vantage 33M has a **single home switch** for the X gantry. Both gantry servos share it:
