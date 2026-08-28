@@ -61,8 +61,11 @@ net x-right-torque-nm  x-right-torque-scale.out => pyvcp.x-right-torque
 net y-torque-nm        y-torque-scale.out       => pyvcp.y-torque
 
 # --- Speed (X left, Y — RPM, absolute value) ---
-net x-left-vel-raw <= lcec.0.x-left.actual-velocity => x-left-vel-conv.in
-net y-vel-raw      <= lcec.0.y.actual-velocity      => y-vel-conv.in
+# actual-velocity is already netted to cia402 in ethercat.hal (a HAL pin can
+# only belong to one signal), so tap the existing signal name here instead
+# of re-sourcing lcec.0.<name>.actual-velocity.
+net x-left-drv-act-vel => x-left-vel-conv.in
+net y-drv-act-vel      => y-vel-conv.in
 
 net x-left-vel-f x-left-vel-conv.out => x-left-vel-scale.in
 net y-vel-f      y-vel-conv.out      => y-vel-scale.in
