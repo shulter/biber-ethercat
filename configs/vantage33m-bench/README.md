@@ -55,20 +55,24 @@ This config uses LinuxCNC's jerk-limited (S-curve) trajectory planner: `MAX_JERK
 `docs/kinematics.md`). It requires a LinuxCNC build with S-curve TP support — if `MAX_JERK` isn't
 recognized by your build, remove those lines to fall back to the trapezoidal planner.
 
-## Servo Torque Panel
+## Servo Torque / Speed Panel
 
 A PyVCP panel (`[DISPLAY] PYVCP = panel.xml`) renders in the pane beside the g-code preview — no
-separate tab, no embedding setup. It shows, per servo (X left, X right, Y): a bidirectional bar graph
-(-10 to 0 to +10 Nm — empty at 0, red toward negative, green toward positive) and a numeric readout, fed
-live from each drive's `actual-torque` PDO (6077h, CiA402-standard 0.1%-of-rated-torque, signed). 12 Nm
-is assumed to be the A6/SV660N's rated torque (100% = 1000 raw counts) — verify against the datasheet
-and adjust `postgui.hal`'s `*-torque-scale.gain` (currently 0.012 Nm/count) if it differs; the bar's
-±10 Nm range is just the display window and will clip values beyond it, the numeric readout won't.
+separate tab, no embedding setup. It has two groups:
+
+- **Servo Torque** — per servo (X left, X right, Y): a bidirectional bar graph (-10 to 0 to +10 Nm —
+  empty at 0, red toward negative, green toward positive), fed live from each drive's `actual-torque`
+  PDO (6077h, CiA402-standard 0.1%-of-rated-torque, signed). 12 Nm is assumed to be the A6/SV660N's
+  rated torque (100% = 1000 raw counts) — verify against the datasheet and adjust `postgui.hal`'s
+  `*-torque-scale.gain` (currently 0.012 Nm/count) if it differs; the bar's ±10 Nm range is just the
+  display window and will clip values beyond it.
+- **Servo Speed** — X left and Y only: a 0-6000 RPM bar showing absolute speed, fed from each drive's
+  `actual-velocity` PDO (606Ch). Assumed raw units are encoder counts/s (131072 counts/rev, no SI
+  velocity object configured) — RPM = counts/s × 60/131072 — verify this against the A6/SV660N drive
+  parameters; if wrong, `postgui.hal`'s `*-vel-scale.gain` (currently 0.00045777) needs correcting.
 
 The panel's HAL pins (`pyvcp.*`) don't exist until the PyVCP panel has loaded, so their wiring lives in
-`postgui.hal` (loaded via `[HAL] POSTGUI_HALFILE`), not `ethercat.hal`. Each torque signal fans out to
-two pins — `pyvcp.<axis>-torque` (bar) and `pyvcp.<axis>-torque-num` (numeric readout) — since a PyVCP
-widget's `halpin` name must be unique per widget.
+`postgui.hal` (loaded via `[HAL] POSTGUI_HALFILE`), not `ethercat.hal`.
 
 `panel.xml` was hand-written, not exported from a PyVCP designer, but its tag structure (`bar`, `number`,
 `min_`/`max_`, `halpin`, `format`, `labelframe`) has been confirmed working against a real AXIS/PyVCP.

@@ -33,7 +33,40 @@ net x-left-torque-f   x-left-torque-conv.out  => x-left-torque-scale.in
 net x-right-torque-f  x-right-torque-conv.out => x-right-torque-scale.in
 net y-torque-f        y-torque-conv.out       => y-torque-scale.in
 
-# Each net fans out to both the bar and the numeric readout for that servo.
-net x-left-torque-nm   x-left-torque-scale.out  => pyvcp.x-left-torque  pyvcp.x-left-torque-num
-net x-right-torque-nm  x-right-torque-scale.out => pyvcp.x-right-torque pyvcp.x-right-torque-num
-net y-torque-nm        y-torque-scale.out       => pyvcp.y-torque       pyvcp.y-torque-num
+net x-left-torque-nm   x-left-torque-scale.out  => pyvcp.x-left-torque
+net x-right-torque-nm  x-right-torque-scale.out => pyvcp.x-right-torque
+net y-torque-nm        y-torque-scale.out       => pyvcp.y-torque
+
+# --- Servo speed (X left, Y — RPM, absolute value) ---
+# 606Ch "velocity actual value" raw units are encoder counts/s (device
+# default, no SI velocity object configured). RPM = counts/s * 60/131072
+# (131072 counts/rev, 17-bit encoder — see docs/kinematics.md). Verify this
+# raw-unit assumption against the A6/SV660N drive parameters; if the drive
+# reports SI-scaled velocity instead, the gain below is wrong.
+
+loadrt conv_s32_float names=x-left-vel-conv,y-vel-conv
+addf x-left-vel-conv servo-thread
+addf y-vel-conv      servo-thread
+
+loadrt scale names=x-left-vel-scale,y-vel-scale
+addf x-left-vel-scale servo-thread
+addf y-vel-scale      servo-thread
+
+setp x-left-vel-scale.gain 0.00045777
+setp y-vel-scale.gain      0.00045777
+
+loadrt abs names=x-left-vel-abs,y-vel-abs
+addf x-left-vel-abs servo-thread
+addf y-vel-abs      servo-thread
+
+net x-left-vel-raw <= lcec.0.x-left.actual-velocity => x-left-vel-conv.in
+net y-vel-raw      <= lcec.0.y.actual-velocity      => y-vel-conv.in
+
+net x-left-vel-f x-left-vel-conv.out => x-left-vel-scale.in
+net y-vel-f      y-vel-conv.out      => y-vel-scale.in
+
+net x-left-vel-rpm x-left-vel-scale.out => x-left-vel-abs.in
+net y-vel-rpm      y-vel-scale.out      => y-vel-abs.in
+
+net x-left-rpm-abs x-left-vel-abs.out => pyvcp.x-left-rpm
+net y-rpm-abs      y-vel-abs.out      => pyvcp.y-rpm

@@ -4,18 +4,18 @@
   the right of the g-code preview automatically (see [DISPLAY] PYVCP in
   vantage33m-bench.ini) — no separate tab, no embedding setup needed.
 
-  Shows live servo torque for the 3 bench servos: a bidirectional bar graph
-  (-10 to 0 to +10 Nm) plus a numeric readout for each. See postgui.hal for
-  the HAL wiring.
+  Shows live servo torque for the 3 bench servos (bidirectional bar, -10 to 0
+  to +10 Nm) and speed for X left / Y (absolute RPM, 0-6000). See postgui.hal
+  for the HAL wiring.
 
-  Written by hand, not exported from a PyVCP designer. Tag names (bar, min_,
-  max_, halpin, text, number, format) confirmed working against a real
-  AXIS/PyVCP. With min_ negative and max_ positive, PyVCP's stock bar widget
-  is assumed to fill from a center zero line — red toward min_, green toward
-  max_ — matching the red=negative/green=positive convention used elsewhere
-  in AXIS. If it doesn't color that way in practice, say so and this can be
-  redone as two stacked bars (a green 0..+10 bar fed by max(torque,0) and a
-  red 0..+10 bar fed by -min(torque,0)) instead.
+  Tag names (bar, min_, max_, halpin, text, labelframe) confirmed working
+  against a real AXIS/PyVCP. With min_ negative and max_ positive, PyVCP's
+  stock bar widget is assumed to fill from a center zero line — red toward
+  min_, green toward max_ — matching the red=negative/green=positive
+  convention used elsewhere in AXIS. If it doesn't color that way in
+  practice, say so and this can be redone as two stacked bars (a green
+  0..+10 bar fed by max(torque,0) and a red 0..+10 bar fed by
+  -min(torque,0)) instead.
 -->
 <pyvcp>
 
@@ -30,10 +30,6 @@
   <min_>-10</min_>
   <max_>10</max_>
 </bar>
-<number>
-  <halpin>"x-left-torque-num"</halpin>
-  <format>"6.2f Nm"</format>
-</number>
 
 <label>
   <text>"X Right Torque (Nm)"</text>
@@ -43,10 +39,6 @@
   <min_>-10</min_>
   <max_>10</max_>
 </bar>
-<number>
-  <halpin>"x-right-torque-num"</halpin>
-  <format>"6.2f Nm"</format>
-</number>
 
 <label>
   <text>"Y Torque (Nm)"</text>
@@ -56,10 +48,30 @@
   <min_>-10</min_>
   <max_>10</max_>
 </bar>
-<number>
-  <halpin>"y-torque-num"</halpin>
-  <format>"6.2f Nm"</format>
-</number>
+
+</vbox>
+</labelframe>
+
+<labelframe text="Servo Speed">
+<vbox>
+
+<label>
+  <text>"X Left Speed (RPM)"</text>
+</label>
+<bar>
+  <halpin>"x-left-rpm"</halpin>
+  <min_>0</min_>
+  <max_>6000</max_>
+</bar>
+
+<label>
+  <text>"Y Speed (RPM)"</text>
+</label>
+<bar>
+  <halpin>"y-rpm"</halpin>
+  <min_>0</min_>
+  <max_>6000</max_>
+</bar>
 
 </vbox>
 </labelframe>
