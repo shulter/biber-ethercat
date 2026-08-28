@@ -58,20 +58,23 @@ recognized by your build, remove those lines to fall back to the trapezoidal pla
 ## Servo Torque Panel
 
 A PyVCP panel (`[DISPLAY] PYVCP = panel.xml`) renders in the pane beside the g-code preview — no
-separate tab, no embedding setup. It shows, per servo (X left, X right, Y): a bar graph (0-12 Nm) and a
-numeric readout, fed live from each drive's `actual-torque` PDO (6077h, CiA402-standard
-0.1%-of-rated-torque units). 12 Nm is assumed to be the A6/SV660N's rated torque — verify against the
-datasheet and adjust `postgui.hal`'s `*-torque-scale.gain` (currently 0.012 Nm/count) if it differs.
+separate tab, no embedding setup. It shows, per servo (X left, X right, Y): a bidirectional bar graph
+(-10 to 0 to +10 Nm — empty at 0, red toward negative, green toward positive) and a numeric readout, fed
+live from each drive's `actual-torque` PDO (6077h, CiA402-standard 0.1%-of-rated-torque, signed). 12 Nm
+is assumed to be the A6/SV660N's rated torque (100% = 1000 raw counts) — verify against the datasheet
+and adjust `postgui.hal`'s `*-torque-scale.gain` (currently 0.012 Nm/count) if it differs; the bar's
+±10 Nm range is just the display window and will clip values beyond it, the numeric readout won't.
 
 The panel's HAL pins (`pyvcp.*`) don't exist until the PyVCP panel has loaded, so their wiring lives in
 `postgui.hal` (loaded via `[HAL] POSTGUI_HALFILE`), not `ethercat.hal`. Each torque signal fans out to
 two pins — `pyvcp.<axis>-torque` (bar) and `pyvcp.<axis>-torque-num` (numeric readout) — since a PyVCP
 widget's `halpin` name must be unique per widget.
 
-`panel.xml` was hand-written, not exported from a PyVCP designer, and hasn't been loaded in a real
-AXIS/PyVCP yet — if AXIS fails to parse it on startup, check the Integrator's Manual "PyVCP" chapter and
-correct the tag names/nesting (`bar`, `number`, `min_`/`max_`, `halpin`, `format`, `labelframe`) from
-there.
+`panel.xml` was hand-written, not exported from a PyVCP designer, but its tag structure (`bar`, `number`,
+`min_`/`max_`, `halpin`, `format`, `labelframe`) has been confirmed working against a real AXIS/PyVCP.
+The red/negative-green/positive coloring when `min_` is negative is an assumption about the stock `bar`
+widget's default fill behavior, not yet confirmed — if it doesn't render that way, this can be redone as
+two stacked 0..10 Nm bars (green fed by `max(torque,0)`, red fed by `-min(torque,0)`) instead.
 
 ## Troubleshooting
 
