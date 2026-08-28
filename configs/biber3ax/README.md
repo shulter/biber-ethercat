@@ -35,6 +35,8 @@ spindle (Beckhoff EL4032) are wired but commented out until that hardware is on 
 | `ethercat.hal` | lcec + cia402 wiring for the 4 servos, plus commented-out spindle (EL4032) wiring |
 | `io.hal` | Template for the Beckhoff digital I/O terminals — fully commented out |
 | `ethercat-conf.xml` | EtherCAT slave topology and PDO mapping — servos active, Beckhoff chain commented out |
+| `panel.glade` | GladeVCP panel embedded as an AXIS tab: 4x servo torque bars + spindle speed bar |
+| `postgui.hal` | HAL wiring for `panel.glade`'s pins (loaded after the GUI starts, see below) |
 | `tool.tbl` | Minimal tool table |
 
 ## EtherCAT Bus Order
@@ -70,6 +72,28 @@ Max speed 24000 RPM, controlled by a 0-10V analog signal on EL4032 channel 0. Wi
 `ethercat.hal` (commented out): `spindle.0.speed-out-abs` -> `scale` component (gain 10V/24000RPM =
 0.00041667) -> `lcec.0.spindle.ao-0`. Uncomment alongside the `spindle` slave in `ethercat-conf.xml` and
 the `[DISPLAY]` `*_SPINDLE_0_*` settings in `biber3ax.ini`.
+
+## Servo Torque / Spindle Speed Panel
+
+AXIS gets an extra "Servo Monitor" tab (`[DISPLAY] EMBED_TAB_*` in `biber3ax.ini`) showing:
+
+- **4x torque bars, 0-12 Nm** — one per servo (X left, X right, Y, Z), fed live from each drive's
+  `actual-torque` PDO (6077h, CiA402-standard 0.1%-of-rated-torque units). 12 Nm is assumed to be the
+  A6/SV660N's rated torque — verify against the datasheet and adjust `postgui.hal`'s `*-torque-scale.gain`
+  (currently 0.012 Nm/count) if it differs. This works today since the 4 servos are already active.
+- **1x spindle speed bar, 0-24000 RPM** — shows *commanded* speed (`spindle.0.speed-out-abs`), not
+  measured feedback — there's no spindle encoder in this design, only an open-loop 0-10V drive via the
+  EL4032. It works without the Beckhoff coupler on the bus, since `spindle.0.speed-out-abs` is a core
+  LinuxCNC motion pin, not hardware-dependent.
+
+The panel's HAL pins (`torquemeters.*`) don't exist until the GladeVCP tab has loaded, so their wiring
+lives in `postgui.hal` (loaded via `[HAL] POSTGUI_HALFILE`), not `ethercat.hal`.
+
+`panel.glade` was hand-written, not exported from Glade, and hasn't been loaded against a real
+`gladevcp` yet — if `gladevcp -c torquemeters panel.glade` errors on widget registration, open it in
+Glade with the HAL widget catalog loaded and correct the `HAL_Bar` class name/properties from there.
+Likewise double check `EMBED_TAB_LOCATION = notebook_mode` against the Integrator's Manual for your
+LinuxCNC version — the valid notebook names can differ across releases.
 
 ## Full Machine Settings
 

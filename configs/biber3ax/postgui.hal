@@ -1,0 +1,51 @@
+# Vantage 33M — postgui HAL: wiring for the embedded GladeVCP torque/spindle
+# panel (panel.glade). Loaded via [HAL] POSTGUI_HALFILE, which runs after the
+# AXIS GUI (and its embedded GladeVCP tab, component name "torquemeters") has
+# started — the torquemeters.* pins created by the panel's widgets don't
+# exist until then, so this can't live in ethercat.hal.
+#
+# 6077h "torque actual value" (the actual-torque PDO entry mapped in
+# ethercat-conf.xml) is CiA402-standard units: 0.1% of rated torque, raw
+# range -1000..1000 = -100%..100%. The bar graph's 12 Nm full scale is
+# assumed to be the A6/SV660N rated torque — verify against the drive
+# datasheet and adjust the *-torque-scale.gain values below if it differs.
+
+loadrt conv_s32_float names=x-left-torque-conv,x-right-torque-conv,y-torque-conv,z-torque-conv
+addf x-left-torque-conv  servo-thread
+addf x-right-torque-conv servo-thread
+addf y-torque-conv       servo-thread
+addf z-torque-conv       servo-thread
+
+loadrt scale names=x-left-torque-scale,x-right-torque-scale,y-torque-scale,z-torque-scale
+addf x-left-torque-scale  servo-thread
+addf x-right-torque-scale servo-thread
+addf y-torque-scale       servo-thread
+addf z-torque-scale       servo-thread
+
+# 12 Nm / 1000 (raw units at 100% rated torque) = 0.012 Nm per raw count
+setp x-left-torque-scale.gain  0.012
+setp x-right-torque-scale.gain 0.012
+setp y-torque-scale.gain       0.012
+setp z-torque-scale.gain       0.012
+
+net x-left-torque-raw   <= lcec.0.x-left.actual-torque  => x-left-torque-conv.in
+net x-right-torque-raw  <= lcec.0.x-right.actual-torque => x-right-torque-conv.in
+net y-torque-raw        <= lcec.0.y.actual-torque       => y-torque-conv.in
+net z-torque-raw        <= lcec.0.z.actual-torque       => z-torque-conv.in
+
+net x-left-torque-f   x-left-torque-conv.out  => x-left-torque-scale.in
+net x-right-torque-f  x-right-torque-conv.out => x-right-torque-scale.in
+net y-torque-f        y-torque-conv.out       => y-torque-scale.in
+net z-torque-f        z-torque-conv.out       => z-torque-scale.in
+
+net x-left-torque-nm   x-left-torque-scale.out  => torquemeters.x-left-torque
+net x-right-torque-nm  x-right-torque-scale.out => torquemeters.x-right-torque
+net y-torque-nm        y-torque-scale.out       => torquemeters.y-torque
+net z-torque-nm        z-torque-scale.out       => torquemeters.z-torque
+
+# Spindle speed display — commanded speed (net declared in ethercat.hal from
+# spindle.0.speed-out-abs), since this design has no spindle feedback device
+# (open-loop 0-10V drive via EL4032). Works without the Beckhoff coupler on
+# the bus; once the EL4032 section in ethercat.hal is uncommented it taps
+# this same net rather than re-sourcing the pin.
+net spindle-speed-cmd => torquemeters.spindle-speed

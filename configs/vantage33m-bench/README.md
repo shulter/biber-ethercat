@@ -34,6 +34,8 @@ gantry, plus one on the Y axis.
 | `vantage33m-bench.ini` | Machine parameters, joint limits, kinematics |
 | `ethercat.hal` | lcec + cia402 wiring for 3 servos |
 | `ethercat-conf.xml` | EtherCAT slave topology and PDO mapping |
+| `panel.glade` | GladeVCP panel embedded as an AXIS tab: 3x servo torque bars |
+| `postgui.hal` | HAL wiring for `panel.glade`'s pins (loaded after the GUI starts, see below) |
 | `tool.tbl` | Minimal tool table |
 
 ## Bench vs Machine Settings
@@ -52,6 +54,23 @@ This config uses LinuxCNC's jerk-limited (S-curve) trajectory planner: `MAX_JERK
 `[TRAJ]`, each `[AXIS_x]`, and each `[JOINT_n]` (10× `MAX_ACCELERATION`, see
 `docs/kinematics.md`). It requires a LinuxCNC build with S-curve TP support — if `MAX_JERK` isn't
 recognized by your build, remove those lines to fall back to the trapezoidal planner.
+
+## Servo Torque Panel
+
+AXIS gets an extra "Servo Monitor" tab (`[DISPLAY] EMBED_TAB_*` in `vantage33m-bench.ini`) with 3 torque
+bars (0-12 Nm, one per servo: X left, X right, Y), fed live from each drive's `actual-torque` PDO (6077h,
+CiA402-standard 0.1%-of-rated-torque units). 12 Nm is assumed to be the A6/SV660N's rated torque — verify
+against the datasheet and adjust `postgui.hal`'s `*-torque-scale.gain` (currently 0.012 Nm/count) if it
+differs.
+
+The panel's HAL pins (`torquemeters.*`) don't exist until the GladeVCP tab has loaded, so their wiring
+lives in `postgui.hal` (loaded via `[HAL] POSTGUI_HALFILE`), not `ethercat.hal`.
+
+`panel.glade` was hand-written, not exported from Glade, and hasn't been loaded against a real
+`gladevcp` yet — if `gladevcp -c torquemeters panel.glade` errors on widget registration, open it in
+Glade with the HAL widget catalog loaded and correct the `HAL_Bar` class name/properties from there.
+Likewise double check `EMBED_TAB_LOCATION = notebook_mode` against the Integrator's Manual for your
+LinuxCNC version — the valid notebook names can differ across releases.
 
 ## Troubleshooting
 

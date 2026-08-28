@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Vantage 33M — GladeVCP panel embedded as an AXIS tab (see [DISPLAY]
+  EMBED_TAB_* in biber3ax.ini). Shows live servo torque (4x A6, 0-12 Nm) and
+  commanded spindle speed (0-24000 RPM, EL4032 not required — see postgui.hal).
+
+  Written by hand, not exported from Glade. The HAL_Bar widget class name and
+  its min/max/text_template properties match the GladeVCP "HAL Bar" widget as
+  documented in the LinuxCNC Integrator's Manual, but this hasn't been loaded
+  in a real gladevcp yet. If `gladevcp -c torquemeters panel.glade` reports a
+  widget-registration error, open this file in Glade with the HAL widget
+  catalog loaded and fix the class name / properties from there.
+-->
+<interface>
+  <requires lib="gtk+" version="2.24"/>
+  <object class="GtkWindow" id="window1">
+    <property name="title" translatable="yes">Servo Torque / Spindle Speed</property>
+    <child>
+      <object class="GtkVBox" id="vbox1">
+        <property name="visible">True</property>
+        <property name="border_width">6</property>
+        <property name="spacing">4</property>
+
+        <child>
+          <object class="GtkLabel" id="label_x_left">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">X Left Torque (Nm)</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+          </packing>
+        </child>
+        <child>
+          <object class="HAL_Bar" id="x-left-torque">
+            <property name="visible">True</property>
+            <property name="width_request">220</property>
+            <property name="height_request">28</property>
+            <property name="min">0</property>
+            <property name="max">12</property>
+            <property name="text_template">%.1f Nm</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+          </packing>
+        </child>
+
+        <child>
+          <object class="GtkLabel" id="label_x_right">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">X Right Torque (Nm)</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+          </packing>
+        </child>
+        <child>
+          <object class="HAL_Bar" id="x-right-torque">
+            <property name="visible">True</property>
+            <property name="width_request">220</property>
+            <property name="height_request">28</property>
+            <property name="min">0</property>
+            <property name="max">12</property>
+            <property name="text_template">%.1f Nm</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+          </packing>
+        </child>
+
+        <child>
+          <object class="GtkLabel" id="label_y">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">Y Torque (Nm)</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+          </packing>
+        </child>
+        <child>
+          <object class="HAL_Bar" id="y-torque">
+            <property name="visible">True</property>
+            <property name="width_request">220</property>
+            <property name="height_request">28</property>
+            <property name="min">0</property>
+            <property name="max">12</property>
+            <property name="text_template">%.1f Nm</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+          </packing>
+        </child>
+
+        <child>
+          <object class="GtkLabel" id="label_z">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">Z Torque (Nm)</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+          </packing>
+        </child>
+        <child>
+          <object class="HAL_Bar" id="z-torque">
+            <property name="visible">True</property>
+            <property name="width_request">220</property>
+            <property name="height_request">28</property>
+            <property name="min">0</property>
+            <property name="max">12</property>
+            <property name="text_template">%.1f Nm</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+          </packing>
+        </child>
+
+        <child>
+          <object class="GtkHSeparator" id="sep1">
+            <property name="visible">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">4</property>
+          </packing>
+        </child>
+
+        <child>
+          <object class="GtkLabel" id="label_spindle">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">Spindle Speed (RPM, commanded)</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+          </packing>
+        </child>
+        <child>
+          <object class="HAL_Bar" id="spindle-speed">
+            <property name="visible">True</property>
+            <property name="width_request">220</property>
+            <property name="height_request">28</property>
+            <property name="min">0</property>
+            <property name="max">24000</property>
+            <property name="text_template">%.0f RPM</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+          </packing>
+        </child>
+
+      </object>
+    </child>
+  </object>
+</interface>
