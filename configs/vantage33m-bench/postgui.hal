@@ -4,27 +4,50 @@
 # pyvcp.* pins created by the panel's widgets don't exist until then, so
 # this can't live in ethercat.hal.
 #
+# Each realtime component (conv_s32_float, scale, abs) can only be loadrt'd
+# once per HAL session, even with multiple named instances — all torque and
+# speed instances of a given component are loaded together below, not in
+# separate loadrt calls per signal group.
+#
 # 6077h "torque actual value" (the actual-torque PDO entry mapped in
 # ethercat-conf.xml) is CiA402-standard units: 0.1% of rated torque, raw
 # range -1000..1000 = -100%..100%. The bar graph's 12 Nm full scale is
 # assumed to be the A6/SV660N rated torque — verify against the drive
 # datasheet and adjust the *-torque-scale.gain values below if it differs.
+#
+# 606Ch "velocity actual value" raw units are assumed to be encoder counts/s
+# (device default, no SI velocity object configured). RPM = counts/s *
+# 60/131072 (131072 counts/rev, 17-bit encoder — see docs/kinematics.md).
+# Verify this against the A6/SV660N drive parameters; if the drive reports
+# SI-scaled velocity instead, the *-vel-scale.gain values below are wrong.
 
-loadrt conv_s32_float names=x-left-torque-conv,x-right-torque-conv,y-torque-conv
+loadrt conv_s32_float names=x-left-torque-conv,x-right-torque-conv,y-torque-conv,x-left-vel-conv,y-vel-conv
 addf x-left-torque-conv  servo-thread
 addf x-right-torque-conv servo-thread
 addf y-torque-conv       servo-thread
+addf x-left-vel-conv     servo-thread
+addf y-vel-conv          servo-thread
 
-loadrt scale names=x-left-torque-scale,x-right-torque-scale,y-torque-scale
+loadrt scale names=x-left-torque-scale,x-right-torque-scale,y-torque-scale,x-left-vel-scale,y-vel-scale
 addf x-left-torque-scale  servo-thread
 addf x-right-torque-scale servo-thread
 addf y-torque-scale       servo-thread
+addf x-left-vel-scale     servo-thread
+addf y-vel-scale          servo-thread
+
+loadrt abs names=x-left-vel-abs,y-vel-abs
+addf x-left-vel-abs servo-thread
+addf y-vel-abs      servo-thread
 
 # 12 Nm / 1000 (raw units at 100% rated torque) = 0.012 Nm per raw count
 setp x-left-torque-scale.gain  0.012
 setp x-right-torque-scale.gain 0.012
 setp y-torque-scale.gain       0.012
 
+setp x-left-vel-scale.gain 0.00045777
+setp y-vel-scale.gain      0.00045777
+
+# --- Torque (X left, X right, Y — Nm, signed) ---
 net x-left-torque-raw   <= lcec.0.x-left.actual-torque  => x-left-torque-conv.in
 net x-right-torque-raw  <= lcec.0.x-right.actual-torque => x-right-torque-conv.in
 net y-torque-raw        <= lcec.0.y.actual-torque       => y-torque-conv.in
@@ -37,28 +60,7 @@ net x-left-torque-nm   x-left-torque-scale.out  => pyvcp.x-left-torque
 net x-right-torque-nm  x-right-torque-scale.out => pyvcp.x-right-torque
 net y-torque-nm        y-torque-scale.out       => pyvcp.y-torque
 
-# --- Servo speed (X left, Y — RPM, absolute value) ---
-# 606Ch "velocity actual value" raw units are encoder counts/s (device
-# default, no SI velocity object configured). RPM = counts/s * 60/131072
-# (131072 counts/rev, 17-bit encoder — see docs/kinematics.md). Verify this
-# raw-unit assumption against the A6/SV660N drive parameters; if the drive
-# reports SI-scaled velocity instead, the gain below is wrong.
-
-loadrt conv_s32_float names=x-left-vel-conv,y-vel-conv
-addf x-left-vel-conv servo-thread
-addf y-vel-conv      servo-thread
-
-loadrt scale names=x-left-vel-scale,y-vel-scale
-addf x-left-vel-scale servo-thread
-addf y-vel-scale      servo-thread
-
-setp x-left-vel-scale.gain 0.00045777
-setp y-vel-scale.gain      0.00045777
-
-loadrt abs names=x-left-vel-abs,y-vel-abs
-addf x-left-vel-abs servo-thread
-addf y-vel-abs      servo-thread
-
+# --- Speed (X left, Y — RPM, absolute value) ---
 net x-left-vel-raw <= lcec.0.x-left.actual-velocity => x-left-vel-conv.in
 net y-vel-raw      <= lcec.0.y.actual-velocity      => y-vel-conv.in
 
