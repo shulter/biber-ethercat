@@ -1,0 +1,152 @@
+<masters>
+    <master idx="0" appTimePeriod="1000000" refClockSyncCycles="1">
+        <!-- StepperOnline A6 (OEM Inovance SV660N) — X axis -->
+        <slave idx="0" type="generic" vid="00400000" pid="00000715" configPdos="true" name="x">
+            <dcConf assignActivate="300" sync0Cycle="*1" sync0Shift="25000" />
+            <watchdog divider="2498" intervals="1000" />
+            <syncManager idx="2" dir="out">
+                <pdo idx="1600">
+                    <pdoEntry idx="6040" subIdx="00" bitLen="16" halPin="control-word" halType="u32" />
+                    <pdoEntry idx="6060" subIdx="00" bitLen="8" halPin="control-mode" halType="s32" />
+                    <pdoEntry idx="607A" subIdx="00" bitLen="32" halPin="target-position" halType="s32" />
+                    <pdoEntry idx="60FF" subIdx="00" bitLen="32" halPin="target-velocity" halType="s32"/>
+                    <pdoEntry idx="607C" subIdx="00" bitLen="32" halPin="home-offset" halType="s32"/>
+                    <pdoEntry idx="6098" subIdx="00" bitLen="8" halPin="homing-method" halType="s32" />
+                    <pdoEntry idx="6099" subIdx="01" bitLen="32" halPin="homing-high-velocity" halType="u32"/>
+                    <pdoEntry idx="6099" subIdx="02" bitLen="32" halPin="homing-low-velocity" halType="u32"/>
+                    <pdoEntry idx="609A" subIdx="00" bitLen="32" halPin="homing-acceleration" halType="u32"/>
+                </pdo>
+            </syncManager>
+            <syncManager idx="3" dir="in">
+                <pdo idx="1A00">
+                    <pdoEntry idx="6041" subIdx="00" bitLen="16" halPin="status-word" halType="u32" />
+                    <pdoEntry idx="6061" subIdx="00" bitLen="8" halPin="mode-display" halType="s32" />
+                    <pdoEntry idx="6064" subIdx="00" bitLen="32" halPin="actual-position" halType="s32" />
+                    <pdoEntry idx="606C" subIdx="00" bitLen="32" halPin="actual-velocity" halType="s32"/>
+                    <pdoEntry idx="6077" subIdx="00" bitLen="16" halPin="actual-torque" halType="s32"/>
+                    <pdoEntry idx="60FD" subIdx="0" bitLen="32" halType="complex">
+                        <complexEntry bitLen="1" halPin="neg-limit" halType="bit"/>
+                        <complexEntry bitLen="1" halPin="pos-limit" halType="bit"/>
+                        <complexEntry bitLen="1" halPin="home-switch" halType="bit"/>
+                        <complexEntry bitLen="29"/>
+                    </pdoEntry>
+                </pdo>
+            </syncManager>
+        </slave>
+
+        <!-- StepperOnline A6 — Z axis -->
+        <slave idx="1" type="generic" vid="00400000" pid="00000715" configPdos="true" name="z">
+            <dcConf assignActivate="300" sync0Cycle="*1" sync0Shift="25000" />
+            <watchdog divider="2498" intervals="1000" />
+            <syncManager idx="2" dir="out">
+                <pdo idx="1600">
+                    <pdoEntry idx="6040" subIdx="00" bitLen="16" halPin="control-word" halType="u32" />
+                    <pdoEntry idx="6060" subIdx="00" bitLen="8" halPin="control-mode" halType="s32" />
+                    <pdoEntry idx="607A" subIdx="00" bitLen="32" halPin="target-position" halType="s32" />
+                    <pdoEntry idx="60FF" subIdx="00" bitLen="32" halPin="target-velocity" halType="s32"/>
+                    <pdoEntry idx="607C" subIdx="00" bitLen="32" halPin="home-offset" halType="s32"/>
+                    <pdoEntry idx="6098" subIdx="00" bitLen="8" halPin="homing-method" halType="s32" />
+                    <pdoEntry idx="6099" subIdx="01" bitLen="32" halPin="homing-high-velocity" halType="u32"/>
+                    <pdoEntry idx="6099" subIdx="02" bitLen="32" halPin="homing-low-velocity" halType="u32"/>
+                    <pdoEntry idx="609A" subIdx="00" bitLen="32" halPin="homing-acceleration" halType="u32"/>
+                </pdo>
+            </syncManager>
+            <syncManager idx="3" dir="in">
+                <pdo idx="1A00">
+                    <pdoEntry idx="6041" subIdx="00" bitLen="16" halPin="status-word" halType="u32" />
+                    <pdoEntry idx="6061" subIdx="00" bitLen="8" halPin="mode-display" halType="s32" />
+                    <pdoEntry idx="6064" subIdx="00" bitLen="32" halPin="actual-position" halType="s32" />
+                    <pdoEntry idx="606C" subIdx="00" bitLen="32" halPin="actual-velocity" halType="s32"/>
+                    <pdoEntry idx="6077" subIdx="00" bitLen="16" halPin="actual-torque" halType="s32"/>
+                    <pdoEntry idx="60FD" subIdx="0" bitLen="32" halType="complex">
+                        <complexEntry bitLen="1" halPin="neg-limit" halType="bit"/>
+                        <complexEntry bitLen="1" halPin="pos-limit" halType="bit"/>
+                        <complexEntry bitLen="1" halPin="home-switch" halType="bit"/>
+                        <complexEntry bitLen="29"/>
+                    </pdoEntry>
+                </pdo>
+            </syncManager>
+        </slave>
+
+        <!-- StepperOnline A6 — Y axis -->
+        <slave idx="2" type="generic" vid="00400000" pid="00000715" configPdos="true" name="y">
+            <dcConf assignActivate="300" sync0Cycle="*1" sync0Shift="25000" />
+            <watchdog divider="2498" intervals="1000" />
+            <syncManager idx="2" dir="out">
+                <pdo idx="1600">
+                    <pdoEntry idx="6040" subIdx="00" bitLen="16" halPin="control-word" halType="u32" />
+                    <pdoEntry idx="6060" subIdx="00" bitLen="8" halPin="control-mode" halType="s32" />
+                    <pdoEntry idx="607A" subIdx="00" bitLen="32" halPin="target-position" halType="s32" />
+                    <pdoEntry idx="60FF" subIdx="00" bitLen="32" halPin="target-velocity" halType="s32"/>
+                    <pdoEntry idx="607C" subIdx="00" bitLen="32" halPin="home-offset" halType="s32"/>
+                    <pdoEntry idx="6098" subIdx="00" bitLen="8" halPin="homing-method" halType="s32" />
+                    <pdoEntry idx="6099" subIdx="01" bitLen="32" halPin="homing-high-velocity" halType="u32"/>
+                    <pdoEntry idx="6099" subIdx="02" bitLen="32" halPin="homing-low-velocity" halType="u32"/>
+                    <pdoEntry idx="609A" subIdx="00" bitLen="32" halPin="homing-acceleration" halType="u32"/>
+                </pdo>
+            </syncManager>
+            <syncManager idx="3" dir="in">
+                <pdo idx="1A00">
+                    <pdoEntry idx="6041" subIdx="00" bitLen="16" halPin="status-word" halType="u32" />
+                    <pdoEntry idx="6061" subIdx="00" bitLen="8" halPin="mode-display" halType="s32" />
+                    <pdoEntry idx="6064" subIdx="00" bitLen="32" halPin="actual-position" halType="s32" />
+                    <pdoEntry idx="606C" subIdx="00" bitLen="32" halPin="actual-velocity" halType="s32"/>
+                    <pdoEntry idx="6077" subIdx="00" bitLen="16" halPin="actual-torque" halType="s32"/>
+                    <pdoEntry idx="60FD" subIdx="0" bitLen="32" halType="complex">
+                        <complexEntry bitLen="1" halPin="neg-limit" halType="bit"/>
+                        <complexEntry bitLen="1" halPin="pos-limit" halType="bit"/>
+                        <complexEntry bitLen="1" halPin="home-switch" halType="bit"/>
+                        <complexEntry bitLen="29"/>
+                    </pdoEntry>
+                </pdo>
+            </syncManager>
+        </slave>
+
+        <!--
+        Beckhoff I/O chain, confirmed against the real bus via
+        `sudo ethercat slaves` (idx must exactly match its position column —
+        a mismatch here causes "Failed to register PDO entry: No such file
+        or directory" since the master maps the wrong device's PDOs onto that
+        position). EK1100 is a pure passthrough coupler (no process data, no
+        PDO mapping, no HAL pins). Standard Beckhoff terminals are recognized
+        by lcec via their part number as the "type" attribute, no manual
+        vid/pid/PDO mapping needed. HAL wiring for the EL1808/EL2808/EL1018
+        terminals is in io.hal; the EL4032 is wired in ethercat.hal (spindle
+        analog out).
+
+        Position 8 (EL9110, E-bus power feed) is intentionally NOT declared
+        below. It has zero process data — nothing to configure or control —
+        and this lcec build doesn't recognize "EL9110" as a known type, so
+        declaring it as "generic" without vid/pid caused the master to fail
+        identifying that bus position ("Failed to register PDO entry: No
+        such file or directory"), which aborted the whole master's config.
+        EtherCAT is a ring bus: frames pass through every physical device
+        whether or not lcec's config declares it, so an undeclared position
+        is fine for a terminal with nothing to wire — idx values below are
+        real bus positions, not a sequential list index, so the gap at 8 is
+        expected. `sudo ethercat slaves` will still show it at position 8.
+        -->
+        <slave idx="3" type="EK1100" name="ek1100"/>
+
+        <slave idx="4" type="EL1808" name="io-din1"/>
+        <slave idx="5" type="EL2808" name="io-dout1"/>
+        <slave idx="6" type="EL1808" name="io-din2"/>
+        <slave idx="7" type="EL2808" name="io-dout2"/>
+
+        <!-- idx 8 = EL9110, deliberately undeclared, see comment above -->
+
+        <slave idx="9" type="EL1808" name="io-din3"/>
+        <slave idx="10" type="EL2808" name="io-dout3"/>
+        <slave idx="11" type="EL1808" name="io-din4"/>
+        <slave idx="12" type="EL2808" name="io-dout4"/>
+
+        <!-- EL1018 — 8-ch digital input, 10us fast response (vs. EL1808's 3ms).
+             Confirmed on the real bus via `sudo ethercat slaves`; wasn't in the
+             originally assumed chain. -->
+        <slave idx="13" type="EL1018" name="io-din5"/>
+
+        <!-- Beckhoff EL4032 — 2-ch 0-10V analog out. Channel 0 drives the VFD
+             spindle command (see ethercat.hal); channel 1 unused. -->
+        <slave idx="14" type="EL4032" name="spindle"/>
+    </master>
+</masters>

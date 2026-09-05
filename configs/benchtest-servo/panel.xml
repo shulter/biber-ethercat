@@ -4,9 +4,9 @@
   the right of the g-code preview automatically (see [DISPLAY] PYVCP in
   vantage33m-bench.ini) — no separate tab, no embedding setup needed.
 
-  Shows live servo torque for the 3 bench servos (bidirectional bar, -10 to 0
-  to +10 Nm) and speed for X left / Y (absolute RPM, 0-6000). See postgui.hal
-  for the HAL wiring.
+  Shows live servo torque and speed for the 3 bench servos (X, Z, Y): torque
+  as a bidirectional bar (-10 to 0 to +10 Nm), speed as absolute RPM
+  (0-6000). See postgui.hal for the HAL wiring.
 
   Tag names (bar, min_, max_, halpin, text, labelframe) confirmed working
   against a real AXIS/PyVCP. With min_ negative and max_ positive, PyVCP's
@@ -23,19 +23,19 @@
 <vbox>
 
 <label>
-  <text>"X Left Torque (Nm)"</text>
+  <text>"X Torque (Nm)"</text>
 </label>
 <bar>
-  <halpin>"x-left-torque"</halpin>
+  <halpin>"x-torque"</halpin>
   <min_>-10</min_>
   <max_>10</max_>
 </bar>
 
 <label>
-  <text>"X Right Torque (Nm)"</text>
+  <text>"Z Torque (Nm)"</text>
 </label>
 <bar>
-  <halpin>"x-right-torque"</halpin>
+  <halpin>"z-torque"</halpin>
   <min_>-10</min_>
   <max_>10</max_>
 </bar>
@@ -56,10 +56,19 @@
 <vbox>
 
 <label>
-  <text>"X Left Speed (RPM)"</text>
+  <text>"X Speed (RPM)"</text>
 </label>
 <bar>
-  <halpin>"x-left-rpm"</halpin>
+  <halpin>"x-rpm"</halpin>
+  <min_>0</min_>
+  <max_>6000</max_>
+</bar>
+
+<label>
+  <text>"Z Speed (RPM)"</text>
+</label>
+<bar>
+  <halpin>"z-rpm"</halpin>
   <min_>0</min_>
   <max_>6000</max_>
 </bar>

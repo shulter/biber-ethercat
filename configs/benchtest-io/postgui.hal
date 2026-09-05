@@ -1,0 +1,86 @@
+# Vantage 33M bench I/O config — postgui HAL: wiring for the PyVCP torque and
+# spindle-speed panel (panel.xml). Loaded via [HAL] POSTGUI_HALFILE, which
+# runs after the AXIS GUI (and its PyVCP panel, component name "pyvcp") has
+# started — the pyvcp.* pins created by the panel's widgets don't exist until
+# then, so this can't live in ethercat.hal.
+#
+# Each realtime component (conv_s32_float, scale, abs) can only be loadrt'd
+# once per HAL session, even with multiple named instances — all torque and
+# speed instances of a given component are loaded together, not in separate
+# loadrt calls per signal group. The "scale" instances used below (x/z/y
+# -torque-scale, x/z/y-vel-scale) are loaded+addf'd in ethercat.hal instead
+# of here, alongside spindle-scale — ethercat.hal loads first, and loadrt'ing
+# "scale" a second time here would fail with "already exists".
+#
+# 6077h "torque actual value" (the actual-torque PDO entry mapped in
+# ethercat-conf.xml) is CiA402-standard units: 0.1% of rated torque, raw
+# range -1000..1000 = -100%..100%. The bar graph's 12 Nm full scale is
+# assumed to be the A6/SV660N rated torque — verify against the drive
+# datasheet and adjust the *-torque-scale.gain values below if it differs.
+#
+# 606Ch "velocity actual value" raw units are assumed to be encoder counts/s
+# (device default, no SI velocity object configured). RPM = counts/s *
+# 60/131072 (131072 counts/rev, 17-bit encoder — see docs/kinematics.md).
+# Verify this against the A6/SV660N drive parameters; if the drive reports
+# SI-scaled velocity instead, the *-vel-scale.gain values below are wrong.
+
+loadrt conv_s32_float names=x-torque-conv,z-torque-conv,y-torque-conv,x-vel-conv,z-vel-conv,y-vel-conv
+addf x-torque-conv servo-thread
+addf z-torque-conv servo-thread
+addf y-torque-conv servo-thread
+addf x-vel-conv    servo-thread
+addf z-vel-conv    servo-thread
+addf y-vel-conv    servo-thread
+
+loadrt abs names=x-vel-abs,z-vel-abs,y-vel-abs
+addf x-vel-abs servo-thread
+addf z-vel-abs servo-thread
+addf y-vel-abs servo-thread
+
+# 12 Nm / 1000 (raw units at 100% rated torque) = 0.012 Nm per raw count
+setp x-torque-scale.gain 0.012
+setp z-torque-scale.gain 0.012
+setp y-torque-scale.gain 0.012
+
+setp x-vel-scale.gain 0.00045777
+setp z-vel-scale.gain 0.00045777
+setp y-vel-scale.gain 0.00045777
+
+# --- Torque (X, Z, Y — Nm, signed) ---
+net x-torque-raw  <= lcec.0.x.actual-torque => x-torque-conv.in
+net z-torque-raw  <= lcec.0.z.actual-torque => z-torque-conv.in
+net y-torque-raw  <= lcec.0.y.actual-torque => y-torque-conv.in
+
+net x-torque-f  x-torque-conv.out => x-torque-scale.in
+net z-torque-f  z-torque-conv.out => z-torque-scale.in
+net y-torque-f  y-torque-conv.out => y-torque-scale.in
+
+net x-torque-nm  x-torque-scale.out => pyvcp.x-torque
+net z-torque-nm  z-torque-scale.out => pyvcp.z-torque
+net y-torque-nm  y-torque-scale.out => pyvcp.y-torque
+
+# --- Speed (X, Z, Y — RPM, absolute value) ---
+# actual-velocity is already netted to cia402 in ethercat.hal (a HAL pin can
+# only belong to one signal), so tap the existing signal name here instead
+# of re-sourcing lcec.0.<name>.actual-velocity.
+net x-drv-act-vel => x-vel-conv.in
+net z-drv-act-vel => z-vel-conv.in
+net y-drv-act-vel => y-vel-conv.in
+
+net x-vel-f x-vel-conv.out => x-vel-scale.in
+net z-vel-f z-vel-conv.out => z-vel-scale.in
+net y-vel-f y-vel-conv.out => y-vel-scale.in
+
+net x-vel-rpm x-vel-scale.out => x-vel-abs.in
+net z-vel-rpm z-vel-scale.out => z-vel-abs.in
+net y-vel-rpm y-vel-scale.out => y-vel-abs.in
+
+net x-rpm-abs x-vel-abs.out => pyvcp.x-rpm
+net z-rpm-abs z-vel-abs.out => pyvcp.z-rpm
+net y-rpm-abs y-vel-abs.out => pyvcp.y-rpm
+
+# --- Spindle speed display (commanded, not measured — no spindle encoder) ---
+# spindle-speed-cmd is already netted from spindle.0.speed-out-abs in
+# ethercat.hal; tap the existing signal name here (a HAL pin can only belong
+# to one signal).
+net spindle-speed-cmd => pyvcp.spindle-speed

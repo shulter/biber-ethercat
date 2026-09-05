@@ -1,7 +1,7 @@
 <masters>
     <master idx="0" appTimePeriod="1000000" refClockSyncCycles="1">
-        <!-- StepperOnline A6 (OEM Inovance SV660N) — X gantry left -->
-        <slave idx="0" type="generic" vid="00400000" pid="00000715" configPdos="true" name="x-left">
+        <!-- StepperOnline A6 (OEM Inovance SV660N) — X axis -->
+        <slave idx="0" type="generic" vid="00400000" pid="00000715" configPdos="true" name="x">
             <dcConf assignActivate="300" sync0Cycle="*1" sync0Shift="25000" />
             <watchdog divider="2498" intervals="1000" />
             <syncManager idx="2" dir="out">
@@ -34,8 +34,8 @@
             </syncManager>
         </slave>
 
-        <!-- StepperOnline A6 — X gantry right -->
-        <slave idx="1" type="generic" vid="00400000" pid="00000715" configPdos="true" name="x-right">
+        <!-- StepperOnline A6 — Z axis -->
+        <slave idx="1" type="generic" vid="00400000" pid="00000715" configPdos="true" name="z">
             <dcConf assignActivate="300" sync0Cycle="*1" sync0Shift="25000" />
             <watchdog divider="2498" intervals="1000" />
             <syncManager idx="2" dir="out">
