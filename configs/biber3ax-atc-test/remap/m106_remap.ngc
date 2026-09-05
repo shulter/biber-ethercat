@@ -1,0 +1,62 @@
+o<m106_remap> sub
+; M106 remap — tool height probing at a fixed location.
+;   M106       probes the tool currently in the spindle
+;   M106 T<n>  selects tool <n> first (a real T<n> M6), then probes it
+; See README.md "Tool Height Probing" for what needs on-machine verification
+; before trusting the resulting tool length offsets — probe location, probe
+; polarity, and especially the length-offset sign convention below.
+o<atc_positions> call
+
+o<t_given> if EXISTS[#<t>]
+    #<probe_tool> = #<t>
+o<t_given> else
+    #<probe_tool> = #<_tool_in_spindle>
+o<t_given> endif
+
+; Horizontal drills (T201-204) point sideways, not down — a Z-axis touch
+; probe can't measure their length the way it can for the main spindle or a
+; vertical drill. Refuse instead of measuring garbage.
+o<is_hdrill> if [#<probe_tool> GE 201] AND [#<probe_tool> LE 204]
+    (MSG, M106: probing not supported for horizontal drills T201-204 - skipped)
+o<is_hdrill> else
+
+    ; If the requested tool isn't already in the spindle, select it first —
+    ; this issues a real T/M6 so LinuxCNC's own tool-in-spindle bookkeeping
+    ; updates correctly, rather than calling into m6_remap's logic directly.
+    ; For a vertical drill this also parks the dummy plug and fires the
+    ; drill's solenoid, same as a normal M6 T101 would.
+    o<need_change> if #<probe_tool> NE #<_tool_in_spindle>
+        T[#<probe_tool>] M6
+    o<need_change> endif
+
+    ; Vertical drills (T101-107) share the spindle's Z orientation and can
+    ; dip onto the same fixed probe, but each one sits at a different
+    ; physical offset from the spindle centerline (mounted alongside it).
+    #<_probe_dx> = 0.0
+    #<_probe_dy> = 0.0
+    o<is_vdrill> if [#<probe_tool> GE 101] AND [#<probe_tool> LE 107]
+        o<vdrill_probe_offset> call [#<probe_tool>]
+    o<is_vdrill> endif
+
+    M5
+    G53 G0 Z[#<_atc_z_clear>]
+    G53 G0 X[#<_probe_x> + #<_probe_dx>] Y[#<_probe_y> + #<_probe_dy>]
+    G53 G0 Z[#<_probe_z_start>]
+    G38.2 Z[#<_probe_z_min>] F[#<_probe_feed>]
+    ; G38.2 already aborts the program with an error if it reaches Z[#<_probe_z_min>]
+    ; without tripping — no separate not-triggered check needed here.
+
+    ; #5063 = Z position where the last G38.2 probe move tripped (TODO:
+    ; verify this parameter number against the installed LinuxCNC version).
+    ; Length offset is relative to #<_probe_ref_z>, a "zero length"
+    ; reference — sign convention unverified, calibrate against a known
+    ; tool and check the resulting G43 behavior before trusting this for
+    ; production work.
+    #<tool_length> = [#5063 - #<_probe_ref_z>]
+    G10 L1 P[#<probe_tool>] Z[#<tool_length>]
+
+    G53 G0 Z[#<_atc_z_clear>]
+
+o<is_hdrill> endif
+
+o<m106_remap> endsub

@@ -1,0 +1,32 @@
+o<vdrill_probe_offset> sub
+; Sets #<_probe_dx>/#<_probe_dy> for probing vertical drill T101-T107 (the
+; sub's only argument, the drill's tool number). Added to
+; #<_probe_x>/#<_probe_y> by m106_remap.ngc. Called only for vertical
+; drills — see atc-positions.ngc for why horizontal drills are excluded.
+#<_probe_dx> = 0.0
+#<_probe_dy> = 0.0
+
+o<d> if #1 EQ 101
+    #<_probe_dx> = #<_vdrill1_dx>
+    #<_probe_dy> = #<_vdrill1_dy>
+o<d> elseif #1 EQ 102
+    #<_probe_dx> = #<_vdrill2_dx>
+    #<_probe_dy> = #<_vdrill2_dy>
+o<d> elseif #1 EQ 103
+    #<_probe_dx> = #<_vdrill3_dx>
+    #<_probe_dy> = #<_vdrill3_dy>
+o<d> elseif #1 EQ 104
+    #<_probe_dx> = #<_vdrill4_dx>
+    #<_probe_dy> = #<_vdrill4_dy>
+o<d> elseif #1 EQ 105
+    #<_probe_dx> = #<_vdrill5_dx>
+    #<_probe_dy> = #<_vdrill5_dy>
+o<d> elseif #1 EQ 106
+    #<_probe_dx> = #<_vdrill6_dx>
+    #<_probe_dy> = #<_vdrill6_dy>
+o<d> elseif #1 EQ 107
+    #<_probe_dx> = #<_vdrill7_dx>
+    #<_probe_dy> = #<_vdrill7_dy>
+o<d> endif
+
+o<vdrill_probe_offset> endsub

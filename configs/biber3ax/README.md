@@ -115,6 +115,10 @@ recognized by your build, remove those lines to fall back to the trapezoidal pla
 
 ## Troubleshooting
 
+- **"Machine On" refuses to enable, or the machine drops out on its own:** `iocontrol.0.emc-enable-in` is
+  netted to `lcec.0.state-op` (`ethercat.hal`) — Machine On is refused, and an already-enabled machine is
+  disabled like a fault, whenever the EtherCAT master hasn't got all slaves into OP state. Run
+  `sudo ethercat slaves` to see which slave is stuck and in what state before assuming this is a config bug.
 - **Slaves stuck in PREOP:** Use variable PDO mapping (0x1600/0x1A00) as in `ethercat-conf.xml`; avoid fixed PDOs.
 - **Following error on enable:** Reduce acceleration; verify `CIA402_POS_SCALE` per axis; check encoder resolution in drive params.
 - **Only one X motor moves:** Confirm `trivkins coordinates=XXYZ` and both X `cia402` instances (0, 1) are wired.

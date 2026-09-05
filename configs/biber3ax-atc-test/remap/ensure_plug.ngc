@@ -1,0 +1,16 @@
+o<ensure_plug> sub
+; Ensure the ATC spindle is holding tool 1 (the short dummy/plug tool)
+; before a fixed drill is engaged — keeps dust out of the spindle and keeps
+; it clear of the workpiece while a drill is doing the cutting. Called from
+; m6_remap.ngc's drill branches, which track "what's logically in the
+; spindle right now" in the global #<_atc_cur_tool> (not #<_tool_in_spindle>,
+; which the remap framework only updates once M6 finishes — mid-remap we
+; need our own live bookkeeping).
+o<already> if #<_atc_cur_tool> NE 1
+    o<ret> if [#<_atc_cur_tool> GE 1] AND [#<_atc_cur_tool> LE 20]
+        o<return_tool> call [#<_atc_cur_tool>]
+    o<ret> endif
+    o<fetch_tool> call [1]
+    #<_atc_cur_tool> = 1
+o<already> endif
+o<ensure_plug> endsub

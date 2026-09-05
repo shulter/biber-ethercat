@@ -1,0 +1,21 @@
+; Example — Marposs touch probe workpiece Z touch-off, then zero G54 Z there.
+;
+; This is a template to copy/adapt, not auto-loaded by anything. Run it from
+; MDI or load it standalone before running a Fusion-generated program, or
+; paste the relevant lines into a Fusion 360 "Manual NC" block — see
+; README.md "Probing from Fusion 360".
+;
+; Position X/Y over the point you want to probe (by hand or a preceding
+; rapid move) before running this — it only probes in Z.
+
+M107                      ; deploy the Marposs probe
+G38.2 Z-50 F100           ; probe down; G38.2 aborts the program if it never
+                          ; triggers before Z-50, so no separate check needed
+#<touch_z> = #5063        ; Z position where the probe tripped
+G0 Z[#<touch_z> + 5]      ; retract clear before stowing the probe
+M108                      ; retract the Marposs probe
+G10 L20 P1 Z0             ; set G54 Z0 at the touched surface
+
+; #5063 needs verification against your installed LinuxCNC version (same
+; caveat as remap/m106_remap.ngc). Feed, start height, and probe distance
+; above are placeholders — adjust for your actual stock/setup.

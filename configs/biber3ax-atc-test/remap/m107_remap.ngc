@@ -1,0 +1,11 @@
+o<m107_remap> sub
+; M107 — deploy the Marposs touch probe (pneumatic linear actuator mounted
+; next to the HSK63F spindle, not carried in a tool holder). Energizes
+; digital-out-12; see io.hal for the solenoid-sense caveat (assumed
+; energized = deployed). The G4 dwell is a placeholder settle time standing
+; in for a real "probe deployed" confirmation input — there isn't one wired
+; yet (same pattern as the ATC drawbar in return_tool.ngc/fetch_tool.ngc).
+; See README.md "Workpiece Touch Probe (Marposs)".
+M64 P12
+G4 P0.5
+o<m107_remap> endsub

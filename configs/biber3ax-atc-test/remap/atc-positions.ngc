@@ -1,0 +1,49 @@
+o<atc_positions> sub
+; Vantage 33M ATC — shared position/config constants for m6_remap.ngc,
+; m106_remap.ngc, return_tool.ngc, fetch_tool.ngc.
+;
+; ALL VALUES BELOW ARE PLACEHOLDERS, chosen only to fit inside this bench
+; config's reduced soft limits (X -500..500, Y 0..500, Z -155..0) so a dry
+; run doesn't immediately fault on a limit violation. None of them reflect
+; a real measurement of the machine. Measure the real positions and replace
+; these before trusting any of this beyond logic/motion-sequence testing.
+
+; --- HSK63F pocket rack ("one end of the table"), 20 pockets spaced along X ---
+#<_atc_pocket_base_x>   = -450.0   ; X of pocket 1, TODO measure
+#<_atc_pocket_base_y>   = 250.0    ; Y of the whole rack, TODO measure
+#<_atc_pocket_pitch>    = 45.0     ; mm between pocket centers, TODO measure (HSK63F needs real clearance)
+#<_atc_pocket_z_engage> = -140.0   ; Z depth to seat/release a tool in its pocket, TODO measure
+#<_atc_z_clear>         = -5.0     ; safe Z between all ATC/drill/probe moves, TODO measure
+
+; --- Tool height probe, fixed location ---
+#<_probe_x>        = 0.0     ; TODO measure
+#<_probe_y>        = 450.0   ; TODO measure
+#<_probe_z_start>  = -10.0   ; Z to start the probe move from, TODO measure
+#<_probe_z_min>    = -150.0  ; probe move end point (max depth) if it never trips, TODO measure
+#<_probe_feed>     = 100     ; mm/min
+#<_probe_ref_z>    = 0.0     ; trigger Z for a "zero length" reference tool, TODO calibrate
+
+; --- Vertical drill probe offsets (T101-T107 only — see m106_remap.ngc) ---
+; Vertical drills share the spindle's Z orientation, so they can dip onto
+; the same fixed probe the main spindle uses; horizontal drills (T201-T204)
+; can't and are refused. Each vertical drill sits at a different physical
+; offset from the main spindle centerline (mounted alongside it as a block
+; that travels together in X/Y) — these get added to #<_probe_x>/#<_probe_y>
+; when probing that drill. ALL PLACEHOLDER (0,0) — measure each drill's real
+; offset before trusting probed lengths. See vdrill_probe_offset.ngc.
+#<_vdrill1_dx> = 0.0
+#<_vdrill1_dy> = 0.0
+#<_vdrill2_dx> = 0.0
+#<_vdrill2_dy> = 0.0
+#<_vdrill3_dx> = 0.0
+#<_vdrill3_dy> = 0.0
+#<_vdrill4_dx> = 0.0
+#<_vdrill4_dy> = 0.0
+#<_vdrill5_dx> = 0.0
+#<_vdrill5_dy> = 0.0
+#<_vdrill6_dx> = 0.0
+#<_vdrill6_dy> = 0.0
+#<_vdrill7_dx> = 0.0
+#<_vdrill7_dy> = 0.0
+
+o<atc_positions> endsub

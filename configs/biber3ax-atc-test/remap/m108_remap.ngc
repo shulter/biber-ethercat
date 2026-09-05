@@ -1,0 +1,9 @@
+o<m108_remap> sub
+; M108 — retract the Marposs touch probe. De-energizes digital-out-12.
+; Always call this after probing, before resuming normal cutting motion —
+; the deployed probe sits close enough to the spindle to be a crash risk if
+; left extended, and nothing else in this config retracts it automatically.
+; See README.md "Workpiece Touch Probe (Marposs)".
+M65 P12
+G4 P0.5
+o<m108_remap> endsub

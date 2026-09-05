@@ -21,7 +21,15 @@ addf cia402.1.write-all       servo-thread
 addf cia402.2.write-all       servo-thread
 addf lcec.write-all           servo-thread
 
-setp iocontrol.0.emc-enable-in 1
+# Gate machine-enable on the EtherCAT master actually reaching OP state for
+# all configured slaves. Previously this was `setp ... 1` (always true), so
+# "Machine On" would succeed even with slaves stuck in INIT/PREOP/SAFEOP —
+# cia402 would then be driven from stale/zero PDO data. lcec.0.state-op is a
+# live bit, so this also drops the machine (like a fault) if a slave falls
+# out of OP later, not just at startup.
+# TODO verify pin name/semantics against your lcec version:
+#   halcmd show pin | grep lcec.0.state
+net ec-all-op <= lcec.0.state-op => iocontrol.0.emc-enable-in
 
 # Spindle speed command — a core motion pin, present regardless of EtherCAT
 # wiring. Declared once here so both the EL4032 analog-out wiring below and

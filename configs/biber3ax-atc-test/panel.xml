@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Vantage 33M ATC test config — PyVCP panel. AXIS renders this in the pane to
+  the right of the g-code preview automatically (see [DISPLAY] PYVCP in
+  biber3ax-atc-test.ini) — no separate tab, no embedding setup needed.
+
+  Shows live servo torque for the 3 servos (bidirectional bar, -10 to 0 to
+  +10 Nm) and speed for X / Y (absolute RPM, 0-6000). See postgui.hal for
+  the HAL wiring.
+
+  Tag names (bar, min_, max_, halpin, text, labelframe) confirmed working
+  against a real AXIS/PyVCP. With min_ negative and max_ positive, PyVCP's
+  stock bar widget is assumed to fill from a center zero line — red toward
+  min_, green toward max_ — matching the red=negative/green=positive
+  convention used elsewhere in AXIS. If it doesn't color that way in
+  practice, say so and this can be redone as two stacked bars (a green
+  0..+10 bar fed by max(torque,0) and a red 0..+10 bar fed by
+  -min(torque,0)) instead.
+-->
+<pyvcp>
+
+<labelframe text="Servo Torque">
+<vbox>
+
+<label>
+  <text>"X Torque (Nm)"</text>
+</label>
+<bar>
+  <halpin>"x-torque"</halpin>
+  <min_>-10</min_>
+  <max_>10</max_>
+</bar>
+
+<label>
+  <text>"Y Torque (Nm)"</text>
+</label>
+<bar>
+  <halpin>"y-torque"</halpin>
+  <min_>-10</min_>
+  <max_>10</max_>
+</bar>
+
+</vbox>
+</labelframe>
+
+<labelframe text="Servo Speed">
+<vbox>
+
+<label>
+  <text>"X Speed (RPM)"</text>
+</label>
+<bar>
+  <halpin>"x-rpm"</halpin>
+  <min_>0</min_>
+  <max_>6000</max_>
+</bar>
+
+<label>
+  <text>"Y Speed (RPM)"</text>
+</label>
+<bar>
+  <halpin>"y-rpm"</halpin>
+  <min_>0</min_>
+  <max_>6000</max_>
+</bar>
+
+</vbox>
+</labelframe>
+
+</pyvcp>

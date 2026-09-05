@@ -1,0 +1,55 @@
+o<m6_remap> sub
+; M6 remap — HSK63F ATC (T1-T20), vertical drills (T101-T107), horizontal
+; drills (T201-T204). See README.md "Tool Changer" for the full picture and
+; the list of things that need on-machine verification before trusting this
+; for anything beyond logic/motion-sequence testing.
+;
+; T1 is a short dummy/plug tool, not a cutting tool — see ensure_plug.ngc.
+; Any drill selection loads it into the spindle first, to keep dust out of
+; the spindle and keep it clear of the workpiece while the drill is cutting.
+o<atc_positions> call
+
+#<new_tool> = #<_selected_tool>
+#<_atc_cur_tool> = #<_tool_in_spindle>
+
+M5                            ; spindle must be stopped for any ATC/drill operation
+G53 G0 Z[#<_atc_z_clear>]
+
+; Disengage any active drill unconditionally — only one should ever be on,
+; this just guarantees a clean state before selecting the next tool.
+M65 P0
+M65 P1
+M65 P2
+M65 P3
+M65 P4
+M65 P5
+M65 P6
+M65 P7
+M65 P8
+M65 P9
+M65 P10
+
+o<sel> if [#<new_tool> GE 1] AND [#<new_tool> LE 20]
+    ; Real ATC tool change — return the current ATC tool (if any), fetch the new one
+    o<ret> if [#<_atc_cur_tool> GE 1] AND [#<_atc_cur_tool> LE 20]
+        o<return_tool> call [#<_atc_cur_tool>]
+    o<ret> endif
+    o<fetch_tool> call [#<new_tool>]
+    #<_atc_cur_tool> = #<new_tool>
+
+o<sel> elseif [#<new_tool> GE 101] AND [#<new_tool> LE 107]
+    ; Vertical drill — fixed-mounted on the machine, no travel to it. Load
+    ; the dummy plug into the spindle first, then fire the drill's solenoid.
+    o<ensure_plug> call
+    M64 P[#<new_tool> - 101]
+
+o<sel> elseif [#<new_tool> GE 201] AND [#<new_tool> LE 204]
+    ; Horizontal drill — same dummy-plug requirement as above.
+    o<ensure_plug> call
+    M64 P[#<new_tool> - 201 + 7]
+
+o<sel> else
+    ; T0 or unrecognized tool number — nothing physically selected
+o<sel> endif
+
+o<m6_remap> endsub

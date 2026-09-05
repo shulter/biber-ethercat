@@ -1,0 +1,42 @@
+; Vantage 33M ATC test config — tool table
+; T1:        dummy/plug tool (short, no flutes) — parked in the spindle
+;            whenever a fixed drill is engaged, to keep dust out of the
+;            spindle and clear of the workpiece. Not a cutting tool; M106
+;            refuses to probe drill tool numbers for exactly this reason.
+; T2-T20:    HSK63F ATC rack pockets (P = pocket number)
+; T101-T107: vertical drills, fixed-mounted (P0, not stored in the rack)
+; T201-T204: horizontal drills X+/X-/Y+/Y-, fixed-mounted (P0)
+; D (diameter) and Z (length offset) are all placeholders — Z gets
+; overwritten by M106 probing once run for that tool; D needs measuring
+; per actual bit mounted in each pocket.
+T1   P1  D0.0 Z0.0 ; dummy/plug tool - parked during drill operations
+T2   P2  D0.0 Z0.0 ; ATC pocket 2 - HSK63F
+T3   P3  D0.0 Z0.0 ; ATC pocket 3 - HSK63F
+T4   P4  D0.0 Z0.0 ; ATC pocket 4 - HSK63F
+T5   P5  D0.0 Z0.0 ; ATC pocket 5 - HSK63F
+T6   P6  D0.0 Z0.0 ; ATC pocket 6 - HSK63F
+T7   P7  D0.0 Z0.0 ; ATC pocket 7 - HSK63F
+T8   P8  D0.0 Z0.0 ; ATC pocket 8 - HSK63F
+T9   P9  D0.0 Z0.0 ; ATC pocket 9 - HSK63F
+T10  P10 D0.0 Z0.0 ; ATC pocket 10 - HSK63F
+T11  P11 D0.0 Z0.0 ; ATC pocket 11 - HSK63F
+T12  P12 D0.0 Z0.0 ; ATC pocket 12 - HSK63F
+T13  P13 D0.0 Z0.0 ; ATC pocket 13 - HSK63F
+T14  P14 D0.0 Z0.0 ; ATC pocket 14 - HSK63F
+T15  P15 D0.0 Z0.0 ; ATC pocket 15 - HSK63F
+T16  P16 D0.0 Z0.0 ; ATC pocket 16 - HSK63F
+T17  P17 D0.0 Z0.0 ; ATC pocket 17 - HSK63F
+T18  P18 D0.0 Z0.0 ; ATC pocket 18 - HSK63F
+T19  P19 D0.0 Z0.0 ; ATC pocket 19 - HSK63F
+T20  P20 D0.0 Z0.0 ; ATC pocket 20 - HSK63F
+T101 P0  D0.0 Z0.0 ; vertical drill 1
+T102 P0  D0.0 Z0.0 ; vertical drill 2
+T103 P0  D0.0 Z0.0 ; vertical drill 3
+T104 P0  D0.0 Z0.0 ; vertical drill 4
+T105 P0  D0.0 Z0.0 ; vertical drill 5
+T106 P0  D0.0 Z0.0 ; vertical drill 6
+T107 P0  D0.0 Z0.0 ; vertical drill 7
+T201 P0  D0.0 Z0.0 ; horizontal drill X+
+T202 P0  D0.0 Z0.0 ; horizontal drill X-
+T203 P0  D0.0 Z0.0 ; horizontal drill Y+
+T204 P0  D0.0 Z0.0 ; horizontal drill Y-

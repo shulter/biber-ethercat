@@ -1,0 +1,20 @@
+o<return_tool> sub
+; Release the tool currently in the spindle into ATC pocket #1 (the sub's
+; only argument, a pocket/tool number 1-20). Called from m6_remap.ngc.
+;
+; Assumes the spindle drawbar is normally spring-clamped and a solenoid on
+; motion.digital-out-11 pneumatically unclamps it when energized (M64) —
+; verify this against the real spindle/valve before running; if reversed,
+; swap the M64/M65 below (and in fetch_tool.ngc) rather than in io.hal.
+o<atc_positions> call
+
+#<pocket>   = #1
+#<pocket_x> = [#<_atc_pocket_base_x> + [[#<pocket> - 1] * #<_atc_pocket_pitch>]]
+
+G53 G0 X[#<pocket_x>] Y[#<_atc_pocket_base_y>]
+G53 G1 Z[#<_atc_pocket_z_engage>] F500
+M64 P11
+G4 P0.5                      ; settle — TODO: replace with a real drawbar-unclamped-confirm input
+G53 G0 Z[#<_atc_z_clear>]
+
+o<return_tool> endsub

@@ -1,0 +1,64 @@
+# Vantage 33M ATC test config — machine I/O for the toolchanger (Beckhoff
+# EK1100 + terminals, see ethercat-conf.xml). Commented out: the EK1100
+# coupler isn't on the test bench yet. Uncomment here and in
+# ethercat-conf.xml together once it is — don't enable only one file, or
+# slave indices/pin names will mismatch.
+#
+# The M6/M106 remaps (remap/) drive the toolchanger purely through the core
+# `motion` component's motion.digital-out-NN / motion.probe-input pins (see
+# num_dio=16 in ethercat.hal), so those nets are what needs wiring to real
+# Beckhoff channels below — the remap .ngc files never reference lcec pins
+# directly.
+#
+# Channel assignments:
+#   digital-out-00..06 -> vertical drills V1..V7   (T101-T107)
+#   digital-out-07..10 -> horizontal drills, in order X+, X-, Y+, Y- (T201-T204)
+#   digital-out-11     -> spindle drawbar unclamp solenoid (energized = unclamp/release,
+#                         de-energized = spring-clamped/grip — verify this against
+#                         the actual spindle/valve before running; if reversed,
+#                         swap the M64/M65 senses in remap/return_tool.ngc and
+#                         remap/fetch_tool.ngc rather than here)
+#   digital-out-12     -> Marposs touch probe deploy/retract solenoid (energized = deployed,
+#                         de-energized = retracted — same "verify before running" caveat as
+#                         above; if reversed, swap the M64/M65 senses in remap/m107_remap.ngc
+#                         and remap/m108_remap.ngc rather than here)
+#   digital-out-13..15 -> spare
+#   probe-input        -> OR of two physical probes — LinuxCNC only has one probe input, and
+#                         these two are never both in position to trip at once in correctly
+#                         sequenced g-code:
+#                           - tool height probe (fixed location, see remap/atc-positions.ngc)
+#                           - Marposs touch probe (workpiece probing; mounted on a pneumatic
+#                             actuator next to the HSK63F spindle, not in a tool holder — see
+#                             remap/m107_remap.ngc, remap/m108_remap.ngc, and README.md
+#                             "Workpiece Touch Probe (Marposs)")
+
+# --- EL2808 #1 (digital outputs, slave idx 6) — vertical drills ---
+# net atc-vdrill-1-out => lcec.0.io-dout1.dout-0   <= motion.digital-out-00
+# net atc-vdrill-2-out => lcec.0.io-dout1.dout-1   <= motion.digital-out-01
+# net atc-vdrill-3-out => lcec.0.io-dout1.dout-2   <= motion.digital-out-02
+# net atc-vdrill-4-out => lcec.0.io-dout1.dout-3   <= motion.digital-out-03
+# net atc-vdrill-5-out => lcec.0.io-dout1.dout-4   <= motion.digital-out-04
+# net atc-vdrill-6-out => lcec.0.io-dout1.dout-5   <= motion.digital-out-05
+# net atc-vdrill-7-out => lcec.0.io-dout1.dout-6   <= motion.digital-out-06
+# # dout-7 spare
+
+# --- EL2808 #2 (digital outputs, slave idx 8) — horizontal drills + drawbar ---
+# net atc-hdrill-xplus-out  => lcec.0.io-dout2.dout-0 <= motion.digital-out-07
+# net atc-hdrill-xminus-out => lcec.0.io-dout2.dout-1 <= motion.digital-out-08
+# net atc-hdrill-yplus-out  => lcec.0.io-dout2.dout-2 <= motion.digital-out-09
+# net atc-hdrill-yminus-out => lcec.0.io-dout2.dout-3 <= motion.digital-out-10
+# net atc-drawbar-unclamp   => lcec.0.io-dout2.dout-4 <= motion.digital-out-11
+# net marposs-probe-deploy  => lcec.0.io-dout2.dout-5 <= motion.digital-out-12
+# # dout-6..7 spare
+
+# --- EL1808 #1 (digital inputs, slave idx 5) — tool height probe + Marposs touch probe ---
+# Both physical probes feed the single motion.probe-input pin through an or2,
+# since G38.x and the M106 remap only ever look at one probe input. Safe
+# because a correctly sequenced program never has both probes in position to
+# trip at the same time (see channel assignments above).
+# loadrt or2 names=probe-in-or
+# addf probe-in-or servo-thread
+# net atc-probe-in      <= lcec.0.io-din1.din-0 => probe-in-or.in0
+# net marposs-probe-in  <= lcec.0.io-din1.din-1 => probe-in-or.in1
+# net probe-in-combined <= probe-in-or.out      => motion.probe-input
+# # din-2..7 spare / TODO: assign (pocket-occupied sensors, drawbar-confirm, etc.)

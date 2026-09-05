@@ -94,6 +94,10 @@ two stacked bars (green fed by `max(torque,0)`, red fed by `-min(torque,0)`) ins
 
 ## Troubleshooting
 
+- **"Machine On" refuses to enable, or the machine drops out on its own:** `iocontrol.0.emc-enable-in` is
+  netted to `lcec.0.state-op` (`ethercat.hal`) — Machine On is refused, and an already-enabled machine is
+  disabled like a fault, whenever the EtherCAT master hasn't got all slaves into OP state. Run
+  `sudo ethercat slaves` to see which slave is stuck and in what state before assuming this is a config bug.
 - **Slaves stuck in PREOP:** Use variable PDO mapping (0x1600/0x1A00) as in `ethercat-conf.xml`; avoid fixed PDOs.
 - **Following error on enable:** Reduce acceleration; verify `CIA402_POS_SCALE` (10434.4 for X, 26214.4 for Z, 13107.2 for Y); check encoder resolution in drive params.
 - **Wrong axis moves:** Confirm `trivkins coordinates=XZY` and that `lcec.0.x.*` / `lcec.0.z.*` / `lcec.0.y.*` are wired to `cia402.0` / `cia402.1` / `cia402.2` respectively — joint number follows EtherCAT bus position, not alphabetical axis order.
