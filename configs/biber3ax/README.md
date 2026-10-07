@@ -141,11 +141,12 @@ recognized by your build, remove those lines to fall back to the trapezoidal pla
 
 ## Troubleshooting
 
-- **"Machine On" refuses to enable, or the machine drops out on its own:** `iocontrol.0.emc-enable-in` is
-  netted to `lcec.0.state-op` (`ethercat.hal`) — Machine On is refused, and an already-enabled machine is
-  disabled like a fault, whenever the EtherCAT master hasn't got all slaves into OP state. Run
-  `sudo ethercat slaves` to see which slave is stuck and in what state before assuming this is a config bug.
-- **E-stop reset (F1) greyed out / does nothing:** `iocontrol.0.emc-enable-in` is false because
+- **E-stop loop:** `iocontrol.0.emc-enable-in` = `iocontrol.0.user-enable-out` (F1) AND
+  `lcec.0.state-op` (`and2` `estop-chain` in `ethercat.hal`, net `estop-ok`). In LinuxCNC 2.9 the e-stop
+  state *is* `!emc-enable-in` and F1 only toggles `user-enable-out`, so `user-enable-out` must be in this
+  loop — wiring `emc-enable-in` from `state-op` alone leaves LinuxCNC permanently in ESTOP_RESET with F1
+  dead. The safety relay reset pulse (`io-dout1.dout-1`, `io.hal`) fires on the rising edge of `estop-ok`.
+- **E-stop won't reset, or the machine drops into e-stop on its own:** `estop-ok` is false because
   `lcec.0.state-op` is false — at least one slave isn't in OP. While LinuxCNC is running,
   `ethercat slaves` shows which one; any slave left out of `ethercat-conf.xml` stays in PREOP and
   causes this.

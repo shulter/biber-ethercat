@@ -23,15 +23,25 @@ addf cia402.2.write-all       servo-thread
 addf cia402.3.write-all       servo-thread
 addf lcec.write-all           servo-thread
 
-# Gate machine-enable on the EtherCAT master actually reaching OP state for
-# all configured slaves. Previously this was `setp ... 1` (always true), so
-# "Machine On" would succeed even with slaves stuck in INIT/PREOP/SAFEOP —
-# cia402 would then be driven from stale/zero PDO data. lcec.0.state-op is a
-# live bit, so this also drops the machine (like a fault) if a slave falls
-# out of OP later, not just at startup.
-# TODO verify pin name/semantics against your lcec version:
-#   halcmd show pin | grep lcec.0.state
-net ec-all-op <= lcec.0.state-op => iocontrol.0.emc-enable-in
+# E-stop loop. In LinuxCNC 2.9, iocontrol's e-stop state is simply
+# !iocontrol.0.emc-enable-in, and the GUI's e-stop toggle (F1) only drives
+# iocontrol.0.user-enable-out — so user-enable-out MUST be part of what feeds
+# emc-enable-in, or F1 has no effect (LinuxCNC sits in ESTOP_RESET as soon
+# as emc-enable-in is true, and F1 can neither reset nor trigger e-stop).
+#
+#   emc-enable-in = user-enable-out (F1)  AND  lcec.0.state-op
+#
+# lcec.0.state-op is true only while every EtherCAT slave is in OP, so the
+# e-stop can't be reset with the bus down, and a slave falling out of OP
+# later drops LinuxCNC into e-stop. Add a safety-relay feedback input here
+# (and3/and4) once it's wired to a Beckhoff DI.
+# The e-stop reset pulse to the safety relay (io.hal) fires on the rising
+# edge of estop-ok, i.e. the moment the LinuxCNC e-stop is actually cleared.
+loadrt and2 names=estop-chain
+addf estop-chain servo-thread
+net ec-all-op         <= lcec.0.state-op             => estop-chain.in0
+net estop-user-enable <= iocontrol.0.user-enable-out => estop-chain.in1
+net estop-ok          <= estop-chain.out             => iocontrol.0.emc-enable-in
 
 # Spindle speed command — a core motion pin. Declared once here so both the
 # EL4032 analog-out wiring below and the postgui.hal display panel link to the

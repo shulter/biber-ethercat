@@ -63,8 +63,9 @@ net machine-enable <= halui.machine.is-on => lcec.0.io-dout1.dout-0 # Machine En
 
 # dout-1: E-stop safety relay reset input. The safety circuit only closes
 # after a reset pulse, so one fixed-width pulse is sent on every rising edge
-# of iocontrol.0.user-enable-out, i.e. each time the LinuxCNC e-stop is reset
-# (F1). Done at e-stop reset rather than Machine On so the safety circuit
+# of estop-ok (ethercat.hal: user-enable-out AND bus in OP), i.e. each time
+# the LinuxCNC e-stop is reset with F1. Done at e-stop reset (F1) rather
+# than Machine On (F2) so the safety circuit
 # (and with it the drives' power/STO) is already closed before Machine On
 # enables the servos — otherwise the drives could fault on enable.
 # edge's in-edge default (TRUE) means *falling* edge — set to 0 for rising.
@@ -75,7 +76,7 @@ addf estop-reset-pulse servo-thread
 setp estop-reset-pulse.both         0
 setp estop-reset-pulse.in-edge      0
 setp estop-reset-pulse.out-width-ns 500000000
-net estop-user-enable <= iocontrol.0.user-enable-out => estop-reset-pulse.in
+net estop-ok => estop-reset-pulse.in
 net estop-reset <= estop-reset-pulse.out => lcec.0.io-dout1.dout-1 # E-Stop Reset
 # net io-dout1-2 => lcec.0.io-dout1.dout-2   # Drill Aggregate Enable Contactor
 # net io-dout1-3 => lcec.0.io-dout1.dout-3   # HSK Milling Spindle Enable Contactor
