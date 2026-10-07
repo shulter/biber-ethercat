@@ -1,8 +1,8 @@
 # Vantage 33M — Bench I/O Config (benchtest-io)
 
-LinuxCNC configuration for bench-testing three StepperOnline A6 EtherCAT servos, one per axis
-(X, Y, Z, no gantry pairing), plus the full Beckhoff EK1100 I/O terminal chain (40 DI / 32 DO)
-and an EL4032 analog output terminal driving the spindle VFD's 0-10V speed input.
+LinuxCNC configuration for bench-testing four StepperOnline A6 EtherCAT servos — a dual-motor
+X gantry (x1, x2) plus single-motor Y and Z — plus the full Beckhoff EK1100 I/O terminal chain
+(40 DI / 32 DO) and an EL4032 analog output terminal driving the spindle VFD's 0-10V speed input.
 
 ## Quick Start
 
@@ -17,10 +17,11 @@ and an EL4032 analog output terminal driving the spindle VFD's 0-10V speed input
 3. Verify slaves are detected:
    ```bash
    sudo ethercat slaves
-   # Expected: 15 devices — three A6/SV660N servos at position 0-2, then the
-   # Beckhoff chain at 3-14 (EK1100, 4x EL1808, 2x EL2808, EL9110, 2x EL2808,
-   # EL4032, EL1018). idx in ethercat-conf.xml must match this position column
-   # exactly, or PDO registration fails ("Failed to register PDO entry").
+   # Expected: 16 devices — four A6/SV660N servos at position 0-3 (x1, x2,
+   # y, z — x1/x2 are the dual-motor X gantry), then the Beckhoff chain at
+   # 4-15 (EK1100, 4x EL1808, 2x EL2808, EL9110, 2x EL2808, EL4032, EL1018).
+   # idx in ethercat-conf.xml must match this position column exactly, or
+   # PDO registration fails ("Failed to register PDO entry").
    ```
 
 4. Copy or symlink this config directory to your LinuxCNC configs path, then start:
@@ -28,41 +29,43 @@ and an EL4032 analog output terminal driving the spindle VFD's 0-10V speed input
    linuxcnc /path/to/benchtest-io.ini
    ```
 
-5. Turn Machine On, enable all joints, jog X, Y, and Z. Each axis moves its own motor
-   independently. Confirm the first EL2808's channel 0 output energizes (machine-enable
-   indicator). Command a spindle speed (`M3 S<rpm>` or the AXIS spindle speed control) to
-   verify the 0-10V output reaches the VFD.
+5. Turn Machine On, enable all joints, jog X, Y, and Z. Jogging X moves both gantry motors
+   (x1 and x2) together; Y and Z each move their own motor independently. Confirm the first
+   EL2808's channel 0 output energizes (machine-enable indicator). Command a spindle speed
+   (`M3 S<rpm>` or the AXIS spindle speed control) to verify the 0-10V output reaches the VFD.
 
 ## Files
 
 | File | Purpose |
 |------|---------|
 | `benchtest-io.ini` | Machine parameters, joint limits, kinematics, spindle display range |
-| `ethercat.hal` | lcec + cia402 wiring for 3 servos, plus EL4032 spindle analog-out wiring |
+| `ethercat.hal` | lcec + cia402 wiring for 4 servos (dual-motor X gantry + Y + Z), plus EL4032 spindle analog-out wiring |
 | `io.hal` | Beckhoff digital I/O terminal wiring (machine-enable output; rest are placeholders) |
 | `ethercat-conf.xml` | EtherCAT slave topology and PDO mapping (servos, full Beckhoff chain) |
-| `panel.xml` | PyVCP panel, shown beside the preview: 3x servo torque/speed bars + spindle speed bar |
+| `panel.xml` | PyVCP panel, shown beside the preview: 4x servo torque/speed bars + spindle speed bar |
 | `postgui.hal` | HAL wiring for `panel.xml`'s pins (loaded after the GUI starts, see below) |
 | `tool.tbl` | Minimal tool table |
 
 ## Joint / Axis Mapping
 
-Joint numbers follow physical EtherCAT bus position (slave idx 0, 1, 2), which does not match
-alphabetical axis order — `[KINS] KINEMATICS = trivkins coordinates=XZY` reflects this:
+Joint numbers follow physical EtherCAT bus position (slave idx 0-3) — `[KINS] KINEMATICS =
+trivkins coordinates=XXYZ` reflects this: two joints (0, 1) share the X letter because X is now
+a dual-motor gantry (x1, x2) driven in tandem:
 
 | Joint | Slave idx | Slave name | Axis |
 |-------|-----------|------------|------|
-| 0 | 0 | `x` | X |
-| 1 | 1 | `z` | Z |
+| 0 | 0 | `x1` | X (gantry left) |
+| 1 | 1 | `x2` | X (gantry right, tandem with joint 0) |
 | 2 | 2 | `y` | Y |
+| 3 | 3 | `z` | Z |
 
 ## EtherCAT Bus Order
 
 ```
-[0] x  [1] z  [2] y
-[3] EK1100  [4] EL1808  [5] EL1808  [6] EL1808  [7] EL1808
-[8] EL2808  [9] EL2808  [10] EL9110  [11] EL2808  [12] EL2808
-[13] EL4032 (spindle)  [14] EL1018
+[0] x1  [1] x2  [2] y  [3] z
+[4] EK1100  [5] EL1808  [6] EL1808  [7] EL1808  [8] EL1808
+[9] EL2808  [10] EL2808  [11] EL9110  [12] EL2808  [13] EL2808
+[14] EL4032 (spindle)  [15] EL1018
 ```
 
 ## Machine I/O (Beckhoff)
@@ -101,7 +104,7 @@ unverified on this hardware — confirm with `halcmd show pin` once running.
 | Max acceleration | 500 mm/s² | 5000 mm/s² |
 | Max jerk | 5000 mm/s³ | 50000 mm/s³ |
 | NO_FORCE_HOMING | 1 | 0 |
-| Joints | 3 (X, Z, Y) | 3 (X, Z, Y) |
+| Joints | 4 (X1, X2, Y, Z) | 4 (X1, X2, Y, Z) |
 
 This config uses LinuxCNC's jerk-limited (S-curve) trajectory planner: `MAX_JERK` is set at
 `[TRAJ]`, each `[AXIS_x]`, and each `[JOINT_n]` (10× `MAX_ACCELERATION`, see
@@ -135,13 +138,13 @@ the panel display and `spindle.0.speed-out-abs` reflect *commanded* speed, not m
 A PyVCP panel (`[DISPLAY] PYVCP = panel.xml`) renders in the pane beside the g-code preview — no
 separate tab, no embedding setup. It has three groups:
 
-- **Servo Torque** — per servo (X, Z, Y): a bidirectional bar graph (-10 to 0 to +10 Nm —
+- **Servo Torque** — per servo (X1, X2, Z, Y): a bidirectional bar graph (-10 to 0 to +10 Nm —
   empty at 0, red toward negative, green toward positive), fed live from each drive's `actual-torque`
   PDO (6077h, CiA402-standard 0.1%-of-rated-torque, signed). 12 Nm is assumed to be the A6/SV660N's
   rated torque (100% = 1000 raw counts) — verify against the datasheet and adjust `postgui.hal`'s
   `*-torque-scale.gain` (currently 0.012 Nm/count) if it differs; the bar's ±10 Nm range is just the
   display window and will clip values beyond it.
-- **Servo Speed** — per servo (X, Z, Y): a 0-6000 RPM bar showing absolute speed, fed from each drive's
+- **Servo Speed** — per servo (X1, X2, Z, Y): a 0-6000 RPM bar showing absolute speed, fed from each drive's
   `actual-velocity` PDO (606Ch). Assumed raw units are encoder counts/s (131072 counts/rev, no SI
   velocity object configured) — RPM = counts/s × 60/131072 — verify this against the A6/SV660N drive
   parameters; if wrong, `postgui.hal`'s `*-vel-scale.gain` (currently 0.00045777) needs correcting.
@@ -164,11 +167,12 @@ two stacked bars (green fed by `max(torque,0)`, red fed by `-min(torque,0)`) ins
   disabled like a fault, whenever the EtherCAT master hasn't got all slaves into OP state. Run
   `sudo ethercat slaves` to see which slave is stuck and in what state before assuming this is a config bug.
 - **Slaves stuck in PREOP:** Use variable PDO mapping (0x1600/0x1A00) as in `ethercat-conf.xml`; avoid fixed PDOs.
-- **Following error on enable:** Reduce acceleration; verify `CIA402_POS_SCALE` (10434.4 for X, 26214.4 for Z, 13107.2 for Y); check encoder resolution in drive params.
-- **Wrong axis moves:** Confirm `trivkins coordinates=XZY` and that `lcec.0.x.*` / `lcec.0.z.*` / `lcec.0.y.*` are wired to `cia402.0` / `cia402.1` / `cia402.2` respectively — joint number follows EtherCAT bus position, not alphabetical axis order.
-- **Z motor doesn't move:** Confirm `cia402.1` is wired to `lcec.0.z.*` and `joint.1`, and `HOME_SEQUENCE = 2` (Z homes last).
-- **Y motor doesn't move:** Confirm `cia402.2` is wired to `lcec.0.y.*` and `joint.2`, and `HOME_SEQUENCE = 1` (Y homes second).
-- **Beckhoff terminals not detected:** Confirm the full chain (EK1100 through EL1018) is wired in that order after the three servos, and that `sudo ethercat slaves` reports 15 devices.
+- **Following error on enable:** Reduce acceleration; verify `CIA402_POS_SCALE` (10434.4 for X1/X2, 13107.2 for Y, 26214.4 for Z); check encoder resolution in drive params.
+- **Wrong axis moves:** Confirm `trivkins coordinates=XXYZ` and that `lcec.0.x1.*` / `lcec.0.x2.*` / `lcec.0.y.*` / `lcec.0.z.*` are wired to `cia402.0` / `cia402.1` / `cia402.2` / `cia402.3` respectively — joint number follows EtherCAT bus position, not alphabetical axis order.
+- **X gantry racks/skews, or only one motor moves:** Confirm both `joint.0` and `joint.1` have `HOME_SEQUENCE = -1` (tandem homing — same negative value means "home together", see `docs/kinematics.md`) and that `x-home-sw` (`ethercat.hal`) is netted to both joints' `home-sw-in`, sourced from `lcec.0.x1.home-switch` only. After homing, square the gantry with each joint's `HOME_OFFSET`, not backlash comp.
+- **Y motor doesn't move:** Confirm `cia402.2` is wired to `lcec.0.y.*` and `joint.2`, and `HOME_SEQUENCE = 1` (Y homes after the X tandem group).
+- **Z motor doesn't move:** Confirm `cia402.3` is wired to `lcec.0.z.*` and `joint.3`, and `HOME_SEQUENCE = 2` (Z homes last).
+- **Beckhoff terminals not detected:** Confirm the full chain (EK1100 through EL1018) is wired in that order after the four servos, and that `sudo ethercat slaves` reports 16 devices.
 - **"Failed to register PDO entry" / "PDO entry 0x7000:01 is not mapped":** A slave's `idx` in `ethercat-conf.xml` doesn't match its actual position column in `sudo ethercat slaves` — the master is trying to map one device's object dictionary onto a different physical device. Re-run `sudo ethercat slaves` and check every `idx` against its position.
 - **No voltage at the VFD input:** Confirm `lcec.0.spindle.aout-0-value` is netted (`spindle-voltage-cmd` in `ethercat.hal`), that `lcec.0.spindle.aout-0-enable` is true (gated on `spindle.0.on` — the spindle must be commanded on, not just a nonzero S-word), and that a spindle speed has actually been commanded (`M3 S<rpm>`).
 - **"Pin '...ao-0' does not exist":** The EL4032 uses lcec's `aout` class, not a flat `ao-N` pin — the real pins are `aout-0-value`, `-scale`, `-offset`, `-enable`, etc. (`halcmd show pin lcec.0.spindle` lists them all).

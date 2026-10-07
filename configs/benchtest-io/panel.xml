@@ -4,10 +4,11 @@
   to the right of the g-code preview automatically (see [DISPLAY] PYVCP in
   benchtest-io.ini) — no separate tab, no embedding setup needed.
 
-  Shows live servo torque and speed for the 3 bench servos (X, Z, Y): torque
-  as a bidirectional bar (-10 to 0 to +10 Nm), speed as absolute RPM
-  (0-6000). Also shows commanded spindle speed (0-24000 RPM) sent to the
-  EL4032/VFD. See postgui.hal for the HAL wiring.
+  Shows live servo torque and speed for the 4 bench servos (X1, X2, Z, Y —
+  X1/X2 are the dual-motor X gantry): torque as a bidirectional bar (-10 to
+  0 to +10 Nm), speed as absolute RPM (0-6000). Also shows commanded
+  spindle speed (0-24000 RPM) sent to the EL4032/VFD. See postgui.hal for
+  the HAL wiring.
 
   Tag names (bar, min_, max_, halpin, text, labelframe) confirmed working
   against a real AXIS/PyVCP. With min_ negative and max_ positive, PyVCP's
@@ -24,10 +25,19 @@
 <vbox>
 
 <label>
-  <text>"X Torque (Nm)"</text>
+  <text>"X1 Torque (Nm)"</text>
 </label>
 <bar>
-  <halpin>"x-torque"</halpin>
+  <halpin>"x1-torque"</halpin>
+  <min_>-10</min_>
+  <max_>10</max_>
+</bar>
+
+<label>
+  <text>"X2 Torque (Nm)"</text>
+</label>
+<bar>
+  <halpin>"x2-torque"</halpin>
   <min_>-10</min_>
   <max_>10</max_>
 </bar>
@@ -57,10 +67,19 @@
 <vbox>
 
 <label>
-  <text>"X Speed (RPM)"</text>
+  <text>"X1 Speed (RPM)"</text>
 </label>
 <bar>
-  <halpin>"x-rpm"</halpin>
+  <halpin>"x1-rpm"</halpin>
+  <min_>0</min_>
+  <max_>6000</max_>
+</bar>
+
+<label>
+  <text>"X2 Speed (RPM)"</text>
+</label>
+<bar>
+  <halpin>"x2-rpm"</halpin>
   <min_>0</min_>
   <max_>6000</max_>
 </bar>
