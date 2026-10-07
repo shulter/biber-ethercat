@@ -60,7 +60,20 @@
 # (halui.machine.is-on). Drives an external "machine enabled" lamp/relay;
 # it is not the interlock chain feeding iocontrol.0.emc-enable-in.
 net machine-enable <= halui.machine.is-on => lcec.0.io-dout1.dout-0 # Machine Enable
-# net io-dout1-1 => lcec.0.io-dout1.dout-1   # E-Stop Reset
+
+# dout-1: E-stop safety relay reset input. The safety circuit only closes
+# after a reset pulse, so one fixed-width pulse is sent on every rising edge
+# of machine-enable (i.e. each time the machine is switched on in LinuxCNC).
+# edge's in-edge default (TRUE) means *falling* edge — set to 0 for rising.
+# 500 ms pulse width — adjust to the safety relay's required reset pulse
+# length (out-width-ns is s32, so max ~2.1 s).
+loadrt edge names=estop-reset-pulse
+addf estop-reset-pulse servo-thread
+setp estop-reset-pulse.both         0
+setp estop-reset-pulse.in-edge      0
+setp estop-reset-pulse.out-width-ns 500000000
+net machine-enable => estop-reset-pulse.in
+net estop-reset <= estop-reset-pulse.out => lcec.0.io-dout1.dout-1 # E-Stop Reset
 # net io-dout1-2 => lcec.0.io-dout1.dout-2   # Drill Aggregate Enable Contactor
 # net io-dout1-3 => lcec.0.io-dout1.dout-3   # HSK Milling Spindle Enable Contactor
 # net io-dout1-4 => lcec.0.io-dout1.dout-4   # Vacuum pump Enable Contactor
