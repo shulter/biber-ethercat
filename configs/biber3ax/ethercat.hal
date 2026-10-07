@@ -1,5 +1,6 @@
-# Vantage 33M final config — 4x A6 servo wiring (X gantry, Y, Z) + spindle (commented out)
-# Machine digital I/O (Beckhoff EK1100 terminals) is in io.hal, loaded after this file.
+# Vantage 33M final config — 4x A6 servo wiring (X gantry, Y, Z) + EL4032 spindle
+# analog output. Machine digital I/O (Beckhoff EK1100 + EL1808/EL2808/EL1018
+# terminals) is in io.hal, loaded after this file.
 # Requires: lcec, cia402 HAL components
 
 loadrt [KINS]KINEMATICS
@@ -32,10 +33,9 @@ addf lcec.write-all           servo-thread
 #   halcmd show pin | grep lcec.0.state
 net ec-all-op <= lcec.0.state-op => iocontrol.0.emc-enable-in
 
-# Spindle speed command — a core motion pin, present whether or not the EL4032
-# is on the bus. Declared once here so both the (commented-out) EL4032
-# analog-out wiring below and the postgui.hal display panel link to the same
-# net instead of each trying to source it from spindle.0.speed-out-abs.
+# Spindle speed command — a core motion pin. Declared once here so both the
+# EL4032 analog-out wiring below and the postgui.hal display panel link to the
+# same net instead of each trying to source it from spindle.0.speed-out-abs.
 net spindle-speed-cmd <= spindle.0.speed-out-abs
 
 # --- X gantry left (joint 0) ---
@@ -124,17 +124,36 @@ net z-drv-target-vel cia402.3.drv-target-velocity   => lcec.0.z.target-velocity
 
 net z-home-sw => joint.3.home-sw-in <= lcec.0.z.home-switch
 
-# --- Spindle (Beckhoff EL4032, 0-10V analog out, 0-24000 RPM) ---
-# Requires the EK1100 coupler chain (see ethercat-conf.xml) and the "spindle"
-# slave (EL4032) to be on the bus. Uncomment once connected.
-#
-# loadrt scale names=spindle-scale
-# addf spindle-scale servo-thread
-#
-# # 10V / 24000 RPM = 0.00041667 V per RPM
-# setp spindle-scale.gain 0.00041667
-# setp spindle-scale.offset 0.0
-#
-# net spindle-speed-cmd => spindle-scale.in
-# net spindle-voltage-cmd <= spindle-scale.out => lcec.0.spindle.ao-0
-# net spindle-on <= spindle.0.on
+# --- Spindle (Beckhoff EL4032, 0-10V analog out to VFD, 0-24000 RPM) ---
+# EL4032 uses lcec's shared "aout" analog-output class, not a flat ao-N pin —
+# confirmed via `strings lcec.so` on the bench machine (lcec_class_aout.c).
+# The command pin is aout-0-value; aout-0-scale/-offset convert it to raw DAC
+# counts internally but their exact units (volts directly, vs. a normalized
+# +/-1.0 = full-scale fraction) aren't confirmed here — verify with a
+# multimeter on the EL4032's output terminals before trusting the VFD sees
+# the right voltage, and adjust spindle-scale.gain below (or the terminal's
+# own aout-0-scale/-offset pins) to match. aout-0-enable must be true for the
+# output to drive at all — gated here on spindle.0.on so it's 0V/disabled
+# unless the spindle is actually commanded on.
+# The "scale" RT component can only be loadrt'd once per HAL session, even
+# for multiple named instances — so every scale instance needed anywhere in
+# this config (here, plus the torque display instances postgui.hal nets up
+# once the GUI has loaded) is loaded together in this one call, in this file,
+# since ethercat.hal loads first. postgui.hal only setp/nets these pins —
+# loadrt or addf'ing "scale" again there would fail with "already exists" /
+# "already in thread".
+loadrt scale names=spindle-scale,x-left-torque-scale,x-right-torque-scale,y-torque-scale,z-torque-scale
+addf spindle-scale        servo-thread
+addf x-left-torque-scale  servo-thread
+addf x-right-torque-scale servo-thread
+addf y-torque-scale       servo-thread
+addf z-torque-scale       servo-thread
+
+# 10V / 24000 RPM = 0.00041667 V per RPM — ASSUMES aout-0-value takes volts
+# directly (aout-0-scale/-offset left at their defaults). Verify on hardware.
+setp spindle-scale.gain 0.00041667
+setp spindle-scale.offset 0.0
+
+net spindle-speed-cmd   => spindle-scale.in
+net spindle-voltage-cmd <= spindle-scale.out => lcec.0.spindle.aout-0-value
+net spindle-on          <= spindle.0.on       => lcec.0.spindle.aout-0-enable

@@ -16,11 +16,9 @@ addf x-right-torque-conv servo-thread
 addf y-torque-conv       servo-thread
 addf z-torque-conv       servo-thread
 
-loadrt scale names=x-left-torque-scale,x-right-torque-scale,y-torque-scale,z-torque-scale
-addf x-left-torque-scale  servo-thread
-addf x-right-torque-scale servo-thread
-addf y-torque-scale       servo-thread
-addf z-torque-scale       servo-thread
+# The *-torque-scale instances are loaded+addf'd in ethercat.hal together with
+# spindle-scale — "scale" can only be loadrt'd once per HAL session, so
+# loadrt'ing it again here would fail with "already exists".
 
 # 12 Nm / 1000 (raw units at 100% rated torque) = 0.012 Nm per raw count
 setp x-left-torque-scale.gain  0.012
@@ -45,7 +43,6 @@ net z-torque-nm        z-torque-scale.out       => torquemeters.z-torque
 
 # Spindle speed display — commanded speed (net declared in ethercat.hal from
 # spindle.0.speed-out-abs), since this design has no spindle feedback device
-# (open-loop 0-10V drive via EL4032). Works without the Beckhoff coupler on
-# the bus; once the EL4032 section in ethercat.hal is uncommented it taps
-# this same net rather than re-sourcing the pin.
+# (open-loop 0-10V drive via EL4032). Taps the same net that feeds the
+# EL4032 output in ethercat.hal rather than re-sourcing the pin.
 net spindle-speed-cmd => torquemeters.spindle-speed

@@ -138,27 +138,50 @@
 
         <!--
         Beckhoff I/O chain, connected after the 4th servo drive (z, idx 3).
-        Not on the bus yet — the EK1100 coupler isn't wired into the bench
-        setup. Uncomment together with the matching nets in io.hal /
-        ethercat.hal once it is. Standard Beckhoff terminals are recognized
-        by lcec via their part number as the "type" attribute, no manual
-        vid/pid/PDO mapping needed.
+        Taken from the benchtest-io config, where it was confirmed against
+        the real bus via `sudo ethercat slaves` (idx must exactly match its
+        position column — a mismatch here causes "Failed to register PDO
+        entry: No such file or directory" since the master maps the wrong
+        device's PDOs onto that position). EK1100 is a pure passthrough
+        coupler (no process data, no PDO mapping, no HAL pins). Standard
+        Beckhoff terminals are recognized by lcec via their part number as
+        the "type" attribute, no manual vid/pid/PDO mapping needed. HAL
+        wiring for the EL1808/EL2808/EL1018 terminals is in io.hal; the
+        EL4032 is wired in ethercat.hal (spindle analog out).
 
+        Position 11 (EL9110, E-bus power feed) is intentionally NOT declared
+        below. It has zero process data — nothing to configure or control —
+        and this lcec build doesn't recognize "EL9110" as a known type, so
+        declaring it as "generic" without vid/pid caused the master to fail
+        identifying that bus position ("Failed to register PDO entry: No
+        such file or directory"), which aborted the whole master's config.
+        EtherCAT is a ring bus: frames pass through every physical device
+        whether or not lcec's config declares it, so an undeclared position
+        is fine for a terminal with nothing to wire — idx values below are
+        real bus positions, not a sequential list index, so the gap at 11 is
+        expected. `sudo ethercat slaves` will still show it at position 11.
+        -->
         <slave idx="4" type="EK1100" name="ek1100"/>
 
         <slave idx="5" type="EL1808" name="io-din1"/>
-        <slave idx="6" type="EL2808" name="io-dout1"/>
-        <slave idx="7" type="EL1808" name="io-din2"/>
-        <slave idx="8" type="EL2808" name="io-dout2"/>
+        <slave idx="6" type="EL1808" name="io-din2"/>
+        <slave idx="7" type="EL1808" name="io-din3"/>
+        <slave idx="8" type="EL1808" name="io-din4"/>
+        <slave idx="9" type="EL2808" name="io-dout1"/>
+        <slave idx="10" type="EL2808" name="io-dout2"/>
 
-        <slave idx="9" type="EL9110" name="io-power"/>
+        <!-- idx 11 = EL9110, deliberately undeclared, see comment above -->
 
-        <slave idx="10" type="EL1808" name="io-din3"/>
-        <slave idx="11" type="EL2808" name="io-dout3"/>
-        <slave idx="12" type="EL1808" name="io-din4"/>
+        <slave idx="12" type="EL2808" name="io-dout3"/>
         <slave idx="13" type="EL2808" name="io-dout4"/>
 
+        <!-- Beckhoff EL4032 — 2-ch 0-10V analog out. Channel 0 drives the VFD
+             spindle command (see ethercat.hal); channel 1 unused. -->
         <slave idx="14" type="EL4032" name="spindle"/>
-        -->
+
+        <!-- EL1018 — 8-ch digital input, 10us fast response (vs. EL1808's 3ms).
+             Confirmed on the real bus via `sudo ethercat slaves`; wasn't in the
+             originally assumed chain. -->
+        <slave idx="15" type="EL1018" name="io-din5"/>
     </master>
 </masters>
