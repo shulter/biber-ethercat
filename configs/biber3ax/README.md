@@ -55,8 +55,9 @@ is taken from `benchtest-io`, where it was verified against the real hardware.
 [14] EL4032 (spindle)  [15] EL1018
 ```
 
-`idx` in `ethercat-conf.xml` is the real bus position, not a sequential list index. Position 11
-(EL9110) is deliberately not declared (see below), so the gap there is expected.
+`idx` in `ethercat-conf.xml` is the real bus position. **Every** slave on the bus must be declared —
+`lcec.0.state-op` (which gates `iocontrol.0.emc-enable-in`, and thus e-stop reset/F1) is only true when
+all slaves are in OP, and the master leaves undeclared slaves in PREOP.
 
 ## Machine I/O (Beckhoff)
 
@@ -71,12 +72,12 @@ is taken from `benchtest-io`, where it was verified against the real hardware.
   machine-enable indicator (lamp/relay) from `halui.machine.is-on` — energized whenever LinuxCNC is
   switched on. This is a status output, not the safety interlock chain feeding
   `iocontrol.0.emc-enable-in`.
-- **EL9110** — E-bus power supply feed terminal. No process data, no HAL pins; just refreshes bus power
-  for the terminals downstream of it. Physically present at bus position 11 but **not declared** in
-  `ethercat-conf.xml` — this lcec build doesn't recognize its type, and since it has nothing to
-  configure, an undeclared bus position is harmless (EtherCAT frames pass through it regardless).
-  Declaring it as `type="generic"` without the correct `vid`/`pid` breaks the whole master's PDO
-  registration (`Failed to register PDO entry: No such file or directory`).
+- **EL9110** — E-bus power supply feed terminal with diagnostics, bus position 11. This lcec build
+  doesn't know its type, so it's declared as `type="generic"` with its real identity (vid `00000002`,
+  pid `23963052`, from `ethercat slaves -p 11 -v`) and its one PDO mapped to
+  `lcec.0.io-power.power-ok`. It must be declared: left undeclared, it stays in PREOP and keeps
+  `lcec.0.state-op` false, which blocks e-stop reset (F1). Declaring it generic *without* vid/pid
+  breaks the master's PDO registration (`Failed to register PDO entry`).
 
 Pin names (`din-N`, `dout-N`) follow the standard lcec Beckhoff terminal driver naming — confirm with
 `halcmd show pin` once running.
@@ -144,6 +145,10 @@ recognized by your build, remove those lines to fall back to the trapezoidal pla
   netted to `lcec.0.state-op` (`ethercat.hal`) — Machine On is refused, and an already-enabled machine is
   disabled like a fault, whenever the EtherCAT master hasn't got all slaves into OP state. Run
   `sudo ethercat slaves` to see which slave is stuck and in what state before assuming this is a config bug.
+- **E-stop reset (F1) greyed out / does nothing:** `iocontrol.0.emc-enable-in` is false because
+  `lcec.0.state-op` is false — at least one slave isn't in OP. While LinuxCNC is running,
+  `ethercat slaves` shows which one; any slave left out of `ethercat-conf.xml` stays in PREOP and
+  causes this.
 - **Slaves stuck in PREOP:** Use variable PDO mapping (0x1600/0x1A00) as in `ethercat-conf.xml`; avoid fixed PDOs.
 - **Following error on enable:** Reduce acceleration; verify `CIA402_POS_SCALE` per axis; check encoder resolution in drive params.
 - **Only one X motor moves:** Confirm `trivkins coordinates=XXYZ` and both X `cia402` instances (0, 1) are wired.

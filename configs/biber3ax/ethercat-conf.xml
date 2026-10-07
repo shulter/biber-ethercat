@@ -149,17 +149,18 @@
         wiring for the EL1808/EL2808/EL1018 terminals is in io.hal; the
         EL4032 is wired in ethercat.hal (spindle analog out).
 
-        Position 11 (EL9110, E-bus power feed) is intentionally NOT declared
-        below. It has zero process data — nothing to configure or control —
-        and this lcec build doesn't recognize "EL9110" as a known type, so
-        declaring it as "generic" without vid/pid caused the master to fail
-        identifying that bus position ("Failed to register PDO entry: No
-        such file or directory"), which aborted the whole master's config.
-        EtherCAT is a ring bus: frames pass through every physical device
-        whether or not lcec's config declares it, so an undeclared position
-        is fine for a terminal with nothing to wire — idx values below are
-        real bus positions, not a sequential list index, so the gap at 11 is
-        expected. `sudo ethercat slaves` will still show it at position 11.
+        Position 11 (EL9110, E-bus power feed) MUST be declared even though
+        it's only a power terminal: the IgH master leaves undeclared slaves
+        in PREOP, and lcec.0.state-op is only true when *every* slave on the
+        bus is in OP (al_states == 0x08). An undeclared EL9110 therefore kept
+        state-op false forever, which held iocontrol.0.emc-enable-in false
+        (ethercat.hal) and made LinuxCNC's e-stop reset (F1) impossible.
+        This lcec build doesn't know "EL9110" as a type, so it's declared as
+        generic with its real identity, read via `ethercat slaves -p 11 -v`
+        (vendor 0x00000002, product 0x23963052) — declaring it generic
+        *without* vid/pid is what previously broke PDO registration. Its one
+        PDO (`ethercat pdos -p 11`: TxPDO 0x1A00 "PowerOK", 0x6000:01, SM0)
+        is mapped to a power-ok HAL pin.
         -->
         <slave idx="4" type="EK1100" name="ek1100"/>
 
@@ -170,7 +171,14 @@
         <slave idx="9" type="EL2808" name="io-dout1"/>
         <slave idx="10" type="EL2808" name="io-dout2"/>
 
-        <!-- idx 11 = EL9110, deliberately undeclared, see comment above -->
+        <!-- EL9110 — E-bus power feed with diagnostics, see comment above -->
+        <slave idx="11" type="generic" vid="00000002" pid="23963052" name="io-power">
+            <syncManager idx="0" dir="in">
+                <pdo idx="1A00">
+                    <pdoEntry idx="6000" subIdx="01" bitLen="1" halPin="power-ok" halType="bit"/>
+                </pdo>
+            </syncManager>
+        </slave>
 
         <slave idx="12" type="EL2808" name="io-dout3"/>
         <slave idx="13" type="EL2808" name="io-dout4"/>

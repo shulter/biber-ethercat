@@ -95,10 +95,11 @@ net estop-reset <= estop-reset-pulse.out => lcec.0.io-dout1.dout-1 # E-Stop Rese
 # net io-dout2-7 => lcec.0.io-dout2.dout-7   # vaccuum port right close
 
 # --- EL9110 (E-bus power supply feed terminal, bus position 11) ---
-# No process data / HAL pins — just refreshes E-bus power for the terminals
-# downstream of it in the chain. Not declared in ethercat-conf.xml at all
-# (this lcec build doesn't recognize the type, and it has nothing to
-# configure anyway) — no wiring needed here, no lcec.0.io-power.* pins exist.
+# Refreshes E-bus power for the terminals downstream of it in the chain.
+# Declared in ethercat-conf.xml as a generic slave (so it reaches OP and
+# lcec.0.state-op can go true — see the comment there). Its single input,
+# lcec.0.io-power.power-ok, reports 24V supply OK; not wired to anything yet.
+# net io-power-ok <= lcec.0.io-power.power-ok
 
 # --- EL2808 #3 (digital outputs, slave idx 12) ---
 # net io-dout3-0 => lcec.0.io-dout3.dout-0   # Alle Anschläge hoch: Y0, Y1, rechts, links
