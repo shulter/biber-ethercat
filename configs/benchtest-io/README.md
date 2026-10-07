@@ -18,8 +18,8 @@ and an EL4032 analog output terminal driving the spindle VFD's 0-10V speed input
    ```bash
    sudo ethercat slaves
    # Expected: 15 devices — three A6/SV660N servos at position 0-2, then the
-   # Beckhoff chain at 3-14 (EK1100, 4x EL1808, 4x EL2808, EL9110, EL1018,
-   # EL4032). idx in ethercat-conf.xml must match this position column
+   # Beckhoff chain at 3-14 (EK1100, 4x EL1808, 2x EL2808, EL9110, 2x EL2808,
+   # EL4032, EL1018). idx in ethercat-conf.xml must match this position column
    # exactly, or PDO registration fails ("Failed to register PDO entry").
    ```
 
@@ -60,9 +60,9 @@ alphabetical axis order — `[KINS] KINEMATICS = trivkins coordinates=XZY` refle
 
 ```
 [0] x  [1] z  [2] y
-[3] EK1100  [4] EL1808  [5] EL2808  [6] EL1808  [7] EL2808
-[8] EL9110  [9] EL1808  [10] EL2808  [11] EL1808  [12] EL2808
-[13] EL1018  [14] EL4032 (spindle)
+[3] EK1100  [4] EL1808  [5] EL1808  [6] EL1808  [7] EL1808
+[8] EL2808  [9] EL2808  [10] EL9110  [11] EL2808  [12] EL2808
+[13] EL4032 (spindle)  [14] EL1018
 ```
 
 ## Machine I/O (Beckhoff)
@@ -80,7 +80,7 @@ alphabetical axis order — `[KINS] KINEMATICS = trivkins coordinates=XZY` refle
   switched on. This is a status output, not the safety interlock chain feeding
   `iocontrol.0.emc-enable-in`.
 - **EL9110** — E-bus power supply feed terminal. No process data, no HAL pins; just refreshes bus power
-  for the terminals downstream of it. Physically present at bus position 8 but **not declared** in
+  for the terminals downstream of it. Physically present at bus position 10 but **not declared** in
   `ethercat-conf.xml` — this lcec build doesn't recognize its type, and since it has nothing to
   configure, an undeclared bus position is harmless (EtherCAT frames pass through it regardless).
   Declaring it as `type="generic"` without the correct `vid`/`pid` previously broke the whole master's
@@ -168,7 +168,7 @@ two stacked bars (green fed by `max(torque,0)`, red fed by `-min(torque,0)`) ins
 - **Wrong axis moves:** Confirm `trivkins coordinates=XZY` and that `lcec.0.x.*` / `lcec.0.z.*` / `lcec.0.y.*` are wired to `cia402.0` / `cia402.1` / `cia402.2` respectively — joint number follows EtherCAT bus position, not alphabetical axis order.
 - **Z motor doesn't move:** Confirm `cia402.1` is wired to `lcec.0.z.*` and `joint.1`, and `HOME_SEQUENCE = 2` (Z homes last).
 - **Y motor doesn't move:** Confirm `cia402.2` is wired to `lcec.0.y.*` and `joint.2`, and `HOME_SEQUENCE = 1` (Y homes second).
-- **Beckhoff terminals not detected:** Confirm the full chain (EK1100 through EL4032) is wired in that order after the three servos, and that `sudo ethercat slaves` reports 15 devices.
+- **Beckhoff terminals not detected:** Confirm the full chain (EK1100 through EL1018) is wired in that order after the three servos, and that `sudo ethercat slaves` reports 15 devices.
 - **"Failed to register PDO entry" / "PDO entry 0x7000:01 is not mapped":** A slave's `idx` in `ethercat-conf.xml` doesn't match its actual position column in `sudo ethercat slaves` — the master is trying to map one device's object dictionary onto a different physical device. Re-run `sudo ethercat slaves` and check every `idx` against its position.
 - **No voltage at the VFD input:** Confirm `lcec.0.spindle.aout-0-value` is netted (`spindle-voltage-cmd` in `ethercat.hal`), that `lcec.0.spindle.aout-0-enable` is true (gated on `spindle.0.on` — the spindle must be commanded on, not just a nonzero S-word), and that a spindle speed has actually been commanded (`M3 S<rpm>`).
 - **"Pin '...ao-0' does not exist":** The EL4032 uses lcec's `aout` class, not a flat `ao-N` pin — the real pins are `aout-0-value`, `-scale`, `-offset`, `-enable`, etc. (`halcmd show pin lcec.0.spindle` lists them all).
