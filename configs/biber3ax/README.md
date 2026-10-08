@@ -154,8 +154,8 @@ recognized by your build, remove those lines to fall back to the trapezoidal pla
   `lcec.0.state-op` (`and2` `estop-chain` in `ethercat.hal`, net `estop-ok`). In LinuxCNC 2.9 the e-stop
   state *is* `!emc-enable-in` and F1 only toggles `user-enable-out`, so `user-enable-out` must be in this
   loop — wiring `emc-enable-in` from `state-op` alone leaves LinuxCNC permanently in ESTOP_RESET with F1
-  dead. The safety relay reset input (`io-dout1.dout-1`, `io.hal`) follows `estop-ok` as a level — TRUE from
-  F1 reset until LinuxCNC goes back into e-stop.
+  dead. This is only LinuxCNC's internal e-stop state — the physical emergency stop circuit is
+  hardware-only and not driven by LinuxCNC (`io-dout1.dout-1` is unassigned).
 - **E-stop won't reset, or the machine drops into e-stop on its own:** `estop-ok` is false because
   `lcec.0.state-op` is false — at least one slave isn't in OP. While LinuxCNC is running,
   `ethercat slaves` shows which one; any slave left out of `ethercat-conf.xml` stays in PREOP and
