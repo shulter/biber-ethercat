@@ -20,7 +20,7 @@ is taken from `benchtest-io`, where it was verified against the real hardware.
    sudo ethercat slaves
    # Expected: 16 devices — four A6/SV660N servos at position 0-3 (x-left,
    # x-right, y, z), then the Beckhoff chain at 4-15 (EK1100, 4x EL1808,
-   # 2x EL2808, EL9110, 2x EL2808, EL4032, EL1018). idx in ethercat-conf.xml
+   # 2x EL2808, EL1018, EL9110, 2x EL2808, EL4032). idx in ethercat-conf.xml
    # must match this position column exactly, or PDO registration fails
    # ("Failed to register PDO entry").
    ```
@@ -51,8 +51,8 @@ is taken from `benchtest-io`, where it was verified against the real hardware.
 ```
 [0] x-left  [1] x-right  [2] y  [3] z                          <- A6 servos
 [4] EK1100  [5] EL1808  [6] EL1808  [7] EL1808  [8] EL1808
-[9] EL2808  [10] EL2808  [11] EL9110  [12] EL2808  [13] EL2808
-[14] EL4032 (spindle)  [15] EL1018
+[9] EL2808  [10] EL2808  [11] EL1018 (limit switches)  [12] EL9110
+[13] EL2808  [14] EL2808  [15] EL4032 (spindle)
 ```
 
 `idx` in `ethercat-conf.xml` is the real bus position. **Every** slave on the bus must be declared —
@@ -72,9 +72,9 @@ all slaves are in OP, and the master leaves undeclared slaves in PREOP.
   machine-enable indicator (lamp/relay) from `halui.machine.is-on` — energized whenever LinuxCNC is
   switched on. This is a status output, not the safety interlock chain feeding
   `iocontrol.0.emc-enable-in`.
-- **EL9110** — E-bus power supply feed terminal with diagnostics, bus position 11. This lcec build
+- **EL9110** — E-bus power supply feed terminal with diagnostics, bus position 12. This lcec build
   doesn't know its type, so it's declared as `type="generic"` with its real identity (vid `00000002`,
-  pid `23963052`, from `ethercat slaves -p 11 -v`) and its one PDO mapped to
+  pid `23963052`, from `ethercat slaves -p 12 -v`) and its one PDO mapped to
   `lcec.0.io-power.power-ok`. It must be declared: left undeclared, it stays in PREOP and keeps
   `lcec.0.state-op` false, which blocks e-stop reset (F1). Declaring it generic *without* vid/pid
   breaks the master's PDO registration (`Failed to register PDO entry`).
@@ -171,8 +171,8 @@ recognized by your build, remove those lines to fall back to the trapezoidal pla
 - **Homing runs into the switch without stopping / "limit switch" error during homing:** confirm
   `HOME_IGNORE_LIMITS = YES` on every joint and that the switch's `*-pos-lim` net reaches the joint's
   `home-sw-in` (`halcmd show sig x-pos-lim`).
-- **Beckhoff terminals not detected:** Confirm the full chain (EK1100 through EL1018) is wired in that
-  order after the four servos, and that `sudo ethercat slaves` reports 16 devices.
+- **Beckhoff terminals not detected:** Confirm the full chain (EK1100 through EL4032) is wired in the
+  order above after the four servos, and that `sudo ethercat slaves` reports 16 devices.
 - **"Failed to register PDO entry" / "PDO entry 0x7000:01 is not mapped":** A slave's `idx` in
   `ethercat-conf.xml` doesn't match its actual position column in `sudo ethercat slaves`. Re-run
   `sudo ethercat slaves` and check every `idx` against its position.

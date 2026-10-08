@@ -149,17 +149,17 @@
         wiring for the EL1808/EL2808/EL1018 terminals is in io.hal; the
         EL4032 is wired in ethercat.hal (spindle analog out).
 
-        Position 11 (EL9110, E-bus power feed) MUST be declared even though
+        Position 12 (EL9110, E-bus power feed) MUST be declared even though
         it's only a power terminal: the IgH master leaves undeclared slaves
         in PREOP, and lcec.0.state-op is only true when *every* slave on the
         bus is in OP (al_states == 0x08). An undeclared EL9110 therefore kept
         state-op false forever, which held iocontrol.0.emc-enable-in false
         (ethercat.hal) and made LinuxCNC's e-stop reset (F1) impossible.
         This lcec build doesn't know "EL9110" as a type, so it's declared as
-        generic with its real identity, read via `ethercat slaves -p 11 -v`
+        generic with its real identity, read via `ethercat slaves -p <pos> -v`
         (vendor 0x00000002, product 0x23963052) — declaring it generic
         *without* vid/pid is what previously broke PDO registration. Its one
-        PDO (`ethercat pdos -p 11`: TxPDO 0x1A00 "PowerOK", 0x6000:01, SM0)
+        PDO (`ethercat pdos -p <pos>`: TxPDO 0x1A00 "PowerOK", 0x6000:01, SM0)
         is mapped to a power-ok HAL pin.
         -->
         <slave idx="4" type="EK1100" name="ek1100"/>
@@ -171,8 +171,12 @@
         <slave idx="9" type="EL2808" name="io-dout1"/>
         <slave idx="10" type="EL2808" name="io-dout2"/>
 
+        <!-- EL1018 — 8-ch digital input, 10us fast response (vs. EL1808's 3ms).
+             Limit/home switches (io.hal). Sits before the EL9110. -->
+        <slave idx="11" type="EL1018" name="io-din5"/>
+
         <!-- EL9110 — E-bus power feed with diagnostics, see comment above -->
-        <slave idx="11" type="generic" vid="00000002" pid="23963052" name="io-power">
+        <slave idx="12" type="generic" vid="00000002" pid="23963052" name="io-power">
             <syncManager idx="0" dir="in">
                 <pdo idx="1A00">
                     <pdoEntry idx="6000" subIdx="01" bitLen="1" halPin="power-ok" halType="bit"/>
@@ -180,16 +184,11 @@
             </syncManager>
         </slave>
 
-        <slave idx="12" type="EL2808" name="io-dout3"/>
-        <slave idx="13" type="EL2808" name="io-dout4"/>
+        <slave idx="13" type="EL2808" name="io-dout3"/>
+        <slave idx="14" type="EL2808" name="io-dout4"/>
 
         <!-- Beckhoff EL4032 — 2-ch 0-10V analog out. Channel 0 drives the VFD
              spindle command (see ethercat.hal); channel 1 unused. -->
-        <slave idx="14" type="EL4032" name="spindle"/>
-
-        <!-- EL1018 — 8-ch digital input, 10us fast response (vs. EL1808's 3ms).
-             Confirmed on the real bus via `sudo ethercat slaves`; wasn't in the
-             originally assumed chain. -->
-        <slave idx="15" type="EL1018" name="io-din5"/>
+        <slave idx="15" type="EL4032" name="spindle"/>
     </master>
 </masters>

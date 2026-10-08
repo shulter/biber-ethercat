@@ -1,11 +1,10 @@
 # Vantage 33M final config — Beckhoff EK1100 + terminal chain wiring
 # (loaded after ethercat.hal, see [HAL] HALFILE in biber3ax.ini)
 #
-# EtherCAT chain order (see ethercat-conf.xml — taken from benchtest-io, where
-# it was confirmed via `sudo ethercat slaves`), after the 4 servo drives
+# EtherCAT chain order (see ethercat-conf.xml), after the 4 servo drives
 # (x-left, x-right, y, z):
-#   EK1100 -> EL1808 -> EL1808 -> EL1808 -> EL1808 -> EL2808 -> EL2808 -> EL9110
-#          -> EL2808 -> EL2808 -> EL4032 -> EL1018
+#   EK1100 -> EL1808 -> EL1808 -> EL1808 -> EL1808 -> EL2808 -> EL2808 -> EL1018
+#          -> EL9110 -> EL2808 -> EL2808 -> EL4032
 #
 # Each EL1808 is 8 digital inputs (din-0..din-7, 3ms filter), the EL1018 is 8
 # digital inputs (din-0..din-7, 10us — no input filtering, for fast signals
@@ -86,39 +85,7 @@ net estop-ok => lcec.0.io-dout1.dout-1 # E-Stop Reset
 # net io-dout2-6 => lcec.0.io-dout2.dout-6   # vaccuum port right open
 # net io-dout2-7 => lcec.0.io-dout2.dout-7   # vaccuum port right close
 
-# --- EL9110 (E-bus power supply feed terminal, bus position 11) ---
-# Refreshes E-bus power for the terminals downstream of it in the chain.
-# Declared in ethercat-conf.xml as a generic slave (so it reaches OP and
-# lcec.0.state-op can go true — see the comment there). Its single input,
-# lcec.0.io-power.power-ok, reports 24V supply OK; not wired to anything yet.
-# net io-power-ok <= lcec.0.io-power.power-ok
-
-# --- EL2808 #3 (digital outputs, slave idx 12) ---
-# net io-dout3-0 => lcec.0.io-dout3.dout-0   # Alle Anschläge hoch: Y0, Y1, rechts, links
-# net io-dout3-1 => lcec.0.io-dout3.dout-1   # HSK Spindle pull draw bar up, release tool
-# net io-dout3-2 => lcec.0.io-dout3.dout-2   # Dust hood up
-# net io-dout3-3 => lcec.0.io-dout3.dout-3   # Dust hood down
-# net io-dout3-4 => lcec.0.io-dout3.dout-4   # Auflage rechts A1
-# net io-dout3-5 => lcec.0.io-dout3.dout-5   # Auflage rechts A2
-# net io-dout3-6 => lcec.0.io-dout3.dout-6   # X horizontal drill aggregate down
-# net io-dout3-7 => lcec.0.io-dout3.dout-7   # horizontal drill aggregates all up
-
-# --- EL2808 #4 (digital outputs, slave idx 13) ---
-# net io-dout4-0 => lcec.0.io-dout4.dout-0   # Y horizontal drill aggregate down
-# net io-dout4-1 => lcec.0.io-dout4.dout-1   # 1st vertical drill spindle down
-# net io-dout4-2 => lcec.0.io-dout4.dout-2   # 2nd vertical drill spindle down
-# net io-dout4-3 => lcec.0.io-dout4.dout-3   # 3rd vertical drill spindle down
-# net io-dout4-4 => lcec.0.io-dout4.dout-4   # 4th vertical drill spindle down
-# net io-dout4-5 => lcec.0.io-dout4.dout-5   # 5th vertical drill spindle down
-# net io-dout4-6 => lcec.0.io-dout4.dout-6   # 6th vertical drill spindle down
-# net io-dout4-7 => lcec.0.io-dout4.dout-7   # 7th vertical drill spindle down
-
-# --- EL4032 (2-ch analog output, spindle 0-10V — slave idx 14) ---
-# Spindle speed wiring lives in ethercat.hal (net spindle-voltage-cmd), since
-# it's driven by spindle.0.speed-out-abs rather than a plain machine I/O net.
-# Channel 1 (aout-1-*) is the terminal's second channel, unused here.
-
-# --- EL1018 (fast digital inputs, 10us, slave idx 15) ---
+# --- EL1018 (fast digital inputs, 10us, slave idx 11) ---
 # net io-din5-0 <= lcec.0.io-din5.din-0   # Tool height probe input
 
 # Limit switches, din-1..din-4. Each axis homes onto its positive limit
@@ -143,3 +110,35 @@ net z-neg-lim <= lcec.0.io-din5.din-4 => joint.3.neg-lim-sw-in                  
 # net io-din5-5 <= lcec.0.io-din5.din-5   # TODO: assign
 # net io-din5-6 <= lcec.0.io-din5.din-6   # TODO: assign
 # net io-din5-7 <= lcec.0.io-din5.din-7   # TODO: assign
+
+# --- EL9110 (E-bus power supply feed terminal, bus position 12) ---
+# Refreshes E-bus power for the terminals downstream of it in the chain.
+# Declared in ethercat-conf.xml as a generic slave (so it reaches OP and
+# lcec.0.state-op can go true — see the comment there). Its single input,
+# lcec.0.io-power.power-ok, reports 24V supply OK; not wired to anything yet.
+# net io-power-ok <= lcec.0.io-power.power-ok
+
+# --- EL2808 #3 (digital outputs, slave idx 13) ---
+# net io-dout3-0 => lcec.0.io-dout3.dout-0   # Alle Anschläge hoch: Y0, Y1, rechts, links
+# net io-dout3-1 => lcec.0.io-dout3.dout-1   # HSK Spindle pull draw bar up, release tool
+# net io-dout3-2 => lcec.0.io-dout3.dout-2   # Dust hood up
+# net io-dout3-3 => lcec.0.io-dout3.dout-3   # Dust hood down
+# net io-dout3-4 => lcec.0.io-dout3.dout-4   # Auflage rechts A1
+# net io-dout3-5 => lcec.0.io-dout3.dout-5   # Auflage rechts A2
+# net io-dout3-6 => lcec.0.io-dout3.dout-6   # X horizontal drill aggregate down
+# net io-dout3-7 => lcec.0.io-dout3.dout-7   # horizontal drill aggregates all up
+
+# --- EL2808 #4 (digital outputs, slave idx 14) ---
+# net io-dout4-0 => lcec.0.io-dout4.dout-0   # Y horizontal drill aggregate down
+# net io-dout4-1 => lcec.0.io-dout4.dout-1   # 1st vertical drill spindle down
+# net io-dout4-2 => lcec.0.io-dout4.dout-2   # 2nd vertical drill spindle down
+# net io-dout4-3 => lcec.0.io-dout4.dout-3   # 3rd vertical drill spindle down
+# net io-dout4-4 => lcec.0.io-dout4.dout-4   # 4th vertical drill spindle down
+# net io-dout4-5 => lcec.0.io-dout4.dout-5   # 5th vertical drill spindle down
+# net io-dout4-6 => lcec.0.io-dout4.dout-6   # 6th vertical drill spindle down
+# net io-dout4-7 => lcec.0.io-dout4.dout-7   # 7th vertical drill spindle down
+
+# --- EL4032 (2-ch analog output, spindle 0-10V — slave idx 15) ---
+# Spindle speed wiring lives in ethercat.hal (net spindle-voltage-cmd), since
+# it's driven by spindle.0.speed-out-abs rather than a plain machine I/O net.
+# Channel 1 (aout-1-*) is the terminal's second channel, unused here.
