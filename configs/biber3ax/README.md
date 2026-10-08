@@ -137,9 +137,9 @@ two stacked bars (green fed by `max(torque,0)`, red fed by `-min(torque,0)`) ins
 | HOME_OFFSET / HOME | 3782 / 3780 | 1653 / 1651 | 2 / 0 |
 
 Each axis homes onto its positive limit switch, which doubles as the home switch (wired in `io.hal`,
-see `docs/kinematics.md` "Homing / Limit Switches"). The switches are assumed normally-closed and
-inverted through `not` components; `HOME_OFFSET` values are placeholders until the real trip points are
-measured.
+see `docs/kinematics.md` "Homing / Limit Switches"). The X switch is normally-closed (wired via
+lcec's inverted `din-1-not` pin); the Y, Z+ and Z− switches are normally-open (netted directly). `HOME_OFFSET` values
+are placeholders until the real trip points are measured.
 
 `NO_FORCE_HOMING = 1` — jogging/MDI allowed without homing. Set it to `0` once homing is verified.
 
@@ -164,9 +164,10 @@ recognized by your build, remove those lines to fall back to the trapezoidal pla
 - **Following error on enable:** Reduce acceleration; verify `CIA402_POS_SCALE` per axis; check encoder resolution in drive params.
 - **Only one X motor moves:** Confirm `trivkins coordinates=XXYZ` and both X `cia402` instances (0, 1) are wired.
 - **Gantry skew:** After homing, adjust `HOME_OFFSET` on joint 0 or 1 to square the gantry.
-- **Joint limit error as soon as the machine is on, with no axis on a switch:** the limit switches
-  are normally-open, not normally-closed as assumed. `halcmd show pin lcec.0.io-din5` reads FALSE on
-  din-1..din-4 while clear — remove the `not` instances in `io.hal` and net the inputs directly.
+- **Joint limit error as soon as the machine is on, with no axis on a switch:** a switch's polarity
+  doesn't match `io.hal`. While clear, `halcmd show pin lcec.0.io-din5` should read din-1 TRUE (X, NC)
+  and din-2..din-4 FALSE (Y/Z, NO). For the switch that differs, swap
+  between `lcec.0.io-din5.din-N` and its inverted `din-N-not` pin in `io.hal`.
 - **Homing runs into the switch without stopping / "limit switch" error during homing:** confirm
   `HOME_IGNORE_LIMITS = YES` on every joint and that the switch's `*-pos-lim` net reaches the joint's
   `home-sw-in` (`halcmd show sig x-pos-lim`).
