@@ -42,8 +42,8 @@ is taken from `benchtest-io`, where it was verified against the real hardware.
 | `ethercat.hal` | lcec + cia402 wiring for the 4 servos, plus EL4032 spindle analog-out wiring |
 | `io.hal` | Beckhoff digital I/O terminal wiring (machine-enable output; rest are placeholders) |
 | `ethercat-conf.xml` | EtherCAT slave topology and PDO mapping (servos, full Beckhoff chain) |
-| `panel.glade` | GladeVCP panel embedded as an AXIS tab: 4x servo torque bars + spindle speed bar |
-| `postgui.hal` | HAL wiring for `panel.glade`'s pins (loaded after the GUI starts, see below) |
+| `panel.xml` | PyVCP panel, shown beside the preview: 4x servo torque + speed bars, spindle speed bar |
+| `postgui.hal` | HAL wiring for `panel.xml`'s pins (loaded after the GUI starts, see below) |
 | `tool.tbl` | Minimal tool table |
 
 ## EtherCAT Bus Order
@@ -96,30 +96,32 @@ with the terminal's own `aout-0-scale`/`-offset` left at their defaults. Before 
 the right speed, command a known RPM and measure the voltage at the EL4032's output terminals; if it's
 off, adjust `spindle-scale.gain` in `ethercat.hal` or set `lcec.0.spindle.aout-0-scale`/`-offset`.
 
-All `scale` instances (spindle and the panel's torque scaling) are loaded in one `loadrt scale` call in
+All `scale` instances (spindle and the panel's torque/speed scaling) are loaded in one `loadrt scale` call in
 `ethercat.hal` — the component can only be loaded once per HAL session, so `postgui.hal` only
 `setp`s/`net`s them.
 
-## Servo Torque / Spindle Speed Panel
+## Servo Torque / Speed Panel
 
-AXIS gets an extra "Servo Monitor" tab (`[DISPLAY] EMBED_TAB_*` in `biber3ax.ini`) showing:
+A PyVCP panel (`[DISPLAY] PYVCP = panel.xml` in `biber3ax.ini`) renders in the pane beside the g-code
+preview — no separate tab, no embedding setup. Layout is the one from the benchtest-servo config,
+extended to all 4 servos (X left, X right, Y, Z):
 
-- **4x torque bars, 0-12 Nm** — one per servo (X left, X right, Y, Z), fed live from each drive's
-  `actual-torque` PDO (6077h, CiA402-standard 0.1%-of-rated-torque units). 12 Nm is assumed to be the
-  A6/SV660N's rated torque — verify against the datasheet and adjust `postgui.hal`'s `*-torque-scale.gain`
-  (currently 0.012 Nm/count) if it differs. This works today since the 4 servos are already active.
-- **1x spindle speed bar, 0-24000 RPM** — shows *commanded* speed (`spindle.0.speed-out-abs`), not
-  measured feedback — there's no spindle encoder in this design, only an open-loop 0-10V drive via the
-  EL4032.
+- **Servo Torque** — bidirectional bar per servo (-10 to 0 to +10 Nm), fed live from each drive's
+  `actual-torque` PDO (6077h, CiA402-standard 0.1%-of-rated-torque units). 12 Nm at 100% is assumed to be
+  the A6/SV660N's rated torque — verify against the datasheet and adjust `postgui.hal`'s
+  `*-torque-scale.gain` (currently 0.012 Nm/count) if it differs.
+- **Servo Speed** — absolute motor RPM per servo (0-6000), from each drive's `actual-velocity` PDO (606Ch),
+  assumed to be in encoder counts/s: RPM = counts/s × 60/131072 (`*-vel-scale.gain` = 0.00045777). Verify
+  against the drive parameters.
+- **Spindle** — *commanded* speed bar, 0-24000 RPM (`spindle.0.speed-out-abs`), not measured feedback —
+  there's no spindle encoder in this design, only an open-loop 0-10V drive via the EL4032.
 
-The panel's HAL pins (`torquemeters.*`) don't exist until the GladeVCP tab has loaded, so their wiring
-lives in `postgui.hal` (loaded via `[HAL] POSTGUI_HALFILE`), not `ethercat.hal`.
+The panel's HAL pins (`pyvcp.*`) don't exist until the PyVCP panel has loaded, so their wiring lives in
+`postgui.hal` (loaded via `[HAL] POSTGUI_HALFILE`), not `ethercat.hal`.
 
-`panel.glade` was hand-written, not exported from Glade, and hasn't been loaded against a real
-`gladevcp` yet — if `gladevcp -c torquemeters panel.glade` errors on widget registration, open it in
-Glade with the HAL widget catalog loaded and correct the `HAL_Bar` class name/properties from there.
-Likewise double check `EMBED_TAB_LOCATION = notebook_mode` against the Integrator's Manual for your
-LinuxCNC version — the valid notebook names can differ across releases.
+The red/negative-green/positive coloring of the torque bars is an assumption about the stock `bar`
+widget's fill behavior when `min_` is negative — if it doesn't render that way, this can be redone as
+two stacked bars (green fed by `max(torque,0)`, red fed by `-min(torque,0)`) instead.
 
 ## Full Machine Settings
 
