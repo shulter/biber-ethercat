@@ -77,10 +77,10 @@ setp x-left-not-op.function  0x2
 setp x-right-not-op.function 0x2
 setp y-not-op.function       0x2
 setp z-not-op.function       0x2
-setp x-left-not-op-delay.on-delay   1.0
-setp x-right-not-op-delay.on-delay  1.0
-setp y-not-op-delay.on-delay        1.0
-setp z-not-op-delay.on-delay        1.0
+setp x-left-not-op-delay.on-delay   1.5
+setp x-right-not-op-delay.on-delay  1.5
+setp y-not-op-delay.on-delay        1.5
+setp z-not-op-delay.on-delay        1.2
 setp x-left-not-op-delay.off-delay  0.0
 setp x-right-not-op-delay.off-delay 0.0
 setp y-not-op-delay.off-delay       0.0
