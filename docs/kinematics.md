@@ -75,17 +75,19 @@ home switch (`HOME_IGNORE_LIMITS = YES`). The switches are on the Beckhoff EL101
 | Z negative limit (bottom) | `io-din5.din-4` | 3 |
 
 X and Y have no negative limit switch. `HOME_OFFSET` is the switch position in machine coordinates,
-set 2 mm beyond `MAX_LIMIT` (X 3782, Y 1653, Z 2) with `HOME = MAX_LIMIT`, so moves up to the soft
-limit stay clear of the hard limit. These are placeholders: measure where each switch actually trips
+set 2 mm beyond `MAX_LIMIT` (X 3782, Y 1653, Z 2) with `HOME = MAX_LIMIT` (except Y, which finishes
+50 mm below its switch: `HOME = 1603`), so moves up to the soft limit stay clear of the hard limit.
+Homing order: Z (`HOME_SEQUENCE = 1`), then Y (`2`), then both X joints together (`-3`). These are placeholders: measure where each switch actually trips
 and correct `HOME_OFFSET` (and `MAX_LIMIT` if the usable travel differs).
 
 ## Gantry Motor Direction
 
 The two X gantry motors are mounted mirrored (facing each other across the gantry), so for the
-same X move they must turn in opposite directions. Joint 1 (x-right) therefore uses a **negative**
-scale, `CIA402_POS_SCALE = -10434.4`; joint 0 (x-left) keeps `+10434.4`. `cia402` multiplies the
-command by `pos-scale` and divides the feedback by it, so the sign flips both consistently.
-If X as a whole moves the wrong way, flip the sign on **both** X joints instead.
+same X move they must turn in opposite directions. Joint 0 (x-left) therefore uses a **negative**
+scale, `CIA402_POS_SCALE = -10434.4`; joint 1 (x-right) uses `+10434.4`, so +X moves toward the X limit
+switch. `cia402` multiplies the command by
+`pos-scale` and divides the feedback by it, so the sign flips both consistently. If X as a whole
+moves the wrong way, flip the sign on **both** X joints.
 
 ## Gantry Homing
 
@@ -93,7 +95,8 @@ The Vantage 33M has a **single home switch** for the X gantry. Both gantry servo
 
 - The switch is wired to `io-din5.din-1`; HAL nets the same signal to `home-sw-in` and
   `pos-lim-sw-in` of both `joint.0` and `joint.1`
-- Use **tandem homing**: `HOME_SEQUENCE = -1` on both X joints (negative = move together)
+- Use **tandem homing**: `HOME_SEQUENCE = -3` on both X joints (negative = move together; X homes
+  last, after Z and Y)
 - Adjust `HOME_OFFSET` per joint to square the gantry after homing
 
 ## Drive Encoder Setup

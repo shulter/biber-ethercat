@@ -38,8 +38,8 @@ addf y-vel-abs       servo-thread
 addf z-vel-abs       servo-thread
 
 # 12 Nm / 1000 (raw units at 100% rated torque) = 0.012 Nm per raw count
-setp x-left-torque-scale.gain  0.012
-setp x-right-torque-scale.gain -0.012  # negative: x-right motor is mirrored (JOINT_1 pos-scale < 0)
+setp x-left-torque-scale.gain  -0.012  # negative: matches JOINT_0 pos-scale < 0 (mirrored gantry motors)
+setp x-right-torque-scale.gain 0.012
 setp y-torque-scale.gain       0.012
 setp z-torque-scale.gain       0.012
 
