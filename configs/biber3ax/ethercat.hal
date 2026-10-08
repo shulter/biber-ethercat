@@ -57,7 +57,9 @@ net estop-ok          <= estop-chain.out             => iocontrol.0.emc-enable-i
 # enable sequence; raise <joint>-not-op-delay.on-delay if a drive takes longer.
 # lut5 function 0x2: out = in-0 AND NOT in-1 (true only for index 1).
 loadrt lut5      names=x-left-not-op,x-right-not-op,y-not-op,z-not-op
-loadrt timedelay names=x-left-not-op-delay,x-right-not-op-delay,y-not-op-delay,z-not-op-delay
+# (z-brake-delay is the Z brake release delay, set up and wired in io.hal —
+# timedelay can only be loadrt'd once, so all its instances are loaded here.)
+loadrt timedelay names=x-left-not-op-delay,x-right-not-op-delay,y-not-op-delay,z-not-op-delay,z-brake-delay
 loadrt or2       names=x-left-fault-or,x-right-fault-or,y-fault-or,z-fault-or
 addf x-left-not-op         servo-thread
 addf x-right-not-op        servo-thread

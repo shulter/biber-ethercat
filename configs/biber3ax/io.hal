@@ -59,7 +59,21 @@
 # (halui.machine.is-on). Drives an external "machine enabled" lamp/relay;
 # it is not the interlock chain feeding iocontrol.0.emc-enable-in.
 net machine-enable <= halui.machine.is-on => lcec.0.io-dout1.dout-0 # Machine Enable
-# net io-dout1-1 => lcec.0.io-dout1.dout-1   # TODO: assign (was E-Stop Reset; e-stop is now hardware-only)
+
+# dout-1: Z axis holding brake. TRUE = brake coil energized = brake released.
+# Released 1.3 s after Z's amp-enable-out goes true (machine on, F2), giving
+# the servo time to power up and hold position first; engaged again
+# immediately (off-delay 0) when the machine is switched off or faults.
+# z-brake-delay is loaded with the other timedelay instances in ethercat.hal.
+# Note: the drive-ready supervision (ethercat.hal) faults the machine off if
+# the Z drive isn't operation-enabled within its on-delay (< 1.3 s), so the
+# brake only ever releases on a drive that's already holding.
+addf z-brake-delay servo-thread
+setp z-brake-delay.on-delay  1.3
+setp z-brake-delay.off-delay 0.0
+net z-enable => z-brake-delay.in
+net z-brake-release <= z-brake-delay.out => lcec.0.io-dout1.dout-1 # Z brake release
+
 # net io-dout1-2 => lcec.0.io-dout1.dout-2   # Drill Aggregate Enable Contactor
 # net io-dout1-3 => lcec.0.io-dout1.dout-3   # HSK Milling Spindle Enable Contactor
 # net io-dout1-4 => lcec.0.io-dout1.dout-4   # Vacuum pump Enable Contactor

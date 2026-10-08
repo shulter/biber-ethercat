@@ -68,10 +68,13 @@ all slaves are in OP, and the master leaves undeclared slaves in PREOP.
 - **EL1018** — 8-channel digital input, 10us fast response (no input filtering) — for signals that need
   to be caught quickly, e.g. the tool height probe on `din-0`. Placeholders `io-din5-0` ... `io-din5-7`.
 - **EL2808 x4** — 8-channel digital output each (32 DO total). Same placeholder scheme
-  (`io-dout1-1` ... `io-dout4-7`), except **`io-dout1.dout-0`**, which is actively wired: it drives a
-  machine-enable indicator (lamp/relay) from `halui.machine.is-on` — energized whenever LinuxCNC is
-  switched on. This is a status output, not the safety interlock chain feeding
-  `iocontrol.0.emc-enable-in`.
+  (`io-dout1-2` ... `io-dout4-7`), except two actively wired outputs:
+  - **`io-dout1.dout-0`** drives a machine-enable indicator (lamp/relay) from `halui.machine.is-on` —
+    energized whenever LinuxCNC is switched on. A status output, not the safety interlock chain
+    feeding `iocontrol.0.emc-enable-in`.
+  - **`io-dout1.dout-1`** is the Z axis holding brake (TRUE = released). It releases 1.3 s after
+    Machine On (`z-brake-delay`, a `timedelay` on Z's `amp-enable-out`) so the servo is powered and
+    holding first, and engages immediately when the machine is switched off or faults.
 - **EL9110** — E-bus power supply feed terminal with diagnostics, bus position 12. This lcec build
   doesn't know its type, so it's declared as `type="generic"` with its real identity (vid `00000002`,
   pid `23963052`, from `ethercat slaves -p 12 -v`) and its one PDO mapped to
@@ -155,7 +158,7 @@ recognized by your build, remove those lines to fall back to the trapezoidal pla
   state *is* `!emc-enable-in` and F1 only toggles `user-enable-out`, so `user-enable-out` must be in this
   loop — wiring `emc-enable-in` from `state-op` alone leaves LinuxCNC permanently in ESTOP_RESET with F1
   dead. This is only LinuxCNC's internal e-stop state — the physical emergency stop circuit is
-  hardware-only and not driven by LinuxCNC (`io-dout1.dout-1` is unassigned).
+  hardware-only and not driven by LinuxCNC.
 - **E-stop won't reset, or the machine drops into e-stop on its own:** `estop-ok` is false because
   `lcec.0.state-op` is false — at least one slave isn't in OP. While LinuxCNC is running,
   `ethercat slaves` shows which one; any slave left out of `ethercat-conf.xml` stays in PREOP and
