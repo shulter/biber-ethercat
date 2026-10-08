@@ -79,6 +79,14 @@ set 2 mm beyond `MAX_LIMIT` (X 3782, Y 1653, Z 2) with `HOME = MAX_LIMIT`, so mo
 limit stay clear of the hard limit. These are placeholders: measure where each switch actually trips
 and correct `HOME_OFFSET` (and `MAX_LIMIT` if the usable travel differs).
 
+## Gantry Motor Direction
+
+The two X gantry motors are mounted mirrored (facing each other across the gantry), so for the
+same X move they must turn in opposite directions. Joint 1 (x-right) therefore uses a **negative**
+scale, `CIA402_POS_SCALE = -10434.4`; joint 0 (x-left) keeps `+10434.4`. `cia402` multiplies the
+command by `pos-scale` and divides the feedback by it, so the sign flips both consistently.
+If X as a whole moves the wrong way, flip the sign on **both** X joints instead.
+
 ## Gantry Homing
 
 The Vantage 33M has a **single home switch** for the X gantry. Both gantry servos share it:

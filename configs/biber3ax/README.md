@@ -134,7 +134,7 @@ two stacked bars (green fed by `max(torque,0)`, red fed by `-min(torque,0)`) ins
 | Max velocity | 1215 mm/s | 967 mm/s | 250 mm/s |
 | Max acceleration | 5000 mm/s² | 5000 mm/s² | 5000 mm/s² |
 | Max jerk | 50000 mm/s³ | 50000 mm/s³ | 50000 mm/s³ |
-| pos-scale | 10434.4 | 13107.2 | 26214.4 |
+| pos-scale | 10434.4 (x-left), −10434.4 (x-right, mirrored) | 13107.2 | 26214.4 |
 | Home direction | + (onto positive limit) | + (onto positive limit) | + (onto positive limit, top) |
 | Limit/home switches (EL1018) | `din-1` (+) | `din-2` (+) | `din-3` (+), `din-4` (−) |
 | HOME_OFFSET / HOME | 3782 / 3780 | 1653 / 1651 | 2 / 0 |
