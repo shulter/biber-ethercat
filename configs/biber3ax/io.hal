@@ -15,7 +15,7 @@
 # machine-enable indicator.
 
 # --- EL1808 #1 (digital inputs, slave idx 5) ---
-# net io-din1-0 <= lcec.0.io-din1.din-0   # pendant button for main spindle tool release
+net io-din1-0 <= lcec.0.io-din1.din-0   # pendant button for main spindle tool release (NO, TRUE = pressed) — see drawbar-release below
 # net io-din1-1 <= lcec.0.io-din1.din-1   # pendant button for reset
 # net io-din1-2 <= lcec.0.io-din1.din-2   # footswitch right
 # net io-din1-3 <= lcec.0.io-din1.din-3   # footswitch left
@@ -29,7 +29,7 @@
 # net io-din2-1 <= lcec.0.io-din2.din-1   # VFD spindle at speed
 # net io-din2-2 <= lcec.0.io-din2.din-2   # HSK main spindle: tool clamped / drawbar up
 # net io-din2-3 <= lcec.0.io-din2.din-3   # HSK main spindle: tool released / drawbar down
-# net io-din2-4 <= lcec.0.io-din2.din-4   # HSK spindle: not turning (back EMF measurement)
+net io-din2-4 <= lcec.0.io-din2.din-4   # HSK spindle: not turning (back EMF measurement, TRUE = not turning) — see drawbar-release below
 # net io-din2-5 <= lcec.0.io-din2.din-5   # X horizontal drill aggregate is up
 # net io-din2-6 <= lcec.0.io-din2.din-6   # Y horizontal drill aggregate is up
 # net io-din2-7 <= lcec.0.io-din2.din-7   # vacuum sensor, pressure ok
@@ -126,7 +126,30 @@ net z-neg-lim <= lcec.0.io-din5.din-4 => joint.3.neg-lim-sw-in                  
 
 # --- EL2808 #3 (digital outputs, slave idx 13) ---
 # net io-dout3-0 => lcec.0.io-dout3.dout-0   # Alle Anschläge hoch: Y0, Y1, rechts, links
-# net io-dout3-1 => lcec.0.io-dout3.dout-1   # HSK Spindle pull draw bar up, release tool
+
+# dout-1: HSK spindle drawbar — TRUE pushes the drawbar and releases the tool.
+# Interlocked in HAL (lut5 drawbar-release, loaded in ethercat.hal):
+#
+#   release = (pendant button OR M250 request)
+#             AND spindle not turning (din2-4)  AND NOT spindle.0.on
+#
+# - Pendant button (io-din1-0): release only while held.
+# - M250 / M251 (remap/m250.ngc, m251.ngc): set / clear the release request
+#   on motion.digital-out-00 (M64/M65 P0). M250 checks the same conditions
+#   itself first and aborts the program if they aren't met; the HAL interlock
+#   above enforces them again, and drops the release if the spindle is
+#   switched on or starts turning.
+# - M250 reads spindle state through motion.digital-in-00 (not turning) and
+#   motion.digital-in-01 (spindle.0.on) with M66.
+# lut5 index = in-0 + 2*in-1 + 4*in-2 + 8*in-3; true for in-3=0, in-2=1 and
+# (in-0 or in-1) → indexes 5, 6, 7 → function 0xE0.
+addf drawbar-release servo-thread
+setp drawbar-release.function 0xE0
+net io-din1-0             => drawbar-release.in-0
+net drawbar-release-req   <= motion.digital-out-00 => drawbar-release.in-1
+net io-din2-4             => drawbar-release.in-2 motion.digital-in-00
+net spindle-on            => drawbar-release.in-3 motion.digital-in-01
+net drawbar-release-out   <= drawbar-release.out   => lcec.0.io-dout3.dout-1   # HSK Spindle pull draw bar up, release tool
 # net io-dout3-2 => lcec.0.io-dout3.dout-2   # Dust hood up
 # net io-dout3-3 => lcec.0.io-dout3.dout-3   # Dust hood down
 # net io-dout3-4 => lcec.0.io-dout3.dout-4   # Auflage rechts A1

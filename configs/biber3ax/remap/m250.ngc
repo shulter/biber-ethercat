@@ -1,0 +1,31 @@
+; M250 — release the tool (push the HSK drawbar).
+; Remapped in biber3ax.ini: REMAP = M250 modalgroup=10 ngc=m250
+;
+; Safety checks before the drawbar is pushed; the program is aborted if one
+; fails. The same conditions are also enforced in HAL (io.hal, lut5
+; drawbar-release), which drops the release if they stop being true.
+;   1. Spindle is off:          spindle.0.on  -> motion.digital-in-01 must be 0
+;   2. Spindle is not turning:  io-din2.din-4 -> motion.digital-in-00 must be 1
+;      (back-EMF "not turning" signal)
+; Then sets the release request: motion.digital-out-00 (M64 P0) ->
+; io-dout3.dout-1. Clamp the tool again with M251.
+
+o<m250> sub
+
+  ; 1. spindle must be commanded off
+  M66 P1 L0
+  o100 if [#5399 NE 0]
+    (abort, M250: spindle is on - stop the spindle before releasing the tool)
+  o100 endif
+
+  ; 2. spindle must not be turning (back-EMF sensor)
+  M66 P0 L0
+  o110 if [#5399 NE 1]
+    (abort, M250: spindle is still turning - cannot release the tool)
+  o110 endif
+
+  ; push the drawbar / release the tool
+  M64 P0
+
+o<m250> endsub
+M2

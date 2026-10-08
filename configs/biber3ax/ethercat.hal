@@ -56,7 +56,9 @@ net estop-ok          <= estop-chain.out             => iocontrol.0.emc-enable-i
 # and switches machine power off. The 1 s on-delay covers the normal CiA402
 # enable sequence; raise <joint>-not-op-delay.on-delay if a drive takes longer.
 # lut5 function 0x2: out = in-0 AND NOT in-1 (true only for index 1).
-loadrt lut5      names=x-left-not-op,x-right-not-op,y-not-op,z-not-op
+# (drawbar-release is the HSK tool release interlock, set up and wired in
+# io.hal — lut5 can only be loadrt'd once, so all its instances are loaded here.)
+loadrt lut5      names=x-left-not-op,x-right-not-op,y-not-op,z-not-op,drawbar-release
 # (z-brake-delay is the Z brake release delay, set up and wired in io.hal —
 # timedelay can only be loadrt'd once, so all its instances are loaded here.)
 loadrt timedelay names=x-left-not-op-delay,x-right-not-op-delay,y-not-op-delay,z-not-op-delay,z-brake-delay

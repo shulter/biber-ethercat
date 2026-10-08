@@ -1,0 +1,9 @@
+; M251 — clamp the tool again (clear the M250 drawbar release request).
+; Remapped in biber3ax.ini: REMAP = M251 modalgroup=10 ngc=m251
+; Clears motion.digital-out-00 (M65 P0). The pendant button can still
+; release the tool while held (io.hal, lut5 drawbar-release).
+
+o<m251> sub
+  M65 P0
+o<m251> endsub
+M2

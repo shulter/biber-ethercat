@@ -40,7 +40,8 @@ is taken from `benchtest-io`, where it was verified against the real hardware.
 |------|---------|
 | `biber3ax.ini` | Machine parameters, joint limits, kinematics, spindle display range |
 | `ethercat.hal` | lcec + cia402 wiring for the 4 servos, plus EL4032 spindle analog-out wiring |
-| `io.hal` | Beckhoff digital I/O terminal wiring (machine-enable output; rest are placeholders) |
+| `io.hal` | Beckhoff digital I/O wiring: machine-enable lamp, Z brake, limit/home switches, HSK tool release interlock |
+| `remap/m250.ngc`, `remap/m251.ngc` | Remapped M250 (release tool, with safety checks) / M251 (clamp tool) |
 | `ethercat-conf.xml` | EtherCAT slave topology and PDO mapping (servos, full Beckhoff chain) |
 | `panel.xml` | PyVCP panel, shown beside the preview: 4x servo torque + speed bars, spindle speed bar |
 | `postgui.hal` | HAL wiring for `panel.xml`'s pins (loaded after the GUI starts, see below) |
@@ -102,6 +103,27 @@ off, adjust `spindle-scale.gain` in `ethercat.hal` or set `lcec.0.spindle.aout-0
 All `scale` instances (spindle and the panel's torque/speed scaling) are loaded in one `loadrt scale` call in
 `ethercat.hal` — the component can only be loaded once per HAL session, so `postgui.hal` only
 `setp`s/`net`s them.
+
+## HSK Tool Release (Drawbar)
+
+`io-dout3.dout-1` pushes the HSK drawbar and releases the tool. It is driven by an interlock in
+`io.hal` (`lut5` `drawbar-release`):
+
+```
+release = (pendant button io-din1-0  OR  M250 request)
+          AND spindle not turning (io-din2-4, back-EMF)  AND  NOT spindle.0.on
+```
+
+- **Pendant button** (`io-din1.din-0`): the tool is released only while the button is held.
+- **M250** (`remap/m250.ngc`): checks that the spindle is off (`spindle.0.on` via
+  `motion.digital-in-01`) and not turning (`io-din2.din-4` via `motion.digital-in-00`), aborting the
+  program with a message if either fails, then sets the release request (`M64 P0` →
+  `motion.digital-out-00`). The request stays set until **M251** (`M65 P0`) clamps the tool again.
+- The HAL interlock enforces the same conditions independently, so the release drops immediately if the
+  spindle is switched on or starts turning, whichever way it was requested.
+
+Polarity: `io-din2.din-4` reads TRUE while the spindle stands still (checked on the running machine).
+The pendant button reads FALSE when not pressed, so it's treated as normally-open (TRUE while pressed).
 
 ## Servo Torque / Speed Panel
 
