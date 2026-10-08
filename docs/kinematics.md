@@ -62,12 +62,29 @@ so all axes share the same jerk:
 Set at `[TRAJ]`, each `[AXIS_x]`, and each `[JOINT_n]` in both configs. If retuning
 `MAX_ACCELERATION` for an axis, recompute its `MAX_JERK` at the same 10× ratio.
 
+## Homing / Limit Switches
+
+All axes home in the **positive** direction onto their positive limit switch, which doubles as the
+home switch (`HOME_IGNORE_LIMITS = YES`). The switches are on the Beckhoff EL1018 (`io.hal`):
+
+| Switch | Input | Joints |
+|--------|-------|--------|
+| X positive limit / home | `io-din5.din-1` | 0, 1 (gantry) |
+| Y positive limit / home | `io-din5.din-2` | 2 |
+| Z positive limit / home (top) | `io-din5.din-3` | 3 |
+| Z negative limit (bottom) | `io-din5.din-4` | 3 |
+
+X and Y have no negative limit switch. `HOME_OFFSET` is the switch position in machine coordinates,
+set 2 mm beyond `MAX_LIMIT` (X 3782, Y 1653, Z 2) with `HOME = MAX_LIMIT`, so moves up to the soft
+limit stay clear of the hard limit. These are placeholders: measure where each switch actually trips
+and correct `HOME_OFFSET` (and `MAX_LIMIT` if the usable travel differs).
+
 ## Gantry Homing
 
 The Vantage 33M has a **single home switch** for the X gantry. Both gantry servos share it:
 
-- Wire the switch to one A6 digital input (or parallel to both)
-- HAL nets the same `home-sw-in` signal to `joint.0` and `joint.1`
+- The switch is wired to `io-din5.din-1`; HAL nets the same signal to `home-sw-in` and
+  `pos-lim-sw-in` of both `joint.0` and `joint.1`
 - Use **tandem homing**: `HOME_SEQUENCE = -1` on both X joints (negative = move together)
 - Adjust `HOME_OFFSET` per joint to square the gantry after homing
 

@@ -67,8 +67,8 @@ net x-left-opmode         cia402.0.opmode                => lcec.0.x-left.contro
 net x-left-drv-target-pos cia402.0.drv-target-position   => lcec.0.x-left.target-position
 net x-left-drv-target-vel cia402.0.drv-target-velocity   => lcec.0.x-left.target-velocity
 
-# Home switch — wire to x-left drive DI; shared by both gantry joints
-net x-home-sw => joint.0.home-sw-in <= lcec.0.x-left.home-switch
+# Home/limit switches are on the Beckhoff EL1018, not the drive DIs — wired
+# to the joints in io.hal.
 
 # --- X gantry right (joint 1) ---
 setp cia402.1.csp-mode 1
@@ -89,9 +89,6 @@ net x-right-opmode         cia402.1.opmode                => lcec.0.x-right.cont
 net x-right-drv-target-pos cia402.1.drv-target-position   => lcec.0.x-right.target-position
 net x-right-drv-target-vel cia402.1.drv-target-velocity   => lcec.0.x-right.target-velocity
 
-# Same home switch signal for tandem homing
-net x-home-sw => joint.1.home-sw-in
-
 # --- Y axis (single motor, ball screw via belt reduction) ---
 setp cia402.2.csp-mode 1
 setp cia402.2.pos-scale [JOINT_2]CIA402_POS_SCALE
@@ -111,8 +108,6 @@ net y-opmode         cia402.2.opmode                => lcec.0.y.control-mode
 net y-drv-target-pos cia402.2.drv-target-position   => lcec.0.y.target-position
 net y-drv-target-vel cia402.2.drv-target-velocity   => lcec.0.y.target-velocity
 
-net y-home-sw => joint.2.home-sw-in <= lcec.0.y.home-switch
-
 # --- Z axis (direct ball screw) ---
 setp cia402.3.csp-mode 1
 setp cia402.3.pos-scale [JOINT_3]CIA402_POS_SCALE
@@ -131,8 +126,6 @@ net z-controlword    cia402.3.controlword           => lcec.0.z.control-word
 net z-opmode         cia402.3.opmode                => lcec.0.z.control-mode
 net z-drv-target-pos cia402.3.drv-target-position   => lcec.0.z.target-position
 net z-drv-target-vel cia402.3.drv-target-velocity   => lcec.0.z.target-velocity
-
-net z-home-sw => joint.3.home-sw-in <= lcec.0.z.home-switch
 
 # --- Spindle (Beckhoff EL4032, 0-10V analog out to VFD, 0-24000 RPM) ---
 # EL4032 uses lcec's shared "aout" analog-output class, not a flat ao-N pin —

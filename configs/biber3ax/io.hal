@@ -120,10 +120,37 @@ net estop-ok => lcec.0.io-dout1.dout-1 # E-Stop Reset
 
 # --- EL1018 (fast digital inputs, 10us, slave idx 15) ---
 # net io-din5-0 <= lcec.0.io-din5.din-0   # Tool height probe input
-# net io-din5-1 <= lcec.0.io-din5.din-1   # TODO: assign
-# net io-din5-2 <= lcec.0.io-din5.din-2   # TODO: assign
-# net io-din5-3 <= lcec.0.io-din5.din-3   # TODO: assign
-# net io-din5-4 <= lcec.0.io-din5.din-4   # TODO: assign
+
+# Limit switches, din-1..din-4. Each axis homes onto its positive limit
+# switch, so the X, Y and Z+ switches double as home switches
+# (HOME_IGNORE_LIMITS = YES in the INI, search direction positive). X has one
+# switch for the whole gantry, netted to both X joints (tandem homing,
+# HOME_SEQUENCE -1). X and Y have no negative limit switch.
+#
+# ASSUMES normally-closed switches (fail-safe: a broken wire reads as
+# "tripped"): din is TRUE while the axis is clear, so each input is inverted
+# through a "not" before reaching the joint pins, which expect TRUE = tripped.
+# If the switches are normally-open (din goes TRUE only when hit), delete the
+# not instances and net lcec.0.io-din5.din-N straight to the *-lim signals.
+# Check: with the machine clear of all switches, `halcmd show pin
+# lcec.0.io-din5` should read TRUE on din-1..din-4 for NC switches.
+loadrt not names=x-lim-inv,y-lim-inv,z-pos-lim-inv,z-neg-lim-inv
+addf x-lim-inv     servo-thread
+addf y-lim-inv     servo-thread
+addf z-pos-lim-inv servo-thread
+addf z-neg-lim-inv servo-thread
+
+net io-din5-1 <= lcec.0.io-din5.din-1 => x-lim-inv.in       # X positive limit / home
+net io-din5-2 <= lcec.0.io-din5.din-2 => y-lim-inv.in       # Y positive limit / home
+net io-din5-3 <= lcec.0.io-din5.din-3 => z-pos-lim-inv.in   # Z positive limit / home
+net io-din5-4 <= lcec.0.io-din5.din-4 => z-neg-lim-inv.in   # Z negative limit
+
+net x-pos-lim <= x-lim-inv.out     => joint.0.pos-lim-sw-in joint.0.home-sw-in
+net x-pos-lim                      => joint.1.pos-lim-sw-in joint.1.home-sw-in
+net y-pos-lim <= y-lim-inv.out     => joint.2.pos-lim-sw-in joint.2.home-sw-in
+net z-pos-lim <= z-pos-lim-inv.out => joint.3.pos-lim-sw-in joint.3.home-sw-in
+net z-neg-lim <= z-neg-lim-inv.out => joint.3.neg-lim-sw-in
+
 # net io-din5-5 <= lcec.0.io-din5.din-5   # TODO: assign
 # net io-din5-6 <= lcec.0.io-din5.din-6   # TODO: assign
 # net io-din5-7 <= lcec.0.io-din5.din-7   # TODO: assign

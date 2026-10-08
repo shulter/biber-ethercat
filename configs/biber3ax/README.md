@@ -132,9 +132,16 @@ two stacked bars (green fed by `max(torque,0)`, red fed by `-min(torque,0)`) ins
 | Max acceleration | 5000 mm/s² | 5000 mm/s² | 5000 mm/s² |
 | Max jerk | 50000 mm/s³ | 50000 mm/s³ | 50000 mm/s³ |
 | pos-scale | 10434.4 | 13107.2 | 26214.4 |
-| Home direction | toward 0 (min) | toward 0 (min) | toward 0 (max, top) |
+| Home direction | + (onto positive limit) | + (onto positive limit) | + (onto positive limit, top) |
+| Limit/home switches (EL1018) | `din-1` (+) | `din-2` (+) | `din-3` (+), `din-4` (−) |
+| HOME_OFFSET / HOME | 3782 / 3780 | 1653 / 1651 | 2 / 0 |
 
-`NO_FORCE_HOMING = 0` — home switches must be wired and homing completed before jogging.
+Each axis homes onto its positive limit switch, which doubles as the home switch (wired in `io.hal`,
+see `docs/kinematics.md` "Homing / Limit Switches"). The switches are assumed normally-closed and
+inverted through `not` components; `HOME_OFFSET` values are placeholders until the real trip points are
+measured.
+
+`NO_FORCE_HOMING = 1` — jogging/MDI allowed without homing. Set it to `0` once homing is verified.
 
 This config uses LinuxCNC's jerk-limited (S-curve) trajectory planner: `MAX_JERK` is set at
 `[TRAJ]`, each `[AXIS_x]`, and each `[JOINT_n]` (10× the axis's `MAX_ACCELERATION`, see
@@ -157,7 +164,12 @@ recognized by your build, remove those lines to fall back to the trapezoidal pla
 - **Following error on enable:** Reduce acceleration; verify `CIA402_POS_SCALE` per axis; check encoder resolution in drive params.
 - **Only one X motor moves:** Confirm `trivkins coordinates=XXYZ` and both X `cia402` instances (0, 1) are wired.
 - **Gantry skew:** After homing, adjust `HOME_OFFSET` on joint 0 or 1 to square the gantry.
-- **Z homes the wrong direction:** Z's home switch is at the top (Z=0); `HOME_SEARCH_VEL` is positive, unlike X/Y.
+- **Joint limit error as soon as the machine is on, with no axis on a switch:** the limit switches
+  are normally-open, not normally-closed as assumed. `halcmd show pin lcec.0.io-din5` reads FALSE on
+  din-1..din-4 while clear — remove the `not` instances in `io.hal` and net the inputs directly.
+- **Homing runs into the switch without stopping / "limit switch" error during homing:** confirm
+  `HOME_IGNORE_LIMITS = YES` on every joint and that the switch's `*-pos-lim` net reaches the joint's
+  `home-sw-in` (`halcmd show sig x-pos-lim`).
 - **Beckhoff terminals not detected:** Confirm the full chain (EK1100 through EL1018) is wired in that
   order after the four servos, and that `sudo ethercat slaves` reports 16 devices.
 - **"Failed to register PDO entry" / "PDO entry 0x7000:01 is not mapped":** A slave's `idx` in
