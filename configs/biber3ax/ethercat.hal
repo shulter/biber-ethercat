@@ -43,6 +43,47 @@ net ec-all-op         <= lcec.0.state-op             => estop-chain.in0
 net estop-user-enable <= iocontrol.0.user-enable-out => estop-chain.in1
 net estop-ok          <= estop-chain.out             => iocontrol.0.emc-enable-in
 
+# Drive-ready supervision. cia402.N.drv-fault only reflects the drive's
+# statusword fault bit. An A6 whose HV (main circuit) supply is off doesn't
+# fault — it just never reaches CiA402 "operation enabled" — and it still
+# shows OP on EtherCAT, so Machine On (F2) would succeed with dead drives.
+# Each joint's amp-fault-in is therefore:
+#
+#   drv-fault  OR  (amp-enable-out AND NOT stat-op-enabled, for > 1 s)
+#
+# so if a drive isn't operation-enabled within 1 s of F2 (or drops out of it
+# later, e.g. HV lost while running), LinuxCNC raises a joint amplifier fault
+# and switches machine power off. The 1 s on-delay covers the normal CiA402
+# enable sequence; raise <joint>-not-op-delay.on-delay if a drive takes longer.
+# lut5 function 0x2: out = in-0 AND NOT in-1 (true only for index 1).
+loadrt lut5      names=x-left-not-op,x-right-not-op,y-not-op,z-not-op
+loadrt timedelay names=x-left-not-op-delay,x-right-not-op-delay,y-not-op-delay,z-not-op-delay
+loadrt or2       names=x-left-fault-or,x-right-fault-or,y-fault-or,z-fault-or
+addf x-left-not-op         servo-thread
+addf x-right-not-op        servo-thread
+addf y-not-op              servo-thread
+addf z-not-op              servo-thread
+addf x-left-not-op-delay   servo-thread
+addf x-right-not-op-delay  servo-thread
+addf y-not-op-delay        servo-thread
+addf z-not-op-delay        servo-thread
+addf x-left-fault-or       servo-thread
+addf x-right-fault-or      servo-thread
+addf y-fault-or            servo-thread
+addf z-fault-or            servo-thread
+setp x-left-not-op.function  0x2
+setp x-right-not-op.function 0x2
+setp y-not-op.function       0x2
+setp z-not-op.function       0x2
+setp x-left-not-op-delay.on-delay   1.0
+setp x-right-not-op-delay.on-delay  1.0
+setp y-not-op-delay.on-delay        1.0
+setp z-not-op-delay.on-delay        1.0
+setp x-left-not-op-delay.off-delay  0.0
+setp x-right-not-op-delay.off-delay 0.0
+setp y-not-op-delay.off-delay       0.0
+setp z-not-op-delay.off-delay       0.0
+
 # Spindle speed command — a core motion pin. Declared once here so both the
 # EL4032 analog-out wiring below and the postgui.hal display panel link to the
 # same net instead of each trying to source it from spindle.0.speed-out-abs.
@@ -52,8 +93,12 @@ net spindle-speed-cmd <= spindle.0.speed-out-abs
 setp cia402.0.csp-mode 1
 setp cia402.0.pos-scale [JOINT_0]CIA402_POS_SCALE
 
-net x-left-enable     <= joint.0.amp-enable-out => cia402.0.enable
-net x-left-amp-fault  => joint.0.amp-fault-in   <= cia402.0.drv-fault
+net x-left-enable     <= joint.0.amp-enable-out => cia402.0.enable x-left-not-op.in-0
+net x-left-op-enabled <= cia402.0.stat-op-enabled  => x-left-not-op.in-1
+net x-left-not-op-raw <= x-left-not-op.out        => x-left-not-op-delay.in
+net x-left-drv-fault  <= cia402.0.drv-fault        => x-left-fault-or.in0
+net x-left-not-ready  <= x-left-not-op-delay.out   => x-left-fault-or.in1
+net x-left-amp-fault  => joint.0.amp-fault-in   <= x-left-fault-or.out
 net x-left-pos-cmd    <= joint.0.motor-pos-cmd  => cia402.0.pos-cmd
 net x-left-pos-fb     => joint.0.motor-pos-fb   <= cia402.0.pos-fb
 
@@ -74,8 +119,12 @@ net x-left-drv-target-vel cia402.0.drv-target-velocity   => lcec.0.x-left.target
 setp cia402.1.csp-mode 1
 setp cia402.1.pos-scale [JOINT_1]CIA402_POS_SCALE
 
-net x-right-enable     <= joint.1.amp-enable-out => cia402.1.enable
-net x-right-amp-fault  => joint.1.amp-fault-in   <= cia402.1.drv-fault
+net x-right-enable     <= joint.1.amp-enable-out => cia402.1.enable x-right-not-op.in-0
+net x-right-op-enabled <= cia402.1.stat-op-enabled  => x-right-not-op.in-1
+net x-right-not-op-raw <= x-right-not-op.out        => x-right-not-op-delay.in
+net x-right-drv-fault  <= cia402.1.drv-fault        => x-right-fault-or.in0
+net x-right-not-ready  <= x-right-not-op-delay.out  => x-right-fault-or.in1
+net x-right-amp-fault  => joint.1.amp-fault-in   <= x-right-fault-or.out
 net x-right-pos-cmd    <= joint.1.motor-pos-cmd  => cia402.1.pos-cmd
 net x-right-pos-fb     => joint.1.motor-pos-fb   <= cia402.1.pos-fb
 
@@ -93,8 +142,12 @@ net x-right-drv-target-vel cia402.1.drv-target-velocity   => lcec.0.x-right.targ
 setp cia402.2.csp-mode 1
 setp cia402.2.pos-scale [JOINT_2]CIA402_POS_SCALE
 
-net y-enable     <= joint.2.amp-enable-out => cia402.2.enable
-net y-amp-fault  => joint.2.amp-fault-in   <= cia402.2.drv-fault
+net y-enable     <= joint.2.amp-enable-out => cia402.2.enable y-not-op.in-0
+net y-op-enabled <= cia402.2.stat-op-enabled  => y-not-op.in-1
+net y-not-op-raw <= y-not-op.out             => y-not-op-delay.in
+net y-drv-fault  <= cia402.2.drv-fault        => y-fault-or.in0
+net y-not-ready  <= y-not-op-delay.out        => y-fault-or.in1
+net y-amp-fault  => joint.2.amp-fault-in   <= y-fault-or.out
 net y-pos-cmd    <= joint.2.motor-pos-cmd  => cia402.2.pos-cmd
 net y-pos-fb     => joint.2.motor-pos-fb   <= cia402.2.pos-fb
 
@@ -112,8 +165,12 @@ net y-drv-target-vel cia402.2.drv-target-velocity   => lcec.0.y.target-velocity
 setp cia402.3.csp-mode 1
 setp cia402.3.pos-scale [JOINT_3]CIA402_POS_SCALE
 
-net z-enable     <= joint.3.amp-enable-out => cia402.3.enable
-net z-amp-fault  => joint.3.amp-fault-in   <= cia402.3.drv-fault
+net z-enable     <= joint.3.amp-enable-out => cia402.3.enable z-not-op.in-0
+net z-op-enabled <= cia402.3.stat-op-enabled  => z-not-op.in-1
+net z-not-op-raw <= z-not-op.out             => z-not-op-delay.in
+net z-drv-fault  <= cia402.3.drv-fault        => z-fault-or.in0
+net z-not-ready  <= z-not-op-delay.out        => z-fault-or.in1
+net z-amp-fault  => joint.3.amp-fault-in   <= z-fault-or.out
 net z-pos-cmd    <= joint.3.motor-pos-cmd  => cia402.3.pos-cmd
 net z-pos-fb     => joint.3.motor-pos-fb   <= cia402.3.pos-fb
 

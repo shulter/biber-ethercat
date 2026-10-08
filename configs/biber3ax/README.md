@@ -160,6 +160,12 @@ recognized by your build, remove those lines to fall back to the trapezoidal pla
   `lcec.0.state-op` is false — at least one slave isn't in OP. While LinuxCNC is running,
   `ethercat slaves` shows which one; any slave left out of `ethercat-conf.xml` stays in PREOP and
   causes this.
+- **"Joint N amplifier fault" about 1 s after Machine On (F2):** that drive didn't reach CiA402
+  "operation enabled" — most likely its HV (main circuit) supply is off. The A6 stays in OP on
+  EtherCAT and raises no drive fault in that case, so `ethercat.hal` treats "enabled but not
+  operation-enabled for > 1 s" as an amp fault (`<joint>-not-op` / `-not-op-delay` / `-fault-or`).
+  `halcmd show pin cia402.N.stat-op-enabled` and `cia402.N.statusword` show the drive's state. If a
+  drive legitimately needs longer to enable, raise `<joint>-not-op-delay.on-delay`.
 - **Slaves stuck in PREOP:** Use variable PDO mapping (0x1600/0x1A00) as in `ethercat-conf.xml`; avoid fixed PDOs.
 - **Following error on enable:** Reduce acceleration; verify `CIA402_POS_SCALE` per axis; check encoder resolution in drive params.
 - **Only one X motor moves:** Confirm `trivkins coordinates=XXYZ` and both X `cia402` instances (0, 1) are wired.
