@@ -35,8 +35,8 @@ addf lcec.write-all           servo-thread
 # e-stop can't be reset with the bus down, and a slave falling out of OP
 # later drops LinuxCNC into e-stop. Add a safety-relay feedback input here
 # (and3/and4) once it's wired to a Beckhoff DI.
-# The e-stop reset pulse to the safety relay (io.hal) fires on the rising
-# edge of estop-ok, i.e. the moment the LinuxCNC e-stop is actually cleared.
+# estop-ok also drives the safety relay's reset input (io-dout1.dout-1,
+# io.hal) as a level: TRUE while the LinuxCNC e-stop is reset.
 loadrt and2 names=estop-chain
 addf estop-chain servo-thread
 net ec-all-op         <= lcec.0.state-op             => estop-chain.in0
