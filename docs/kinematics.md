@@ -75,7 +75,7 @@ home switch (`HOME_IGNORE_LIMITS = YES`). The switches are on the Beckhoff EL101
 | Z negative limit (bottom) | `io-din5.din-4` | 3 |
 
 X and Y have no negative limit switch. `HOME_OFFSET` is the switch position in machine coordinates,
-set 2 mm beyond `MAX_LIMIT` (X 3782, Y 1653, Z 2) with `HOME = MAX_LIMIT` (except Y, which finishes
+set beyond `MAX_LIMIT` (X 3782 and Y 1653: +2 mm; Z 0.5: +0.5 mm) with `HOME = MAX_LIMIT` (except Y, which finishes
 50 mm below its switch: `HOME = 1603`), so moves up to the soft limit stay clear of the hard limit.
 Homing order: Z (`HOME_SEQUENCE = 1`), then Y (`2`), then both X joints together (`-3`). These are placeholders: measure where each switch actually trips
 and correct `HOME_OFFSET` (and `MAX_LIMIT` if the usable travel differs).
