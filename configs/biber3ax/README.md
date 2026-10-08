@@ -30,7 +30,7 @@ is taken from `benchtest-io`, where it was verified against the real hardware.
    linuxcnc /path/to/biber3ax.ini
    ```
 
-5. Turn Machine On, home all joints (Z, then Y, then X tandem), jog each axis. Confirm the first
+5. Turn Machine On, home all joints (Z, then X tandem, then Y), jog each axis. Confirm the first
    EL2808's channel 0 output energizes (machine-enable indicator). Command a spindle speed
    (`M3 S<rpm>`) and verify the 0-10V output reaches the VFD.
 
@@ -137,8 +137,8 @@ two stacked bars (green fed by `max(torque,0)`, red fed by `-min(torque,0)`) ins
 | pos-scale | −10434.4 (x-left), 10434.4 (x-right, mirrored) | 13107.2 | 26214.4 |
 | Home direction | + (onto positive limit) | + (onto positive limit) | + (onto positive limit, top) |
 | Limit/home switches (EL1018) | `din-1` (+) | `din-2` (+) | `din-3` (+), `din-4` (−) |
-| HOME_OFFSET / HOME | 3782 / 3780 | 1653 / 1603 (50 mm below switch) | 0.5 / 0 |
-| HOME_SEQUENCE | −3 (last, tandem) | 2 | 1 (first) |
+| HOME_OFFSET / HOME | 3782 / 2902 (880 mm left of switch) | 1653 / 1603 (50 mm below switch) | 1 / 0 |
+| HOME_SEQUENCE | −2 (tandem) | 3 (last) | 1 (first) |
 
 Each axis homes onto its positive limit switch, which doubles as the home switch (wired in `io.hal`,
 see `docs/kinematics.md` "Homing / Limit Switches"). The X switch is normally-closed (wired via

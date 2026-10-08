@@ -98,7 +98,7 @@ net z-brake-release <= z-brake-delay.out => lcec.0.io-dout1.dout-1 # Z brake rel
 # switch, so the X, Y and Z+ switches double as home switches
 # (HOME_IGNORE_LIMITS = YES in the INI, search direction positive). X has one
 # switch for the whole gantry, netted to both X joints (tandem homing,
-# HOME_SEQUENCE -3). X and Y have no negative limit switch.
+# HOME_SEQUENCE -2). X and Y have no negative limit switch.
 #
 # Switch polarity (joint pins expect TRUE = tripped):
 # - X is normally-closed — din is TRUE while the axis is clear, so it uses

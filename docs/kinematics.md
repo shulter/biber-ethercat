@@ -75,10 +75,17 @@ home switch (`HOME_IGNORE_LIMITS = YES`). The switches are on the Beckhoff EL101
 | Z negative limit (bottom) | `io-din5.din-4` | 3 |
 
 X and Y have no negative limit switch. `HOME_OFFSET` is the switch position in machine coordinates,
-set beyond `MAX_LIMIT` (X 3782 and Y 1653: +2 mm; Z 0.5: +0.5 mm) with `HOME = MAX_LIMIT` (except Y, which finishes
-50 mm below its switch: `HOME = 1603`), so moves up to the soft limit stay clear of the hard limit.
-Homing order: Z (`HOME_SEQUENCE = 1`), then Y (`2`), then both X joints together (`-3`). These are placeholders: measure where each switch actually trips
-and correct `HOME_OFFSET` (and `MAX_LIMIT` if the usable travel differs).
+set beyond `MAX_LIMIT` (X 3782, Y 1653, Z 1) so moves up to the soft limit stay clear of the hard
+limit. After latching, each joint moves to `HOME`:
+
+| Axis | HOME_OFFSET (switch) | HOME (after homing) | HOME_SEQUENCE |
+|------|----------------------|---------------------|---------------|
+| Z | 1 | 0 | 1 (first) |
+| X | 3782 | 2902 (880 mm left of the switch) | -2 (tandem, both joints) |
+| Y | 1653 | 1603 (50 mm below the switch) | 3 (last) |
+
+Measure where each switch actually trips and correct `HOME_OFFSET` (and `MAX_LIMIT` if the usable
+travel differs).
 
 ## Gantry Motor Direction
 
@@ -95,8 +102,8 @@ The Vantage 33M has a **single home switch** for the X gantry. Both gantry servo
 
 - The switch is wired to `io-din5.din-1`; HAL nets the same signal to `home-sw-in` and
   `pos-lim-sw-in` of both `joint.0` and `joint.1`
-- Use **tandem homing**: `HOME_SEQUENCE = -3` on both X joints (negative = move together; X homes
-  last, after Z and Y)
+- Use **tandem homing**: `HOME_SEQUENCE = -2` on both X joints (negative = move together; X homes
+  after Z and before Y)
 - Adjust `HOME_OFFSET` per joint to square the gantry after homing
 
 ## Drive Encoder Setup
