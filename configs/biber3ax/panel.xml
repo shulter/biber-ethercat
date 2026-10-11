@@ -6,7 +6,7 @@
   benchtest-servo config.
 
   Shows live servo torque and speed for the 4 servos (X left, X right, Y, Z):
-  torque as a bidirectional bar (-10 to 0 to +10 Nm), speed as absolute RPM
+  torque as a bidirectional bar (-11 to 0 to +11 Nm, ~ +/-peak torque), speed as absolute RPM
   (0-6000), plus commanded spindle speed (0-24000 RPM), and a dust hood
   up/down toggle button with a "down" LED. See postgui.hal for the HAL wiring.
 
@@ -14,8 +14,8 @@
   against a real AXIS/PyVCP. With min_ negative and max_ positive, PyVCP's
   stock bar widget is assumed to fill from a center zero line — red toward
   min_, green toward max_. If it doesn't color that way in practice, this
-  can be redone as two stacked bars (a green 0..+10 bar fed by
-  max(torque,0) and a red 0..+10 bar fed by -min(torque,0)) instead.
+  can be redone as two stacked bars (a green 0..+11 bar fed by
+  max(torque,0) and a red 0..+11 bar fed by -min(torque,0)) instead.
 -->
 <pyvcp>
 
@@ -27,8 +27,8 @@
 </label>
 <bar>
   <halpin>"x-left-torque"</halpin>
-  <min_>-10</min_>
-  <max_>10</max_>
+  <min_>-11</min_>
+  <max_>11</max_>
 </bar>
 
 <label>
@@ -36,8 +36,8 @@
 </label>
 <bar>
   <halpin>"x-right-torque"</halpin>
-  <min_>-10</min_>
-  <max_>10</max_>
+  <min_>-11</min_>
+  <max_>11</max_>
 </bar>
 
 <label>
@@ -45,8 +45,8 @@
 </label>
 <bar>
   <halpin>"y-torque"</halpin>
-  <min_>-10</min_>
-  <max_>10</max_>
+  <min_>-11</min_>
+  <max_>11</max_>
 </bar>
 
 <label>
@@ -54,8 +54,8 @@
 </label>
 <bar>
   <halpin>"z-torque"</halpin>
-  <min_>-10</min_>
-  <max_>10</max_>
+  <min_>-11</min_>
+  <max_>11</max_>
 </bar>
 
 </vbox>

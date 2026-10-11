@@ -76,7 +76,7 @@ net z-brake-release <= z-brake-delay.out => lcec.0.io-dout1.dout-1 # Z brake rel
 
 # net io-dout1-2 => lcec.0.io-dout1.dout-2   # Drill Aggregate Enable Contactor
 # net io-dout1-3 => lcec.0.io-dout1.dout-3   # HSK Milling Spindle Enable Contactor
-# net io-dout1-4 => lcec.0.io-dout1.dout-4   # Vacuum pump Enable Contactor
+net vacuum-pump         <= motion.digital-out-04 => lcec.0.io-dout1.dout-4   # Vacuum pump Enable Contactor — M240-M243, see io-dout2 below
 # net io-dout1-5 => lcec.0.io-dout1.dout-5   # VFD preset 1
 # net io-dout1-6 => lcec.0.io-dout1.dout-6   # VFD preset 2
 # net io-dout1-7 => lcec.0.io-dout1.dout-7   # HSK spindle flush air
@@ -86,10 +86,22 @@ net z-brake-release <= z-brake-delay.out => lcec.0.io-dout1.dout-1 # Z brake rel
 # net io-dout2-1 => lcec.0.io-dout2.dout-1   # Schmierung Blasluft
 # net io-dout2-2 => lcec.0.io-dout2.dout-2   # VFD CW Clockwise
 # net io-dout2-3 => lcec.0.io-dout2.dout-3   # VFD CCW Counter Clockwise
-# net io-dout2-4 => lcec.0.io-dout2.dout-4   # vaccuum port left open
-# net io-dout2-5 => lcec.0.io-dout2.dout-5   # vaccuum port left close
-# net io-dout2-6 => lcec.0.io-dout2.dout-6   # vaccuum port right open
-# net io-dout2-7 => lcec.0.io-dout2.dout-7   # vaccuum port right close
+# Vacuum table (remap/m240..m243.ngc), via motion digital outputs:
+#   out-04 -> io-dout1-4 pump, out-05 -> dout2-4 left port open,
+#   out-06 -> dout2-6 right port open.
+#   M241 pump on, both zones   M242 pump on, left zone only
+#   M243 pump on, right zone only   M240 pump off, both ports closed
+# Each port has separate open / close valves. The close valve (dout2-5 left,
+# dout2-7 right) is driven by the inverse of the open request (not
+# components), so exactly one of each pair is energised — both ports are
+# closed from the moment HAL starts.
+loadrt not names=vacuum-left-close,vacuum-right-close
+addf vacuum-left-close  servo-thread
+addf vacuum-right-close servo-thread
+net vacuum-left-open    <= motion.digital-out-05 => lcec.0.io-dout2.dout-4 vacuum-left-close.in    # vaccuum port left open
+net vacuum-left-closed  <= vacuum-left-close.out => lcec.0.io-dout2.dout-5                         # vaccuum port left close
+net vacuum-right-open   <= motion.digital-out-06 => lcec.0.io-dout2.dout-6 vacuum-right-close.in   # vaccuum port right open
+net vacuum-right-closed <= vacuum-right-close.out => lcec.0.io-dout2.dout-7                        # vaccuum port right close
 
 # --- EL1018 (fast digital inputs, 10us, slave idx 11) ---
 # net io-din5-0 <= lcec.0.io-din5.din-0   # Tool height probe input
@@ -125,7 +137,10 @@ net z-neg-lim <= lcec.0.io-din5.din-4 => joint.3.neg-lim-sw-in                  
 # net io-power-ok <= lcec.0.io-power.power-ok
 
 # --- EL2808 #3 (digital outputs, slave idx 13) ---
-# net io-dout3-0 => lcec.0.io-dout3.dout-0   # Alle Anschläge hoch: Y0, Y1, rechts, links
+# dout-0: all reg pins (Y0, Y1, rechts, links) — TRUE = pins up / active.
+# Driven by M231 (up) / M230 (down) (remap/m231.ngc, m230.ngc) through
+# motion.digital-out-03 (M64/M65 P3). The pins stay where they were last put.
+net reg-pins-up <= motion.digital-out-03 => lcec.0.io-dout3.dout-0   # All reg pins up: Y0, Y1, rechts, links
 
 # dout-1: HSK spindle drawbar — TRUE pushes the drawbar and releases the tool.
 # Interlocked in HAL (lut5 drawbar-release, loaded in ethercat.hal):

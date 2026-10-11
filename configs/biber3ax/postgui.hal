@@ -11,9 +11,8 @@
 #
 # 6077h "torque actual value" (the actual-torque PDO entry mapped in
 # ethercat-conf.xml) is CiA402-standard units: 0.1% of rated torque, raw
-# range -1000..1000 = -100%..100%. The 12 Nm at 100% is assumed to be the
-# A6/SV660N rated torque — verify against the drive datasheet and adjust the
-# *-torque-scale.gain values below if it differs.
+# 1000 = 100% of rated torque. The motors' rated torque is 3.18 Nm (peak
+# 11.13 Nm = 350%, raw 3500), so the panel bars span -11..+11 Nm.
 #
 # 606Ch "velocity actual value" raw units are assumed to be encoder counts/s
 # (device default, no SI velocity object configured). RPM = counts/s *
@@ -37,11 +36,11 @@ addf x-right-vel-abs servo-thread
 addf y-vel-abs       servo-thread
 addf z-vel-abs       servo-thread
 
-# 12 Nm / 1000 (raw units at 100% rated torque) = 0.012 Nm per raw count
-setp x-left-torque-scale.gain  -0.012  # negative: matches JOINT_0 pos-scale < 0 (mirrored gantry motors)
-setp x-right-torque-scale.gain 0.012
-setp y-torque-scale.gain       0.012
-setp z-torque-scale.gain       0.012
+# 3.18 Nm / 1000 (raw units at 100% rated torque) = 0.00318 Nm per raw count
+setp x-left-torque-scale.gain  -0.00318  # negative: matches JOINT_0 pos-scale < 0 (mirrored gantry motors)
+setp x-right-torque-scale.gain 0.00318
+setp y-torque-scale.gain       0.00318
+setp z-torque-scale.gain       0.00318
 
 # 60 / 131072 = 0.00045777 RPM per count/s
 setp x-left-vel-scale.gain  0.00045777

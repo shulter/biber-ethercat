@@ -43,6 +43,8 @@ is taken from `benchtest-io`, where it was verified against the real hardware.
 | `io.hal` | Beckhoff digital I/O wiring: machine-enable lamp, Z brake, limit/home switches, HSK tool release interlock |
 | `remap/m250.ngc`, `remap/m251.ngc` | Remapped M250 (release tool, with safety checks) / M251 (clamp tool) |
 | `remap/m200.ngc`, `remap/m201.ngc` | Remapped M200 (dust hood down) / M201 (dust hood up) |
+| `remap/m230.ngc`, `remap/m231.ngc` | Remapped M230 (reg pins down) / M231 (reg pins up) |
+| `remap/m240.ngc` … `remap/m243.ngc` | Remapped M240 (vacuum off) / M241 (both zones) / M242 (left zone) / M243 (right zone) |
 | `ethercat-conf.xml` | EtherCAT slave topology and PDO mapping (servos, full Beckhoff chain) |
 | `panel.xml` | PyVCP panel, shown beside the preview: 4x servo torque + speed bars, spindle speed bar |
 | `postgui.hal` | HAL wiring for `panel.xml`'s pins (loaded after the GUI starts, see below) |
@@ -140,16 +142,40 @@ energised — the hood is pushed **up** as soon as HAL starts.
   hood on each press. It's pure HAL, so it works at any time, including while a program runs. The LED
   next to it is lit while the hood is down.
 
+## Reg Pins
+
+All reg pins (Y0, Y1, rechts, links) are raised by one output, `io-dout3.dout-0` (TRUE = up / active).
+**M231** (`remap/m231.ngc`) raises them, **M230** (`remap/m230.ngc`) lowers them again, via
+`motion.digital-out-03` (`M64 P3` / `M65 P3`). They stay where they were last put, and are down when
+LinuxCNC starts.
+
+## Vacuum Table
+
+The vacuum pump contactor is `io-dout1.dout-4`; the left and right vacuum ports are opened by
+`io-dout2.dout-4` and `io-dout2.dout-6`, and closed by separate valves on `io-dout2.dout-5` (left) and
+`io-dout2.dout-7` (right). Each close valve is driven by the inverse of its open output (HAL `not`
+components `vacuum-left-close` / `vacuum-right-close` in `io.hal`), so exactly one valve of each pair is
+energised and both ports are closed as soon as HAL starts. They're driven through `motion.digital-out-04` (pump), `-05` (left)
+and `-06` (right) with `M64`/`M65`, which is why `motmod` is loaded with `num_dio=8` in `ethercat.hal`.
+
+| M-code | Pump | Left port | Right port |
+|--------|------|-----------|------------|
+| **M241** | on | open | open |
+| **M242** | on | open | closed |
+| **M243** | on | closed | open |
+| **M240** | off | closed | closed |
+
+The state holds until the next of these M-codes; at LinuxCNC start everything is off/closed.
+
 ## Servo Torque / Speed Panel
 
 A PyVCP panel (`[DISPLAY] PYVCP = panel.xml` in `biber3ax.ini`) renders in the pane beside the g-code
 preview — no separate tab, no embedding setup. Layout is the one from the benchtest-servo config,
 extended to all 4 servos (X left, X right, Y, Z):
 
-- **Servo Torque** — bidirectional bar per servo (-10 to 0 to +10 Nm), fed live from each drive's
-  `actual-torque` PDO (6077h, CiA402-standard 0.1%-of-rated-torque units). 12 Nm at 100% is assumed to be
-  the A6/SV660N's rated torque — verify against the datasheet and adjust `postgui.hal`'s
-  `*-torque-scale.gain` (currently 0.012 Nm/count) if it differs.
+- **Servo Torque** — bidirectional bar per servo (-11 to 0 to +11 Nm, covering the 11.13 Nm peak
+  torque), fed live from each drive's `actual-torque` PDO (6077h, 0.1% of rated torque per count). Rated
+  torque is 3.18 Nm, so `postgui.hal`'s `*-torque-scale.gain` is 3.18 / 1000 = 0.00318 Nm/count.
 - **Servo Speed** — absolute motor RPM per servo (0-6000), from each drive's `actual-velocity` PDO (606Ch),
   assumed to be in encoder counts/s: RPM = counts/s × 60/131072 (`*-vel-scale.gain` = 0.00045777). Verify
   against the drive parameters.
