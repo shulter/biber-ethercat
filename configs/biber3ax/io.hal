@@ -106,11 +106,12 @@ net vacuum-right-closed <= vacuum-right-close.out => lcec.0.io-dout2.dout-7     
 # --- EL1018 (fast digital inputs, 10us, slave idx 11) ---
 # net io-din5-0 <= lcec.0.io-din5.din-0   # Tool height probe input
 
-# Limit switches, din-1..din-4. Each axis homes onto its positive limit
-# switch, so the X, Y and Z+ switches double as home switches
-# (HOME_IGNORE_LIMITS = YES in the INI, search direction positive). X has one
-# switch for the whole gantry, netted to both X joints (tandem homing,
-# HOME_SEQUENCE -2). X and Y have no negative limit switch.
+# Limit switches, din-1..din-4. Each axis homes onto one of its limit
+# switches, which doubles as the home switch (HOME_IGNORE_LIMITS = YES in the
+# INI): X and Z+ at the positive end (search +), Y at the Y0 / negative end
+# (search -). X has one switch for the whole gantry, netted to both X joints
+# (tandem homing, HOME_SEQUENCE -2). X has only a positive limit switch, Y
+# only a negative one.
 #
 # Switch polarity (joint pins expect TRUE = tripped):
 # - X is normally-closed — din is TRUE while the axis is clear, so it uses
@@ -121,7 +122,7 @@ net vacuum-right-closed <= vacuum-right-close.out => lcec.0.io-dout2.dout-7     
 # lcec.0.io-din5` should read din-1 TRUE and din-2..din-4 FALSE.
 net x-pos-lim <= lcec.0.io-din5.din-1-not => joint.0.pos-lim-sw-in joint.0.home-sw-in   # X positive limit / home (NC)
 net x-pos-lim                             => joint.1.pos-lim-sw-in joint.1.home-sw-in
-net y-pos-lim <= lcec.0.io-din5.din-2 => joint.2.pos-lim-sw-in joint.2.home-sw-in   # Y positive limit / home (NO)
+net y-neg-lim <= lcec.0.io-din5.din-2 => joint.2.neg-lim-sw-in joint.2.home-sw-in   # Y negative limit (Y0 end) / home (NO)
 net z-pos-lim <= lcec.0.io-din5.din-3 => joint.3.pos-lim-sw-in joint.3.home-sw-in   # Z positive limit / home (NO)
 net z-neg-lim <= lcec.0.io-din5.din-4 => joint.3.neg-lim-sw-in                      # Z negative limit (NO)
 

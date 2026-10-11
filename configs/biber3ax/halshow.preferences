@@ -6,7 +6,7 @@ set ::ratio 0.3
 set ::old_w_leftf 160
 set ::watchlist {
     sig+x-pos-lim
-    sig+y-pos-lim
+    sig+y-neg-lim
     sig+z-pos-lim
     sig+z-neg-lim
     pin+joint.0.home-sw-in

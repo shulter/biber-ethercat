@@ -70,21 +70,22 @@ home switch (`HOME_IGNORE_LIMITS = YES`). The switches are on the Beckhoff EL101
 | Switch | Input | Joints |
 |--------|-------|--------|
 | X positive limit / home | `io-din5.din-1` | 0, 1 (gantry) |
-| Y positive limit / home | `io-din5.din-2` | 2 |
+| Y negative limit / home (Y0 end) | `io-din5.din-2` | 2 |
 | Z positive limit / home (top) | `io-din5.din-3` | 3 |
 | Z negative limit (bottom) | `io-din5.din-4` | 3 |
 
-X and Y have no negative limit switch. `HOME_OFFSET` is the switch position in machine coordinates,
-set beyond `MAX_LIMIT` (X 3782, Y 1653, Z 1) so moves up to the soft limit stay clear of the hard
-limit. After latching, each joint moves to `HOME`:
+X has only a positive limit switch, Y only a negative one. X and Z home in the + direction, Y in
+the − direction. `HOME_OFFSET` is the switch position in machine coordinates, set just beyond the
+soft limit on the switch's side (X 3782 > `MAX_LIMIT`, Z 1 > `MAX_LIMIT`, Y −2 < `MIN_LIMIT`) so
+moves up to the soft limit stay clear of the hard limit. After latching, each joint moves to `HOME`:
 
-| Axis | HOME_OFFSET (switch) | HOME (after homing) | HOME_SEQUENCE |
-|------|----------------------|---------------------|---------------|
-| Z | 1 | 0 | 1 (first) |
-| X | 3782 | 2902 (880 mm left of the switch) | -2 (tandem, both joints) |
-| Y | 1653 | 1603 (50 mm below the switch) | 3 (last) |
+| Axis | Direction | HOME_OFFSET (switch) | HOME (after homing) | HOME_SEQUENCE |
+|------|-----------|----------------------|---------------------|---------------|
+| Z | + | 1 | 0 | 1 (first) |
+| X | + | 3782 | see `biber3ax.ini` `[JOINT_0/1] HOME` | -2 (tandem, both joints) |
+| Y | − | −2 | 200 | 3 (last) |
 
-Measure where each switch actually trips and correct `HOME_OFFSET` (and `MAX_LIMIT` if the usable
+Measure where each switch actually trips and correct `HOME_OFFSET` (and the soft limits if the usable
 travel differs).
 
 ## Gantry Motor Direction

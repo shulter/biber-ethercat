@@ -199,9 +199,9 @@ two stacked bars (green fed by `max(torque,0)`, red fed by `-min(torque,0)`) ins
 | Max acceleration | 2000 mm/s² | 2000 mm/s² | 2000 mm/s² |
 | Max jerk | 20000 mm/s³ | 20000 mm/s³ | 20000 mm/s³ |
 | pos-scale | −10434.4 (x-left), 10434.4 (x-right, mirrored) | 13107.2 | 26214.4 |
-| Home direction | + (onto positive limit) | + (onto positive limit) | + (onto positive limit, top) |
-| Limit/home switches (EL1018) | `din-1` (+) | `din-2` (+) | `din-3` (+), `din-4` (−) |
-| HOME_OFFSET / HOME | 3782 / 2902 (880 mm left of switch) | 1653 / 1603 (50 mm below switch) | 1 / 0 |
+| Home direction | + (onto positive limit) | − (onto negative limit, Y0 end) | + (onto positive limit, top) |
+| Limit/home switches (EL1018) | `din-1` (+) | `din-2` (−) | `din-3` (+), `din-4` (−) |
+| HOME_OFFSET / HOME | 3782 / see `[JOINT_0/1] HOME` | −2 / 200 | 1 / 0 |
 | HOME_SEQUENCE | −2 (tandem) | 3 (last) | 1 (first) |
 
 Each axis homes onto its positive limit switch, which doubles as the home switch (wired in `io.hal`,
