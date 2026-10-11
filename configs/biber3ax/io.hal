@@ -27,8 +27,8 @@ net io-din1-0 <= lcec.0.io-din1.din-0   # pendant button for main spindle tool r
 # --- EL1808 #2 (digital inputs, slave idx 6) ---
 # net io-din2-0 <= lcec.0.io-din2.din-0   # VFD not turning
 # net io-din2-1 <= lcec.0.io-din2.din-1   # VFD spindle at speed
-# net io-din2-2 <= lcec.0.io-din2.din-2   # HSK main spindle: tool clamped / drawbar up
-# net io-din2-3 <= lcec.0.io-din2.din-3   # HSK main spindle: tool released / drawbar down
+net io-din2-2 <= lcec.0.io-din2.din-2   # HSK main spindle: tool clamped / drawbar up (TRUE = clamped) — see spindle interlock below
+net io-din2-3 <= lcec.0.io-din2.din-3   # HSK main spindle: tool released / drawbar down (TRUE = released) — see spindle interlock below
 net io-din2-4 <= lcec.0.io-din2.din-4   # HSK spindle: not turning (back EMF measurement, TRUE = not turning) — see drawbar-release below
 # net io-din2-5 <= lcec.0.io-din2.din-5   # X horizontal drill aggregate is up
 # net io-din2-6 <= lcec.0.io-din2.din-6   # Y horizontal drill aggregate is up
@@ -166,6 +166,34 @@ net drawbar-release-req   <= motion.digital-out-00 => drawbar-release.in-1
 net io-din2-4             => drawbar-release.in-2 motion.digital-in-00
 net spindle-on            => drawbar-release.in-3 motion.digital-in-01
 net drawbar-release-out   <= drawbar-release.out   => lcec.0.io-dout3.dout-1   # HSK Spindle pull draw bar up, release tool
+
+# Spindle start interlock: the spindle may only run with the tool clamped.
+#
+#   tool-clamped = din2-2 (clamped) AND NOT din2-3 (released)
+#                  AND NOT drawbar release output
+#
+# - spindle.0.inhibit = NOT tool-clamped: motion holds the spindle speed at 0,
+#   so the spindle can't turn without a clamped tool.
+# - spindle.0.amp-fault-in = spindle.0.on AND NOT tool-clamped: commanding the
+#   spindle on (M3/M4, AXIS spindle button) without a clamped tool raises a
+#   spindle amplifier fault, which switches the machine off and aborts a
+#   running program instead of letting it cut with a stopped spindle.
+# Both switches must agree (clamped TRUE, released FALSE), so a stuck or
+# broken switch also blocks the spindle.
+# lut5 index = in-0 + 2*in-1 + 4*in-2 + 8*in-3. tool-clamped is only
+# index 1 (in-0=1, in-1=0, in-2=0):
+#   spindle-inhibit    (in-0..2):  NOT clamped            → ~0x02 & 0xFF = 0xFD
+#   spindle-tool-fault (in-0..3):  in-3 AND NOT clamped   → 0xFF00 & ~(1<<9) = 0xFD00
+addf spindle-inhibit    servo-thread
+addf spindle-tool-fault servo-thread
+setp spindle-inhibit.function    0xFD
+setp spindle-tool-fault.function 0xFD00
+net io-din2-2           => spindle-inhibit.in-0 spindle-tool-fault.in-0
+net io-din2-3           => spindle-inhibit.in-1 spindle-tool-fault.in-1
+net drawbar-release-out => spindle-inhibit.in-2 spindle-tool-fault.in-2
+net spindle-on          => spindle-tool-fault.in-3
+net spindle-inhibit-out    <= spindle-inhibit.out    => spindle.0.inhibit
+net spindle-tool-fault-out <= spindle-tool-fault.out => spindle.0.amp-fault-in
 
 # dout-2 / dout-3: dust hood pneumatic solenoids (TRUE = push up / push down).
 # The hood position is held in a flipflop (dust-hood): out = down solenoid,

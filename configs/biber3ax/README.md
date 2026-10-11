@@ -125,7 +125,15 @@ release = (pendant button io-din1-0  OR  M250 request)
 - The HAL interlock enforces the same conditions independently, so the release drops immediately if the
   spindle is switched on or starts turning, whichever way it was requested.
 
+**Spindle start interlock** (`io.hal`, `lut5` `spindle-inhibit` / `spindle-tool-fault`): the spindle
+may only run with the tool clamped, i.e. `io-din2.din-2` (clamped) TRUE, `io-din2.din-3` (released)
+FALSE and the drawbar release output off. Otherwise `spindle.0.inhibit` holds the spindle speed at 0,
+and commanding the spindle on (M3/M4 or the AXIS spindle button) raises `spindle.0.amp-fault-in`, which
+switches the machine off and aborts a running program. Both switches have to agree, so a stuck or
+broken drawbar switch also blocks the spindle.
+
 Polarity: `io-din2.din-4` reads TRUE while the spindle stands still (checked on the running machine).
+With the tool clamped, `io-din2.din-2` reads TRUE and `io-din2.din-3` FALSE.
 The pendant button reads FALSE when not pressed, so it's treated as normally-open (TRUE while pressed).
 
 ## Dust Hood
@@ -234,6 +242,9 @@ recognized by your build, remove those lines to fall back to the trapezoidal pla
   operation-enabled for > 1 s" as an amp fault (`<joint>-not-op` / `-not-op-delay` / `-fault-or`).
   `halcmd show pin cia402.N.stat-op-enabled` and `cia402.N.statusword` show the drive's state. If a
   drive legitimately needs longer to enable, raise `<joint>-not-op-delay.on-delay`.
+- **"Spindle amplifier fault" when starting the spindle, or the spindle won't turn:** the tool isn't
+  seen as clamped. Check `halcmd show pin lcec.0.io-din2` — `din-2` (clamped) must be TRUE and `din-3`
+  (released) FALSE — and that the drawbar release output (`lcec.0.io-dout3.dout-1`) is off (M251).
 - **Slaves stuck in PREOP:** Use variable PDO mapping (0x1600/0x1A00) as in `ethercat-conf.xml`; avoid fixed PDOs.
 - **Following error on enable:** Reduce acceleration; verify `CIA402_POS_SCALE` per axis; check encoder resolution in drive params.
 - **Only one X motor moves:** Confirm `trivkins coordinates=XXYZ` and both X `cia402` instances (0, 1) are wired.
