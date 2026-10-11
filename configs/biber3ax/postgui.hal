@@ -94,3 +94,9 @@ net z-rpm-abs        z-vel-abs.out       => pyvcp.z-rpm
 # (open-loop 0-10V drive via EL4032). Taps the same net that feeds the
 # EL4032 output in ethercat.hal rather than re-sourcing the pin.
 net spindle-speed-cmd => pyvcp.spindle-speed
+
+# --- Dust hood toggle button + "down" LED ---
+# The button clocks the dust-hood flipflop (loaded and wired in io.hal), so
+# each press toggles the hood; works while a program runs, as it's pure HAL.
+net dust-hood-toggle-btn pyvcp.dust-hood-toggle => dust-hood.clk
+net dust-hood-down => pyvcp.dust-hood-down-led

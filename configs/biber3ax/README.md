@@ -42,6 +42,7 @@ is taken from `benchtest-io`, where it was verified against the real hardware.
 | `ethercat.hal` | lcec + cia402 wiring for the 4 servos, plus EL4032 spindle analog-out wiring |
 | `io.hal` | Beckhoff digital I/O wiring: machine-enable lamp, Z brake, limit/home switches, HSK tool release interlock |
 | `remap/m250.ngc`, `remap/m251.ngc` | Remapped M250 (release tool, with safety checks) / M251 (clamp tool) |
+| `remap/m200.ngc`, `remap/m201.ngc` | Remapped M200 (dust hood down) / M201 (dust hood up) |
 | `ethercat-conf.xml` | EtherCAT slave topology and PDO mapping (servos, full Beckhoff chain) |
 | `panel.xml` | PyVCP panel, shown beside the preview: 4x servo torque + speed bars, spindle speed bar |
 | `postgui.hal` | HAL wiring for `panel.xml`'s pins (loaded after the GUI starts, see below) |
@@ -125,6 +126,20 @@ release = (pendant button io-din1-0  OR  M250 request)
 Polarity: `io-din2.din-4` reads TRUE while the spindle stands still (checked on the running machine).
 The pendant button reads FALSE when not pressed, so it's treated as normally-open (TRUE while pressed).
 
+## Dust Hood
+
+The dust hood is moved by two pneumatic solenoids on EL2808 #3: `io-dout3.dout-3` pushes it down,
+`io-dout3.dout-2` pushes it up. The hood position is held in a HAL `flipflop` (`dust-hood`, in
+`io.hal`) whose `out` drives the down solenoid and `out-not` the up solenoid, so exactly one is always
+energised — the hood is pushed **up** as soon as HAL starts.
+
+- **M200** (`remap/m200.ngc`) lowers the hood, **M201** (`remap/m201.ngc`) raises it. Each pulses a
+  motion digital output for 50 ms (`M64`, `G4 P0.05`, `M65`) onto the flipflop's `set`
+  (`motion.digital-out-01`) or `reset` (`motion.digital-out-02`).
+- **Panel button** "Hood Up / Down" (`pyvcp.dust-hood-toggle`, wired in `postgui.hal`) toggles the
+  hood on each press. It's pure HAL, so it works at any time, including while a program runs. The LED
+  next to it is lit while the hood is down.
+
 ## Servo Torque / Speed Panel
 
 A PyVCP panel (`[DISPLAY] PYVCP = panel.xml` in `biber3ax.ini`) renders in the pane beside the g-code
@@ -140,6 +155,7 @@ extended to all 4 servos (X left, X right, Y, Z):
   against the drive parameters.
 - **Spindle** — *commanded* speed bar, 0-24000 RPM (`spindle.0.speed-out-abs`), not measured feedback —
   there's no spindle encoder in this design, only an open-loop 0-10V drive via the EL4032.
+- **Dust Hood** — up/down toggle button and a "down" LED (see [Dust Hood](#dust-hood)).
 
 The panel's HAL pins (`pyvcp.*`) don't exist until the PyVCP panel has loaded, so their wiring lives in
 `postgui.hal` (loaded via `[HAL] POSTGUI_HALFILE`), not `ethercat.hal`.

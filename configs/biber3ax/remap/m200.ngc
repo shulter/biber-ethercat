@@ -1,0 +1,13 @@
+; M200 — lower the dust hood.
+; Remapped in biber3ax.ini: REMAP = M200 modalgroup=10 ngc=m200
+; Pulses motion.digital-out-01 (M64/M65 P1) onto the set pin of the
+; dust-hood flipflop in io.hal, which holds the hood position and drives the
+; solenoids (io-dout3.dout-3 down, dout-2 up). A pulse rather than a level so
+; the PyVCP toggle button keeps working after this. M201 does the opposite.
+
+o<m200> sub
+  M64 P1
+  G4 P0.05
+  M65 P1
+o<m200> endsub
+M2

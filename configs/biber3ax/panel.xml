@@ -7,8 +7,8 @@
 
   Shows live servo torque and speed for the 4 servos (X left, X right, Y, Z):
   torque as a bidirectional bar (-10 to 0 to +10 Nm), speed as absolute RPM
-  (0-6000), plus commanded spindle speed (0-24000 RPM). See postgui.hal for
-  the HAL wiring.
+  (0-6000), plus commanded spindle speed (0-24000 RPM), and a dust hood
+  up/down toggle button with a "down" LED. See postgui.hal for the HAL wiring.
 
   Tag names (bar, min_, max_, halpin, text, labelframe) confirmed working
   against a real AXIS/PyVCP. With min_ negative and max_ positive, PyVCP's
@@ -116,6 +116,26 @@
 </bar>
 
 </vbox>
+</labelframe>
+
+<labelframe text="Dust Hood">
+<hbox>
+
+<button>
+  <halpin>"dust-hood-toggle"</halpin>
+  <text>"Hood Up / Down"</text>
+</button>
+<led>
+  <halpin>"dust-hood-down-led"</halpin>
+  <size>15</size>
+  <on_color>"green"</on_color>
+  <off_color>"grey"</off_color>
+</led>
+<label>
+  <text>"down"</text>
+</label>
+
+</hbox>
 </labelframe>
 
 </pyvcp>
