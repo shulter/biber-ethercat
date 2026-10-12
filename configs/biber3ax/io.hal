@@ -84,8 +84,10 @@ net vacuum-pump         <= motion.digital-out-04 => lcec.0.io-dout1.dout-4   # V
 # --- EL2808 #2 (digital outputs, slave idx 10) ---
 # net io-dout2-0 => lcec.0.io-dout2.dout-0   # oil dispenser X axis rack and pinion
 # net io-dout2-1 => lcec.0.io-dout2.dout-1   # Schmierung Blasluft
-# net io-dout2-2 => lcec.0.io-dout2.dout-2   # VFD CW Clockwise
-# net io-dout2-3 => lcec.0.io-dout2.dout-3   # VFD CCW Counter Clockwise
+# VFD run direction: spindle.0.forward is true for M3, spindle.0.reverse for
+# M4; both false on M5. Speed comes from the EL4032 (ethercat.hal).
+net spindle-cw  <= spindle.0.forward => lcec.0.io-dout2.dout-2   # VFD CW Clockwise
+net spindle-ccw <= spindle.0.reverse => lcec.0.io-dout2.dout-3   # VFD CCW Counter Clockwise
 # Vacuum table (remap/m240..m243.ngc), via motion digital outputs:
 #   out-04 -> io-dout1-4 pump, out-05 -> dout2-4 left port open,
 #   out-06 -> dout2-6 right port open.
