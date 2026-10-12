@@ -84,10 +84,7 @@ net vacuum-pump         <= motion.digital-out-04 => lcec.0.io-dout1.dout-4   # V
 # --- EL2808 #2 (digital outputs, slave idx 10) ---
 # net io-dout2-0 => lcec.0.io-dout2.dout-0   # oil dispenser X axis rack and pinion
 # net io-dout2-1 => lcec.0.io-dout2.dout-1   # Schmierung Blasluft
-# VFD run direction: spindle.0.forward is true for M3, spindle.0.reverse for
-# M4; both false on M5. Speed comes from the EL4032 (ethercat.hal).
-net spindle-cw  <= spindle.0.forward => lcec.0.io-dout2.dout-2   # VFD CW Clockwise
-net spindle-ccw <= spindle.0.reverse => lcec.0.io-dout2.dout-3   # VFD CCW Counter Clockwise
+# dout-2 / dout-3: VFD CW / CCW — wired after the spindle start interlock below.
 # Vacuum table (remap/m240..m243.ngc), via motion digital outputs:
 #   out-04 -> io-dout1-4 pump, out-05 -> dout2-4 left port open,
 #   out-06 -> dout2-6 right port open.
@@ -196,6 +193,26 @@ net drawbar-release-out => spindle-inhibit.in-2 spindle-tool-fault.in-2
 net spindle-on          => spindle-tool-fault.in-3
 net spindle-inhibit-out    <= spindle-inhibit.out    => spindle.0.inhibit
 net spindle-tool-fault-out <= spindle-tool-fault.out => spindle.0.amp-fault-in
+
+# VFD run direction (EL2808 #2 dout-2 / dout-3): spindle.0.forward is true for
+# M3, spindle.0.reverse for M4; both false on M5. Speed comes from the EL4032
+# (ethercat.hal). spindle.0.inhibit holds the speed at 0, but the VFD must not
+# get a run signal either without a clamped tool, so each run signal is also
+# gated with the tool clamp:
+#
+#   run = direction AND NOT spindle-inhibit-out (= tool clamped)
+#
+# lut5 function 0x2: out = in-0 AND NOT in-1 (true only for index 1).
+# addf'd after spindle-inhibit so the gate sees the same cycle's clamp state.
+addf spindle-cw-gate  servo-thread
+addf spindle-ccw-gate servo-thread
+setp spindle-cw-gate.function  0x2
+setp spindle-ccw-gate.function 0x2
+net spindle-forward     <= spindle.0.forward     => spindle-cw-gate.in-0
+net spindle-reverse     <= spindle.0.reverse     => spindle-ccw-gate.in-0
+net spindle-inhibit-out => spindle-cw-gate.in-1 spindle-ccw-gate.in-1
+net spindle-cw  <= spindle-cw-gate.out  => lcec.0.io-dout2.dout-2   # VFD CW Clockwise
+net spindle-ccw <= spindle-ccw-gate.out => lcec.0.io-dout2.dout-3   # VFD CCW Counter Clockwise
 
 # dout-2 / dout-3: dust hood pneumatic solenoids (TRUE = push up / push down).
 # The hood position is held in a flipflop (dust-hood): out = down solenoid,
