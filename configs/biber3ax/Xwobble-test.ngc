@@ -1,0 +1,13 @@
+;wobble back and forth for servo tuning
+
+#<feed> = 60000
+#<anzahl_n> = 2
+#<actual_xpos> = #<_Y>
+
+
+o111 repeat [#<anzahl_n>]
+     G1 X[#<actual_xpos> + 20] F#<feed>
+     X[#<actual_xpos>]
+     G4P0.2
+o111 endrepeat
+M2

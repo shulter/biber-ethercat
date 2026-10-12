@@ -15,6 +15,8 @@ set ::watchlist {
     pin+joint.1.home-sw-in
     pin+joint.2.home-sw-in
     pin+joint.3.home-sw-in
+    pin+ini.2.ferror
+    pin+ini.2.min_ferror
 }
 set ::workmode watchhal
 set ::watchInterval 100
