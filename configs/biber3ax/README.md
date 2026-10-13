@@ -72,13 +72,19 @@ all slaves are in OP, and the master leaves undeclared slaves in PREOP.
 - **EL1018** — 8-channel digital input, 10us fast response (no input filtering) — for signals that need
   to be caught quickly, e.g. the tool height probe on `din-0`. Placeholders `io-din5-0` ... `io-din5-7`.
 - **EL2808 x4** — 8-channel digital output each (32 DO total). Same placeholder scheme
-  (`io-dout1-2` ... `io-dout4-7`), except two actively wired outputs:
+  (`io-dout1-2` ... `io-dout4-7`); see `io.hal` for the outputs that are actively wired. Among them:
   - **`io-dout1.dout-0`** drives a machine-enable indicator (lamp/relay) from `halui.machine.is-on` —
     energized whenever LinuxCNC is switched on. A status output, not the safety interlock chain
     feeding `iocontrol.0.emc-enable-in`.
   - **`io-dout1.dout-1`** is the Z axis holding brake (TRUE = released). It releases 1.3 s after
     Machine On (`z-brake-delay`, a `timedelay` on Z's `amp-enable-out`) so the servo is powered and
     holding first, and engages immediately when the machine is switched off or faults.
+  - **`io-dout1.dout-3`** / **`io-dout1.dout-2`** are the VFD output contactors for the HSK milling
+    spindle / the boring aggregate (one KEB VFD feeds either motor). For now the milling spindle
+    contactor is closed whenever the machine is on (`machine-enable`) and the boring aggregate
+    contactor stays open. Planned tool-number mapping for the tool change routine: T1–T100 milling
+    spindle, T101–T107 vertical boring spindles 1–7, T201–T204 horizontal boring head (both boring
+    heads on the boring aggregate contactor).
 - **EL9110** — E-bus power supply feed terminal with diagnostics, bus position 12. This lcec build
   doesn't know its type, so it's declared as `type="generic"` with its real identity (vid `00000002`,
   pid `23963052`, from `ethercat slaves -p 12 -v`) and its one PDO mapped to

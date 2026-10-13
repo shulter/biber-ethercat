@@ -74,8 +74,17 @@ setp z-brake-delay.off-delay 0.0
 net z-enable => z-brake-delay.in
 net z-brake-release <= z-brake-delay.out => lcec.0.io-dout1.dout-1 # Z brake release
 
+# dout-2 / dout-3: VFD output contactors. The single KEB VFD feeds either the
+# boring aggregate motor (dout-2) or the HSK milling spindle (dout-3) through
+# its own contactor. Tool numbers select the motor (to be implemented with
+# the tool change routine):
+#   T1..T100   HSK milling spindle            -> dout-3
+#   T101..T107 vertical boring spindles 1-7   -> dout-2
+#   T201..T204 horizontal boring head         -> dout-2
+# For now the milling spindle contactor is closed whenever the machine is on
+# (machine-enable), and the boring aggregate contactor stays open.
 # net io-dout1-2 => lcec.0.io-dout1.dout-2   # Drill Aggregate Enable Contactor
-# net io-dout1-3 => lcec.0.io-dout1.dout-3   # HSK Milling Spindle Enable Contactor
+net machine-enable => lcec.0.io-dout1.dout-3   # HSK Milling Spindle Enable Contactor
 net vacuum-pump         <= motion.digital-out-04 => lcec.0.io-dout1.dout-4   # Vacuum pump Enable Contactor — M240-M243, see io-dout2 below
 # net io-dout1-5 => lcec.0.io-dout1.dout-5   # VFD preset 1
 # net io-dout1-6 => lcec.0.io-dout1.dout-6   # VFD preset 2
