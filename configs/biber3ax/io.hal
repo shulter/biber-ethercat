@@ -98,8 +98,17 @@ setp spindle-contactor-delay.off-delay 10.0
 net machine-enable => spindle-contactor-delay.in
 net spindle-contactor <= spindle-contactor-delay.out => lcec.0.io-dout1.dout-3   # HSK Milling Spindle Enable Contactor
 net vacuum-pump         <= motion.digital-out-04 => lcec.0.io-dout1.dout-4   # Vacuum pump Enable Contactor — M240-M243, see io-dout2 below
-# net io-dout1-5 => lcec.0.io-dout1.dout-5   # VFD preset 1
-# net io-dout1-6 => lcec.0.io-dout1.dout-6   # VFD preset 2
+# dout-5 / dout-6: KEB parameter set select (KEB inputs I1 / I4, per
+# D/KEB/F5_SKF9KW.dw5 in the original TwinCAT backup). One must be on for the
+# connected motor; with none active the KEB falls back to set 0 (stop set for
+# misuse/blocked motor) and the spindle won't run.
+#   I1 (dout-5) -> set 2: boring aggregate motor, 50 Hz
+#   I4 (dout-6) -> set 5: HSK SKF spindle with milling tool, 400 Hz
+# Like the contactors, for now only the HSK set is used: I4 follows the HSK
+# contactor (on with machine-enable, off 10 s later) so the KEB keeps set 5
+# while it ramps the spindle down after machine off.
+# net vfd-set-drill => lcec.0.io-dout1.dout-5   # KEB I1: parameter set 2, boring aggregate
+net spindle-contactor => lcec.0.io-dout1.dout-6   # KEB I4: parameter set 5, HSK milling spindle
 # net io-dout1-7 => lcec.0.io-dout1.dout-7   # HSK spindle flush air
 
 # --- EL2808 #2 (digital outputs, slave idx 10) ---
