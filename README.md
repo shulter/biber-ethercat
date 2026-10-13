@@ -1,37 +1,18 @@
 # biber-ethercat
 
-LinuxCNC configuration for a Week Vantage 33M retrofit with StepperOnline A6 EtherCAT servos.
+LinuxCNC config for a Weeke Vantage 33M retrofit with StepperOnline A6 EtherCAT servos and Beckhoff I/O.
 
-## Status
-
-**Phase 1 (bench test):** Dual X gantry servos — config ready in `configs/vantage33m-bench/`.
-
-**Final (all axes):** 4× A6 servos (X gantry, Y, Z) at full machine travel, with Beckhoff I/O and
-spindle templates wired but commented out — `configs/biber3ax/`.
-
-## Documentation
-
-- [Retrofit plan](docs/retrofit-plan.md) — phased roadmap from bench to full machine
-- [Kinematics & scaling](docs/kinematics.md) — encoder counts, velocities, pos-scale for all axes
-
-## Configs
-
-| Config | Description |
-|--------|-------------|
-| [`configs/vantage33m-bench/`](configs/vantage33m-bench/) | 2× A6 on X gantry for workbench EtherCAT testing |
-| [`configs/biber3ax/`](configs/biber3ax/) | Final 3-axis config: 4× A6 (X gantry, Y, Z) + commented-out Beckhoff I/O and spindle |
+- [`configs/biber3ax/`](configs/biber3ax/) — machine config (4× A6: X gantry, Y, Z)
+- [`docs/kinematics.md`](docs/kinematics.md) — scaling, homing, gantry
+- [`docs/retrofit-plan.md`](docs/retrofit-plan.md) — original phased plan
 
 ## Hardware
 
-- 4× StepperOnline A6 EtherCAT 1kW (CiA 402, Inovance SV660N OEM)
-- 17-bit encoders (131072 counts/rev)
-- X: 10:1 → M2×20T rack & pinion
-- Y: 24T→60T belt → 25 mm ball screw
-- Z: direct 5 mm ball screw
+- 4× StepperOnline A6 1 kW (CiA 402, Inovance SV660N OEM), 17-bit encoders
+- X: 10:1 → M2×20T rack & pinion; Y: 24T→60T belt → 25 mm screw; Z: direct 5 mm screw
+- Beckhoff EK1100 + EL1808/EL2808/EL1018/EL9110/EL4032; KEB F5 VFD
 
 ## Prerequisites
 
-- LinuxCNC 2.9+
-- [linuxcnc-ethercat](https://github.com/linuxcnc-ethercat/linuxcnc-ethercat) (`lcec`)
-- [hal-cia402](https://github.com/linuxcnc-ethercat/hal-cia402) (`cia402.comp`)
-- IgH EtherCAT master with dedicated NIC
+LinuxCNC 2.9+, [linuxcnc-ethercat](https://github.com/linuxcnc-ethercat/linuxcnc-ethercat) (`lcec`),
+[hal-cia402](https://github.com/linuxcnc-ethercat/hal-cia402), IgH EtherCAT master on a dedicated NIC.

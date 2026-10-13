@@ -11,15 +11,10 @@ the INI/HAL/XML are internally consistent and match the physical machine's kinem
 
 ## Repo layout
 
-- `configs/<name>/` — one directory per LinuxCNC config (currently only `vantage33m-bench/`, the Phase 1
-  bench-test config for the dual X-axis gantry servos). Each config directory is self-contained: `.ini`
-  (machine/joint parameters), `ethercat.hal` (lcec + cia402 HAL wiring), `ethercat-conf.xml` (EtherCAT
-  slave PDO mapping), `tool.tbl`.
 - `docs/retrofit-plan.md` — the phased roadmap (bench → X install → Y/Z → machine I/O → tuning). Read this
   before changing scope (e.g. adding an axis) to know what phase a change belongs to.
-- `docs/kinematics.md` — authoritative source for every `pos-scale`, velocity, and travel-limit number used
-  in the INI files. Any change to gear ratios, screw pitch, or encoder resolution must be reflected here
-  first, then propagated to the relevant `[JOINT_n]` `CIA402_POS_SCALE` and `MAX_VELOCITY`/`MAX_LIMIT` values.
+- `docs/kinematics.md` — authoritative source for `pos-scale` math. Gear ratio, pitch or encoder changes go
+  here first, then into `CIA402_POS_SCALE`. Configured limits/speeds/accelerations live only in the INI.
 
 ## Validating changes (no automated tests exist)
 
@@ -32,12 +27,12 @@ halcmd show pin               # verify actual-position counts change when motors
 ```
 
 When reviewing or authoring config changes, check consistency by hand instead of running a linter:
-- Every `pos-scale` in `ethercat.hal` / `CIA402_POS_SCALE` in the `.ini` must match the value derived in
-  `docs/kinematics.md` for that axis.
+- Every `CIA402_POS_SCALE` must match `docs/kinematics.md` in magnitude (sign flips direction, e.g. the
+  mirrored X gantry motors).
 - `[KINS] JOINTS` / `KINEMATICS = trivkins coordinates=...` in the INI must match the number of `cia402`
   instances loaded in the HAL file (`loadrt cia402 count=N`) and the slave count in `ethercat-conf.xml`.
 - Each `[JOINT_n]` block's `MIN_LIMIT`/`MAX_LIMIT`/`MAX_VELOCITY`/`MAX_ACCELERATION` must match the
-  corresponding `[AXIS_x]` block, and match the bench-vs-full-machine table in the config's own README.
+  corresponding `[AXIS_x]` block.
 - `HOME_SEQUENCE` values encode homing order/grouping: the same negative value on multiple joints means
   "home together" (tandem gantry homing), not independent phases.
 
@@ -65,10 +60,7 @@ letter per joint sharing that axis) and a single shared home switch signal nette
 ## Conventions when extending
 
 - New config variants go in their own `configs/<name>/` directory with the same four files
-  (`.ini`, `ethercat.hal`, `ethercat-conf.xml`, `tool.tbl`) plus a README following the existing
-  Quick Start / Files / Bench-vs-Machine-settings pattern in `configs/vantage33m-bench/README.md`.
-- Future axes (Y, Z) are sketched as commented-out `[AXIS_y]`/`[JOINT_n]` blocks at the bottom of
-  `vantage33m-bench.ini` — when activating one, uncomment, wire the corresponding `cia402` instance and
-  slave in the HAL/XML files, and bump `[KINS] JOINTS` and `coordinates=`.
+  (`.ini`, `ethercat.hal`, `ethercat-conf.xml`, `tool.tbl`) plus a short README like `configs/biber3ax/README.md`.
 - Keep `docs/kinematics.md` as the single source of truth for scaling math; don't recompute `pos-scale`
   inline in HAL/INI comments without cross-referencing it.
+- Keep comments and docs short and on point — no long explanations. Don't copy INI values into docs.

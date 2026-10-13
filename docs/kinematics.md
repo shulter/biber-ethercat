@@ -1,114 +1,54 @@
 # Vantage 33M — Kinematics and Scaling
 
-All axes use 17-bit encoders: **131072 counts/rev** at the motor shaft.
+17-bit encoders: **131072 counts/rev**. `pos-scale` = counts per mm. Configured limits, speeds and
+accelerations are in `configs/biber3ax/biber3ax.ini`; the maxima below are mechanical/theoretical.
 
-`pos-scale` in HAL = encoder counts per machine unit (mm).
-
-## X Axis — Dual Rack & Pinion (Gantry)
-
-| Parameter | Value |
-|-----------|-------|
-| Gear reduction | 10:1 |
-| Rack module | 2 mm |
-| Pinion teeth | 20 |
-| Pinion pitch diameter | 2 × 20 = **40 mm** |
-| Linear travel per pinion rev | π × 40 = **125.664 mm** |
-| Linear travel per motor rev | 125.664 / 10 = **12.566 mm** |
-| **pos-scale** | 131072 / 12.566 = **10434.4 counts/mm** |
-| Max motor RPM | 5800 |
-| **Max velocity** | 5800/60 × 12.566 = **1215 mm/s** |
-| Max travel | **3780 mm** |
-| Max acceleration | **2000 mm/s²** (2 m/s²) |
-
-## Y Axis — Ball Screw with Belt Reduction
+## X — dual rack & pinion (gantry)
 
 | Parameter | Value |
 |-----------|-------|
-| Motor pulley | 24 teeth |
-| Screw pulley | 60 teeth |
-| Reduction | 60/24 = **2.5:1** |
-| Ball screw pitch | **25 mm** |
-| Linear travel per motor rev | 25 / 2.5 = **10 mm** |
-| **pos-scale** | 131072 / 10 = **13107.2 counts/mm** |
-| Max motor RPM | 5800 |
-| **Max velocity** | 5800/60 × 10 = **967 mm/s** |
-| Max travel | **1651 mm** |
-| Max acceleration | **2000 mm/s²** |
+| Reduction | 10:1 |
+| Pinion | M2 × 20T → Ø40 mm → 125.664 mm/rev |
+| Travel per motor rev | **12.566 mm** |
+| **pos-scale** | 131072 / 12.566 = **10434.4** |
+| Max velocity @ 5800 rpm | 1215 mm/s |
 
-## Z Axis — Direct Ball Screw
+## Y — ball screw, belt reduction
 
 | Parameter | Value |
 |-----------|-------|
-| Ball screw pitch | **5 mm** |
-| Linear travel per motor rev | **5 mm** |
-| **pos-scale** | 131072 / 5 = **26214.4 counts/mm** |
-| Max motor RPM | 3000 |
-| **Max velocity** | 3000/60 × 5 = **250 mm/s** |
-| Max travel | **155 mm** |
-| Max acceleration | **2000 mm/s²** |
+| Belt | 24T → 60T = 2.5:1 |
+| Screw pitch | 25 mm |
+| Travel per motor rev | **10 mm** |
+| **pos-scale** | 131072 / 10 = **13107.2** |
+| Max velocity @ 5800 rpm | 967 mm/s |
 
-## Jerk Limiting (S-curve Trajectory Planner)
+## Z — direct ball screw
 
-`MAX_JERK` enables LinuxCNC's jerk-limited trajectory planner, which rounds the trapezoidal
-velocity profile into an S-curve. Convention used here: **MAX_JERK = 10 × MAX_ACCELERATION**
-(i.e. accel ramps to full value in ~0.1 s). All axes share the same MAX_ACCELERATION (2000 mm/s²),
-so all axes share the same jerk:
+| Parameter | Value |
+|-----------|-------|
+| Screw pitch | 5 mm |
+| **pos-scale** | 131072 / 5 = **26214.4** |
+| Max velocity @ 3000 rpm | 250 mm/s |
 
-| Parameter | Full machine (`biber3ax.ini`) | Bench (`vantage33m-bench.ini`) |
-|-----------|-------------------------------|--------------------------------|
-| MAX_ACCELERATION (all axes) | 2000 mm/s² | 500 mm/s² |
-| **MAX_JERK (all axes)** | **20000 mm/s³** | **5000 mm/s³** |
+## Gantry
 
-Set at `[TRAJ]`, each `[AXIS_x]`, and each `[JOINT_n]` in both configs. If retuning
-`MAX_ACCELERATION` for an axis, recompute its `MAX_JERK` at the same 10× ratio.
+- Motors are mirrored: joint 0 (x-left) `CIA402_POS_SCALE = -10434.4`, joint 1 (x-right) `+10434.4`.
+  If X moves the wrong way, flip both signs.
+- One home switch for both joints, tandem homing (same negative `HOME_SEQUENCE`). Square the gantry
+  via per-joint `HOME_OFFSET`.
 
-## Homing / Limit Switches
+## Homing / limit switches (EL1018)
 
-All axes home in the **positive** direction onto their positive limit switch, which doubles as the
-home switch (`HOME_IGNORE_LIMITS = YES`). The switches are on the Beckhoff EL1018 (`io.hal`):
+| Switch | Input | Type |
+|--------|-------|------|
+| X+ limit / home | `io-din5.din-1` | NC |
+| Y− limit / home (Y0 end) | `io-din5.din-2` | NO |
+| Z+ limit / home (top) | `io-din5.din-3` | NO |
+| Z− limit | `io-din5.din-4` | NO |
 
-| Switch | Input | Joints |
-|--------|-------|--------|
-| X positive limit / home | `io-din5.din-1` | 0, 1 (gantry) |
-| Y negative limit / home (Y0 end) | `io-din5.din-2` | 2 |
-| Z positive limit / home (top) | `io-din5.din-3` | 3 |
-| Z negative limit (bottom) | `io-din5.din-4` | 3 |
+X and Z home +, Y homes −. `HOME_OFFSET` = switch position, just outside the soft limit.
 
-X has only a positive limit switch, Y only a negative one. X and Z home in the + direction, Y in
-the − direction. `HOME_OFFSET` is the switch position in machine coordinates, set just beyond the
-soft limit on the switch's side (X 3782 > `MAX_LIMIT`, Z 1 > `MAX_LIMIT`, Y −2 < `MIN_LIMIT`) so
-moves up to the soft limit stay clear of the hard limit. After latching, each joint moves to `HOME`:
+## Drive setup
 
-| Axis | Direction | HOME_OFFSET (switch) | HOME (after homing) | HOME_SEQUENCE |
-|------|-----------|----------------------|---------------------|---------------|
-| Z | + | 1 | 0 | 1 (first) |
-| X | + | 3782 | see `biber3ax.ini` `[JOINT_0/1] HOME` | -2 (tandem, both joints) |
-| Y | − | −2 | 200 | 3 (last) |
-
-Measure where each switch actually trips and correct `HOME_OFFSET` (and the soft limits if the usable
-travel differs).
-
-## Gantry Motor Direction
-
-The two X gantry motors are mounted mirrored (facing each other across the gantry), so for the
-same X move they must turn in opposite directions. Joint 0 (x-left) therefore uses a **negative**
-scale, `CIA402_POS_SCALE = -10434.4`; joint 1 (x-right) uses `+10434.4`, so +X moves toward the X limit
-switch. `cia402` multiplies the command by
-`pos-scale` and divides the feedback by it, so the sign flips both consistently. If X as a whole
-moves the wrong way, flip the sign on **both** X joints.
-
-## Gantry Homing
-
-The Vantage 33M has a **single home switch** for the X gantry. Both gantry servos share it:
-
-- The switch is wired to `io-din5.din-1`; HAL nets the same signal to `home-sw-in` and
-  `pos-lim-sw-in` of both `joint.0` and `joint.1`
-- Use **tandem homing**: `HOME_SEQUENCE = -2` on both X joints (negative = move together; X homes
-  after Z and before Y)
-- Adjust `HOME_OFFSET` per joint to square the gantry after homing
-
-## Drive Encoder Setup
-
-Confirm in the A6/SV660N drive parameters that the encoder resolution is set to 17-bit (131072 PPR). The `pos-scale` values above assume the CiA 402 `actual-position` object reports motor-shaft counts.
-
-If the drive reports counts after electronic gearing, adjust `pos-scale` accordingly.
+Drive encoder resolution must be 17-bit with no electronic gearing, or `pos-scale` changes.
