@@ -83,8 +83,20 @@ net z-brake-release <= z-brake-delay.out => lcec.0.io-dout1.dout-1 # Z brake rel
 #   T201..T204 horizontal boring head         -> dout-2
 # For now the milling spindle contactor is closed whenever the machine is on
 # (machine-enable), and the boring aggregate contactor stays open.
+# The contactor opens only 10 s after machine-enable drops (machine off, F2 or
+# e-stop): machine off stops the spindle (spindle.0.forward/reverse drop — verify
+# with halcmd when commissioning), and the KEB needs
+# its motor connected to ramp the spindle down — opening the contactor under a
+# spinning motor leaves it coasting and can damage the VFD. Keep the KEB's
+# deceleration time below this off-delay.
+# spindle-contactor-delay is loaded with the other timedelay instances in
+# ethercat.hal.
+addf spindle-contactor-delay servo-thread
+setp spindle-contactor-delay.on-delay  0.0
+setp spindle-contactor-delay.off-delay 10.0
 # net io-dout1-2 => lcec.0.io-dout1.dout-2   # Drill Aggregate Enable Contactor
-net machine-enable => lcec.0.io-dout1.dout-3   # HSK Milling Spindle Enable Contactor
+net machine-enable => spindle-contactor-delay.in
+net spindle-contactor <= spindle-contactor-delay.out => lcec.0.io-dout1.dout-3   # HSK Milling Spindle Enable Contactor
 net vacuum-pump         <= motion.digital-out-04 => lcec.0.io-dout1.dout-4   # Vacuum pump Enable Contactor — M240-M243, see io-dout2 below
 # net io-dout1-5 => lcec.0.io-dout1.dout-5   # VFD preset 1
 # net io-dout1-6 => lcec.0.io-dout1.dout-6   # VFD preset 2
