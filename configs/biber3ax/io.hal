@@ -286,6 +286,6 @@ net dust-hood-up       <= dust-hood.out-not => lcec.0.io-dout3.dout-2 dust-hood.
 # net io-dout4-7 => lcec.0.io-dout4.dout-7   # 7th vertical drill spindle down
 
 # --- EL4032 (2-ch analog output, spindle 0-10V — slave idx 15) ---
-# Spindle speed wiring lives in ethercat.hal (net spindle-voltage-cmd), since
+# Spindle speed wiring lives in ethercat.hal (net spindle-aout-cmd), since
 # it's driven by spindle.0.speed-out-abs rather than a plain machine I/O net.
 # Channel 1 (aout-1-*) is the terminal's second channel, unused here.

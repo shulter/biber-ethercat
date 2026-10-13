@@ -102,16 +102,17 @@ Pin names (`din-N`, `dout-N`) follow the standard lcec Beckhoff terminal driver 
 ## Spindle (Beckhoff EL4032 → VFD)
 
 Max speed 24000 RPM, controlled by a 0-10V analog signal on EL4032 channel 0 (channel 1 unused).
-Wiring is in `ethercat.hal`: `spindle.0.speed-out-abs` -> `spindle-scale` (gain 10V/24000RPM =
-0.00041667) -> `lcec.0.spindle.aout-0-value`. `spindle.0.on` gates `lcec.0.spindle.aout-0-enable`
+Wiring is in `ethercat.hal`: `spindle.0.speed-out-abs` -> `spindle-scale` (gain 1/24000 =
+0.0000416667) -> `lcec.0.spindle.aout-0-value`. `spindle.0.on` gates `lcec.0.spindle.aout-0-enable`
 (the terminal's output stays disabled/0V unless the spindle is actually commanded on).
 `[DISPLAY]` `*_SPINDLE_0_*` settings in `biber3ax.ini` set the speed range (0-24000 RPM) and
 override limits (50-100%).
 
-**Not yet verified on hardware:** `spindle-scale`'s gain assumes `aout-0-value` takes volts directly
-with the terminal's own `aout-0-scale`/`-offset` left at their defaults. Before trusting the VFD sees
-the right speed, command a known RPM and measure the voltage at the EL4032's output terminals; if it's
-off, adjust `spindle-scale.gain` in `ethercat.hal` or set `lcec.0.spindle.aout-0-scale`/`-offset`.
+**`aout-0-value` is a fraction of full scale, not volts:** lcec's aout class turns it into a duty cycle
+(`value / aout-0-scale + offset`, default scale 1), clamped to `aout-0-min-dc`/`max-dc` = −1…+1, where
++1.0 = +10 V. A volts-based gain (10 V / 24000 rpm) made the spindle reach full speed at 2400 rpm
+commanded; the gain is therefore 1/24000. Fine-tune `spindle-scale.gain` if the measured speed at a
+known S-word is still off (e.g. VFD analog-input calibration).
 
 All `scale` instances (spindle and the panel's torque/speed scaling) are loaded in one `loadrt scale` call in
 `ethercat.hal` — the component can only be loaded once per HAL session, so `postgui.hal` only

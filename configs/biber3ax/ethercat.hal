@@ -197,12 +197,11 @@ net z-drv-target-vel cia402.3.drv-target-velocity   => lcec.0.z.target-velocity
 # --- Spindle (Beckhoff EL4032, 0-10V analog out to VFD, 0-24000 RPM) ---
 # EL4032 uses lcec's shared "aout" analog-output class, not a flat ao-N pin —
 # confirmed via `strings lcec.so` on the bench machine (lcec_class_aout.c).
-# The command pin is aout-0-value; aout-0-scale/-offset convert it to raw DAC
-# counts internally but their exact units (volts directly, vs. a normalized
-# +/-1.0 = full-scale fraction) aren't confirmed here — verify with a
-# multimeter on the EL4032's output terminals before trusting the VFD sees
-# the right voltage, and adjust spindle-scale.gain below (or the terminal's
-# own aout-0-scale/-offset pins) to match. aout-0-enable must be true for the
+# The command pin is aout-0-value, a FRACTION of full scale, not volts: the
+# aout class computes a duty cycle (value / aout-0-scale + offset, default
+# scale 1) clamped to aout-0-min-dc/max-dc = -1..+1, and +1.0 = +10 V.
+# Confirmed on the machine: with a volts-based gain the spindle already hit
+# full speed at 2400 rpm commanded (10x too fast). aout-0-enable must be true for the
 # output to drive at all — gated here on spindle.0.on so it's 0V/disabled
 # unless the spindle is actually commanded on.
 # The "scale" RT component can only be loadrt'd once per HAL session, even
@@ -223,11 +222,10 @@ addf x-right-vel-scale    servo-thread
 addf y-vel-scale          servo-thread
 addf z-vel-scale          servo-thread
 
-# 10V / 24000 RPM = 0.00041667 V per RPM — ASSUMES aout-0-value takes volts
-# directly (aout-0-scale/-offset left at their defaults). Verify on hardware.
-setp spindle-scale.gain 0.00041667
+# 24000 rpm = full scale (1.0 = 10 V): gain 1/24000 = 0.0000416667 per rpm.
+setp spindle-scale.gain 0.0000416667
 setp spindle-scale.offset 0.0
 
 net spindle-speed-cmd   => spindle-scale.in
-net spindle-voltage-cmd <= spindle-scale.out => lcec.0.spindle.aout-0-value
+net spindle-aout-cmd    <= spindle-scale.out => lcec.0.spindle.aout-0-value
 net spindle-on          <= spindle.0.on       => lcec.0.spindle.aout-0-enable
