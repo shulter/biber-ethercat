@@ -115,6 +115,18 @@
   <max_>24000</max_>
 </bar>
 
+<hbox>
+<led>
+  <halpin>"spindle-turning-led"</halpin>
+  <size>15</size>
+  <on_color>"green"</on_color>
+  <off_color>"grey"</off_color>
+</led>
+<label>
+  <text>"turning (back EMF)"</text>
+</label>
+</hbox>
+
 </vbox>
 </labelframe>
 

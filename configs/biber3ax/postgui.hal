@@ -94,6 +94,11 @@ net z-rpm-abs        z-vel-abs.out       => pyvcp.z-rpm
 # EL4032 output in ethercat.hal rather than re-sourcing the pin.
 net spindle-speed-cmd => pyvcp.spindle-speed
 
+# Spindle turning LED — measured, from the HSK spindle's back-EMF standstill
+# input (io-din2-4, inverted by the spindle-turning "not" in io.hal), so it
+# also lights while the spindle coasts down after M5.
+net spindle-turning => pyvcp.spindle-turning-led
+
 # --- Dust hood toggle button + "down" LED ---
 # The button clocks the dust-hood flipflop (loaded and wired in io.hal), so
 # each press toggles the hood; works while a program runs, as it's pure HAL.

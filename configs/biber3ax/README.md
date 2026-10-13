@@ -194,7 +194,9 @@ extended to all 4 servos (X left, X right, Y, Z):
   assumed to be in encoder counts/s: RPM = counts/s × 60/131072 (`*-vel-scale.gain` = 0.00045777). Verify
   against the drive parameters.
 - **Spindle** — *commanded* speed bar, 0-24000 RPM (`spindle.0.speed-out-abs`), not measured feedback —
-  there's no spindle encoder in this design, only an open-loop 0-10V drive via the EL4032.
+  there's no spindle encoder in this design, only an open-loop 0-10V drive via the EL4032. Below it a
+  green "turning" LED driven by the HSK spindle's back-EMF standstill input (`io-din2-4`, inverted), so
+  it shows actual rotation, including coast-down after `M5`.
 - **Dust Hood** — up/down toggle button and a "down" LED (see [Dust Hood](#dust-hood)).
 
 The panel's HAL pins (`pyvcp.*`) don't exist until the PyVCP panel has loaded, so their wiring lives in

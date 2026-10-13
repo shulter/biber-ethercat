@@ -115,9 +115,13 @@ net vacuum-pump         <= motion.digital-out-04 => lcec.0.io-dout1.dout-4   # V
 # dout2-7 right) is driven by the inverse of the open request (not
 # components), so exactly one of each pair is energised — both ports are
 # closed from the moment HAL starts.
-loadrt not names=vacuum-left-close,vacuum-right-close
+# ("not" can only be loadrt'd once per HAL session, so the spindle-turning
+# instance for the PyVCP indicator — see the HSK spindle section below — is
+# loaded here too.)
+loadrt not names=vacuum-left-close,vacuum-right-close,spindle-turning
 addf vacuum-left-close  servo-thread
 addf vacuum-right-close servo-thread
+addf spindle-turning    servo-thread
 net vacuum-left-open    <= motion.digital-out-05 => lcec.0.io-dout2.dout-4 vacuum-left-close.in    # vaccuum port left open
 net vacuum-left-closed  <= vacuum-left-close.out => lcec.0.io-dout2.dout-5                         # vaccuum port left close
 net vacuum-right-open   <= motion.digital-out-06 => lcec.0.io-dout2.dout-6 vacuum-right-close.in   # vaccuum port right open
@@ -186,6 +190,11 @@ net drawbar-release-req   <= motion.digital-out-00 => drawbar-release.in-1
 net io-din2-4             => drawbar-release.in-2 motion.digital-in-00
 net spindle-on            => drawbar-release.in-3 motion.digital-in-01
 net drawbar-release-out   <= drawbar-release.out   => lcec.0.io-dout3.dout-1   # HSK Spindle pull draw bar up, release tool
+
+# "Spindle turning" for the PyVCP panel LED (netted to pyvcp in postgui.hal):
+# inverse of the back-EMF "not turning" input din2-4.
+net io-din2-4         => spindle-turning.in
+net spindle-turning   <= spindle-turning.out
 
 # Spindle start interlock: the spindle may only run with the tool clamped.
 #
