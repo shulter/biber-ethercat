@@ -85,6 +85,10 @@ all slaves are in OP, and the master leaves undeclared slaves in PREOP.
     contactor stays open. Planned tool-number mapping for the tool change routine: T1–T100 milling
     spindle, T101–T107 vertical boring spindles 1–7, T201–T204 horizontal boring head (both boring
     heads on the boring aggregate contactor).
+  - **`io-dout1.dout-6`** / **`io-dout1.dout-5`** drive KEB inputs I4 / I1, which select the VFD
+    parameter set: I4 = set 5 (HSK spindle with milling tool, 400 Hz), I1 = set 2 (boring aggregate,
+    50 Hz). With no set input active the KEB stays in its stop set 0. For now I4 follows the HSK
+    contactor (on with `machine-enable`, off 10 s later) and I1 stays off.
 - **EL9110** — E-bus power supply feed terminal with diagnostics, bus position 12. This lcec build
   doesn't know its type, so it's declared as `type="generic"` with its real identity (vid `00000002`,
   pid `23963052`, from `ethercat slaves -p 12 -v`) and its one PDO mapped to
