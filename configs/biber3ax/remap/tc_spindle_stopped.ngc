@@ -1,0 +1,10 @@
+; tc_spindle_stopped — wait up to 10 s for the spindle to stop (back-EMF
+; "not turning", motion.digital-in-00), abort the tool change otherwise.
+
+o<tc_spindle_stopped> sub
+  M66 P0 L3 Q10
+  o100 if [#5399 NE 1]
+    (abort, Tool change: spindle still turning)
+  o100 endif
+o<tc_spindle_stopped> endsub
+M2

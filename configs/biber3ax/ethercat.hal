@@ -4,10 +4,10 @@
 # Requires: lcec, cia402 HAL components
 
 loadrt [KINS]KINEMATICS
-# num_dio=8: motion.digital-out-00..07 / digital-in-00..07 for the remapped
-# M-codes (see [RS274NGC] REMAP in biber3ax.ini and io.hal). The default of 4
-# isn't enough since the vacuum M-codes use out-04..06.
-loadrt [EMCMOT]EMCMOT servo_period_nsec=[EMCMOT]SERVO_PERIOD num_joints=[KINS]JOINTS num_dio=8
+# num_dio=16: motion.digital-out-00..15 / digital-in-00..15 for the remapped
+# M-codes (see [RS274NGC] REMAP in biber3ax.ini and io.hal); the tool change
+# uses out-07..09.
+loadrt [EMCMOT]EMCMOT servo_period_nsec=[EMCMOT]SERVO_PERIOD num_joints=[KINS]JOINTS num_dio=16
 
 loadusr -W lcec_conf ethercat-conf.xml
 loadrt lcec

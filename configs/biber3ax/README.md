@@ -52,7 +52,7 @@ EL9110 is declared generic (vid `00000002`, pid `23963052`) — this lcec doesn'
 - VFD run: `io-dout2.dout-2` CW / `dout-3` CCW, gated by the clamp interlock.
 - Contactors: `io-dout1.dout-3` HSK spindle (on with machine, 10 s off-delay), `dout-2` boring
   aggregate (unused yet). KEB parameter set: `dout-6` = I4 (set 5, HSK), `dout-5` = I1 (set 2, boring, unused).
-- Tool numbers (for the coming tool change): T1–100 HSK, T101–107 vertical boring 1–7, T201–204 horizontal boring.
+- Tool numbers: T1–100 HSK (T1–T20 in the rack), T101–107 vertical boring 1–7, T201–204 horizontal boring.
 
 ## HSK tool release
 
@@ -61,22 +61,30 @@ EL9110 is declared generic (vid `00000002`, pid `23963052`) — this lcec doesn'
 - Spindle start needs tool clamped: `din2-2` TRUE, `din2-3` FALSE, release off. Else
   `spindle.0.inhibit` + spindle amp fault.
 
-## Tool magazine
+## Tool changer (M6)
 
-Linear rack, 20 pockets along Y at the X− end. Machine coordinates (pocket 1 extrapolated, not populated):
+Linear rack, 20 pockets along Y at the X− end. Tool number = pocket number (T1–T20, T0 = unload).
+Pocket positions and approach offsets: `toolchanger.ini` (`#INCLUDE`d into `biber3ax.ini`).
 
-| Pocket | X | Y | Z |
-|--------|---|---|---|
-| 20 | 18.116 | 0.237 | −103.387 |
-| 2 | 14.936 | 1638.770 | −101.891 |
-| 1 | 14.760 | 1729.800 | −101.808 |
-
-Pocket *n* = pocket 20 + (20 − *n*) × (−0.1767, +91.0296, +0.0831). Pocket 1 is 2.2 mm inside Y `MAX_LIMIT`.
+- **Work area:** X ≥ `[AXIS_X]MIN_LIMIT` for jogging and programs (M101). M102 sets
+  `motion.digital-out-08`, which lowers the X limit to `[TOOLCHANGER]X_MIN_LIMIT` (`ini.*` pins,
+  `postgui.hal`). M6 does M102 … M101 itself; any abort restores the work area (`on_abort.ngc`).
+- **Checks:** homed, air pressure (`io-din3.din-0`), tool sensor (`io-din2.din-2`) agrees with the
+  loaded tool. M5 at the start without waiting; the spindle must be stopped at the first pocket +
+  X_OFFSET (waits up to 10 s, else abort).
+- **Deposit:** Z top → pocket + X_OFFSET → Z pocket → G1 into pocket → release + flush air → Z +Z_CHECK →
+  tool must be gone. Else: back down, clamp, move out, machine off (`halui.machine.off`), abort.
+- **Pick:** Z top → X +X_BACKOFF → pocket + X_OFFSET → above pocket → release + flush air → down → clamp
+  (must report clamped, else machine off) → out by X_OFFSET → Z top → X to work area.
+- Preview (`#<_task>` = 0) only sets the tool, no moves.
 
 ## M-codes
 
 | Code | Function |
 |------|----------|
+| M6 | Tool change, see above |
+| M101 / M102 | X soft limits: work area / extended into the tool change area |
+| M210 | Measure loaded tool length on the probe (`[TOOLCHANGER]PROBE_*`), write to tool table |
 | M250 / M251 | Release tool (checks spindle off + not turning) / clamp |
 | M200 / M201 | Dust hood down / up (also panel toggle) |
 | M231 / M230 | Reg pins up / down |

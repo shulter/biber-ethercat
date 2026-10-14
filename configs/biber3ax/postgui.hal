@@ -104,3 +104,14 @@ net spindle-turning => pyvcp.spindle-turning-led
 # each press toggles the hood; works while a program runs, as it's pure HAL.
 net dust-hood-toggle-btn pyvcp.dust-hood-toggle => dust-hood.clk
 net dust-hood-down => pyvcp.dust-hood-down-led
+
+# Tool change area (M102 / M101, remap/m102.ngc / m101.ngc): motion.digital-out-08 switches the
+# X min limit from the work area ([AXIS_X]MIN_LIMIT) to
+# [TOOLCHANGER]X_MIN_LIMIT. Here because the ini.* pins are created by
+# milltask, which starts after the HALFILEs.
+loadrt mux2 names=tc-x-min-limit
+addf tc-x-min-limit servo-thread
+setp tc-x-min-limit.in0 [AXIS_X]MIN_LIMIT
+setp tc-x-min-limit.in1 [TOOLCHANGER]X_MIN_LIMIT
+net tc-area     <= motion.digital-out-08 => tc-x-min-limit.sel
+net x-min-limit <= tc-x-min-limit.out => ini.0.min_limit ini.1.min_limit ini.x.min_limit

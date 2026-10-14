@@ -35,7 +35,7 @@ net io-din2-4 <= lcec.0.io-din2.din-4   # HSK spindle: not turning (back EMF mea
 # net io-din2-7 <= lcec.0.io-din2.din-7   # vacuum sensor, pressure ok
 
 # --- EL1808 #3 (digital inputs, slave idx 7) ---
-# net io-din3-0 <= lcec.0.io-din3.din-0   # Pneumatic air sensor, pressure ok
+net io-din3-0 <= lcec.0.io-din3.din-0   # Pneumatic air sensor, pressure ok (TRUE = ok) — tool change
 # net io-din3-1 <= lcec.0.io-din3.din-1   # Dust hood is at position 1
 # net io-din3-2 <= lcec.0.io-din3.din-2   # Dust hood is at position 2
 # net io-din3-3 <= lcec.0.io-din3.din-3   # TODO: assign
@@ -109,7 +109,7 @@ net vacuum-pump         <= motion.digital-out-04 => lcec.0.io-dout1.dout-4   # V
 # while it ramps the spindle down after machine off.
 # net vfd-set-drill => lcec.0.io-dout1.dout-5   # KEB I1: parameter set 2, boring aggregate
 net spindle-contactor => lcec.0.io-dout1.dout-6   # KEB I4: parameter set 5, HSK milling spindle
-# net io-dout1-7 => lcec.0.io-dout1.dout-7   # HSK spindle flush air
+net tc-flush-air <= motion.digital-out-07 => lcec.0.io-dout1.dout-7   # HSK spindle flush air — tool change
 
 # --- EL2808 #2 (digital outputs, slave idx 10) ---
 # net io-dout2-0 => lcec.0.io-dout2.dout-0   # oil dispenser X axis rack and pinion
@@ -137,7 +137,7 @@ net vacuum-right-open   <= motion.digital-out-06 => lcec.0.io-dout2.dout-6 vacuu
 net vacuum-right-closed <= vacuum-right-close.out => lcec.0.io-dout2.dout-7                        # vaccuum port right close
 
 # --- EL1018 (fast digital inputs, 10us, slave idx 11) ---
-# net io-din5-0 <= lcec.0.io-din5.din-0   # Tool height probe input
+net tool-probe <= lcec.0.io-din5.din-0 => motion.probe-input   # Tool height probe (M210), TRUE = triggered (NO; use din-0-not if NC)
 
 # Limit switches, din-1..din-4. Each axis homes onto one of its limit
 # switches, which doubles as the home switch (HOME_IGNORE_LIMITS = YES in the
@@ -289,3 +289,15 @@ net dust-hood-up       <= dust-hood.out-not => lcec.0.io-dout3.dout-2 dust-hood.
 # Spindle speed wiring lives in ethercat.hal (net spindle-aout-cmd), since
 # it's driven by spindle.0.speed-out-abs rather than a plain machine I/O net.
 # Channel 1 (aout-1-*) is the terminal's second channel, unused here.
+
+# --- Tool changer (M6, remap/toolchange.ngc) ---
+# Inputs for M66, machine-off request for faults the operator must clear.
+# out-08 (tool change area / X limit) is wired in postgui.hal.
+net io-din3-0        => motion.digital-in-02   # air pressure ok
+net io-din2-2        => motion.digital-in-03   # tool clamped
+net io-din2-3        => motion.digital-in-04   # tool released
+net all-homed        <= motion.is-all-homed => motion.digital-in-05
+net tc-machine-off   <= motion.digital-out-09 => halui.machine.off
+# T / built-in M6 handshakes: no hardware, M6 is remapped and sets the tool with M61
+net tool-prepare-loop  iocontrol.0.tool-prepare => iocontrol.0.tool-prepared
+net tool-change-loop   iocontrol.0.tool-change  => iocontrol.0.tool-changed

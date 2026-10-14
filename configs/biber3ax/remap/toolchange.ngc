@@ -1,0 +1,155 @@
+; M6 — tool change with the linear rack (positions in toolchanger.ini).
+; Remapped in biber3ax.ini: REMAP = M6 modalgroup=6 ngc=toolchange
+; Tool number = pocket number: T1..T20, T0 = unload only.
+;
+; HAL (io.hal, postgui.hal):
+;   in-00 spindle not turning   in-02 air pressure ok   in-03 tool clamped
+;   in-04 tool released         in-05 all joints homed
+;   out-00 drawbar release      out-07 flush air
+;   out-08 tool change area (m101.ngc / m102.ngc, cleared again by on_abort.ngc)
+;   out-09 machine off (halui.machine.off)
+; M66 ... L0 also serves as a queue buster: everything before it has executed.
+
+o<toolchange> sub
+
+  ; preview / verify: only track the tool
+  o10 if [#<_task> EQ 0]
+    M61 Q#<_selected_tool>
+    o<toolchange> return
+  o10 endif
+
+  o20 if [#<_selected_tool> EQ #<_current_tool>]
+    o<toolchange> return
+  o20 endif
+
+  M73                 ; restore modal state on return
+  G21 G90 G94
+
+  #<old>  = #<_current_tool>
+  #<new>  = #<_selected_tool>
+  #<off>  = #<_ini[TOOLCHANGER]X_OFFSET>
+  #<zchk> = #<_ini[TOOLCHANGER]Z_CHECK>
+  #<ztop> = #<_ini[AXIS_Z]MAX_LIMIT>
+  F#<_ini[TOOLCHANGER]FEED>
+
+  ; --- checks ---
+  o30 if [#<new> LT 0 OR #<new> GT 20]
+    (abort, Tool change: selected tool is not in the rack - use T1..T20, T0 to unload)
+  o30 endif
+  o31 if [#<old> GT 20]
+    (abort, Tool change: loaded tool is not a rack tool - remove it by hand, then M61 Q0)
+  o31 endif
+
+  M65 P9              ; reset the machine-off request
+
+  M66 P5 L0
+  o32 if [#5399 NE 1]
+    (abort, Tool change: machine not homed)
+  o32 endif
+
+  M66 P2 L0
+  o33 if [#5399 NE 1]
+    (abort, Tool change: air pressure too low)
+  o33 endif
+
+  M5                  ; stop the spindle, checked at the first pocket + X_OFFSET
+
+  M66 P3 L0
+  #<present> = #5399
+  o35 if [#<old> EQ 0 AND #<present> EQ 1]
+    (abort, Tool change: spindle holds a tool but none is loaded - remove it or set it with M61)
+  o35 endif
+  o36 if [#<old> GT 0 AND #<present> NE 1]
+    (debug, Tool change: T#<old> is loaded but the spindle is empty - skipping deposit)
+    #<old> = 0
+  o36 endif
+
+  ; --- enter the tool change area ---
+  G53 G0 Z#<ztop>
+  o<m102> call
+
+  ; --- deposit the current tool into its pocket ---
+  o100 if [#<old> GT 0]
+    o<tc_pocket> call [#<old>]
+    #<px> = #<_tc_x>
+    #<py> = #<_tc_y>
+    #<pz> = #<_tc_z>
+
+    G53 G0 X[#<px> + #<off>] Y#<py>
+    o<tc_spindle_stopped> call
+    G53 G0 Z#<pz>
+    G53 G1 X#<px>
+    M64 P0            ; release
+    M64 P7            ; flush air
+    M66 P4 L3 Q3      ; wait for drawbar released
+    #<ok> = [#5399 EQ 1]
+    o110 if [#<ok>]
+      G53 G1 Z[#<pz> + #<zchk>]
+      G4 P0.2
+      M66 P3 L0
+      #<ok> = [#5399 NE 1]   ; tool must be gone
+    o110 endif
+
+    o120 if [#<ok> EQ 0]
+      ; tool stuck: put it back, clamp, move out, machine off
+      M65 P7
+      G53 G1 Z#<pz>
+      M65 P0
+      M66 P3 L3 Q3
+      G53 G1 X[#<px> + #<off>]
+      (msg, Tool change: tool stuck in spindle - machine off, operator must intervene)
+      M64 P9
+      M66 P0 L0
+      (abort, Tool change: tool stuck in spindle - machine off, operator must intervene)
+    o120 endif
+
+    G53 G0 Z#<ztop>
+    M65 P7
+    M65 P0            ; clamp (empty)
+    G53 G0 X[#<px> + #<_ini[TOOLCHANGER]X_BACKOFF>]
+  o100 endif
+
+  ; --- pick the new tool ---
+  o200 if [#<new> GT 0]
+    o<tc_pocket> call [#<new>]
+    #<px> = #<_tc_x>
+    #<py> = #<_tc_y>
+    #<pz> = #<_tc_z>
+
+    G53 G0 X[#<px> + #<off>] Y#<py>
+    o<tc_spindle_stopped> call
+    G53 G0 X#<px>
+    M64 P0            ; release
+    M64 P7            ; flush air
+    M66 P4 L3 Q3
+    o210 if [#5399 NE 1]
+      M65 P7
+      M65 P0
+      (abort, Tool change: drawbar did not release)
+    o210 endif
+
+    G53 G0 Z[#<pz> + #<zchk>]
+    G53 G1 Z#<pz>
+    M65 P0            ; clamp
+    M66 P3 L3 Q3      ; wait for tool clamped
+    #<ok> = [#5399 EQ 1]
+    M65 P7
+    o220 if [#<ok> EQ 0]
+      (msg, Tool change: new tool not clamped - machine off, operator must intervene)
+      M64 P9
+      M66 P0 L0
+      (abort, Tool change: new tool not clamped - machine off, operator must intervene)
+    o220 endif
+
+    G53 G1 X[#<px> + #<off>]
+    G53 G0 Z#<ztop>
+    G53 G0 X#<_ini[AXIS_X]MIN_LIMIT>
+  o200 endif
+
+  ; --- back to the work area ---
+  o<m101> call
+
+  M61 Q#<new>
+
+o<toolchange> endsub
+M2

@@ -1,0 +1,89 @@
+; tc_pocket — look up pocket #1 in [TOOLCHANGER] (toolchanger.ini).
+; Returns #<_tc_x>, #<_tc_y>, #<_tc_z> (machine coordinates).
+
+o<tc_pocket> sub
+  o100 if [#1 EQ 1]
+    #<_tc_x> = #<_ini[TOOLCHANGER]POCKET_1_X>
+    #<_tc_y> = #<_ini[TOOLCHANGER]POCKET_1_Y>
+    #<_tc_z> = #<_ini[TOOLCHANGER]POCKET_1_Z>
+  o100 elseif [#1 EQ 2]
+    #<_tc_x> = #<_ini[TOOLCHANGER]POCKET_2_X>
+    #<_tc_y> = #<_ini[TOOLCHANGER]POCKET_2_Y>
+    #<_tc_z> = #<_ini[TOOLCHANGER]POCKET_2_Z>
+  o100 elseif [#1 EQ 3]
+    #<_tc_x> = #<_ini[TOOLCHANGER]POCKET_3_X>
+    #<_tc_y> = #<_ini[TOOLCHANGER]POCKET_3_Y>
+    #<_tc_z> = #<_ini[TOOLCHANGER]POCKET_3_Z>
+  o100 elseif [#1 EQ 4]
+    #<_tc_x> = #<_ini[TOOLCHANGER]POCKET_4_X>
+    #<_tc_y> = #<_ini[TOOLCHANGER]POCKET_4_Y>
+    #<_tc_z> = #<_ini[TOOLCHANGER]POCKET_4_Z>
+  o100 elseif [#1 EQ 5]
+    #<_tc_x> = #<_ini[TOOLCHANGER]POCKET_5_X>
+    #<_tc_y> = #<_ini[TOOLCHANGER]POCKET_5_Y>
+    #<_tc_z> = #<_ini[TOOLCHANGER]POCKET_5_Z>
+  o100 elseif [#1 EQ 6]
+    #<_tc_x> = #<_ini[TOOLCHANGER]POCKET_6_X>
+    #<_tc_y> = #<_ini[TOOLCHANGER]POCKET_6_Y>
+    #<_tc_z> = #<_ini[TOOLCHANGER]POCKET_6_Z>
+  o100 elseif [#1 EQ 7]
+    #<_tc_x> = #<_ini[TOOLCHANGER]POCKET_7_X>
+    #<_tc_y> = #<_ini[TOOLCHANGER]POCKET_7_Y>
+    #<_tc_z> = #<_ini[TOOLCHANGER]POCKET_7_Z>
+  o100 elseif [#1 EQ 8]
+    #<_tc_x> = #<_ini[TOOLCHANGER]POCKET_8_X>
+    #<_tc_y> = #<_ini[TOOLCHANGER]POCKET_8_Y>
+    #<_tc_z> = #<_ini[TOOLCHANGER]POCKET_8_Z>
+  o100 elseif [#1 EQ 9]
+    #<_tc_x> = #<_ini[TOOLCHANGER]POCKET_9_X>
+    #<_tc_y> = #<_ini[TOOLCHANGER]POCKET_9_Y>
+    #<_tc_z> = #<_ini[TOOLCHANGER]POCKET_9_Z>
+  o100 elseif [#1 EQ 10]
+    #<_tc_x> = #<_ini[TOOLCHANGER]POCKET_10_X>
+    #<_tc_y> = #<_ini[TOOLCHANGER]POCKET_10_Y>
+    #<_tc_z> = #<_ini[TOOLCHANGER]POCKET_10_Z>
+  o100 elseif [#1 EQ 11]
+    #<_tc_x> = #<_ini[TOOLCHANGER]POCKET_11_X>
+    #<_tc_y> = #<_ini[TOOLCHANGER]POCKET_11_Y>
+    #<_tc_z> = #<_ini[TOOLCHANGER]POCKET_11_Z>
+  o100 elseif [#1 EQ 12]
+    #<_tc_x> = #<_ini[TOOLCHANGER]POCKET_12_X>
+    #<_tc_y> = #<_ini[TOOLCHANGER]POCKET_12_Y>
+    #<_tc_z> = #<_ini[TOOLCHANGER]POCKET_12_Z>
+  o100 elseif [#1 EQ 13]
+    #<_tc_x> = #<_ini[TOOLCHANGER]POCKET_13_X>
+    #<_tc_y> = #<_ini[TOOLCHANGER]POCKET_13_Y>
+    #<_tc_z> = #<_ini[TOOLCHANGER]POCKET_13_Z>
+  o100 elseif [#1 EQ 14]
+    #<_tc_x> = #<_ini[TOOLCHANGER]POCKET_14_X>
+    #<_tc_y> = #<_ini[TOOLCHANGER]POCKET_14_Y>
+    #<_tc_z> = #<_ini[TOOLCHANGER]POCKET_14_Z>
+  o100 elseif [#1 EQ 15]
+    #<_tc_x> = #<_ini[TOOLCHANGER]POCKET_15_X>
+    #<_tc_y> = #<_ini[TOOLCHANGER]POCKET_15_Y>
+    #<_tc_z> = #<_ini[TOOLCHANGER]POCKET_15_Z>
+  o100 elseif [#1 EQ 16]
+    #<_tc_x> = #<_ini[TOOLCHANGER]POCKET_16_X>
+    #<_tc_y> = #<_ini[TOOLCHANGER]POCKET_16_Y>
+    #<_tc_z> = #<_ini[TOOLCHANGER]POCKET_16_Z>
+  o100 elseif [#1 EQ 17]
+    #<_tc_x> = #<_ini[TOOLCHANGER]POCKET_17_X>
+    #<_tc_y> = #<_ini[TOOLCHANGER]POCKET_17_Y>
+    #<_tc_z> = #<_ini[TOOLCHANGER]POCKET_17_Z>
+  o100 elseif [#1 EQ 18]
+    #<_tc_x> = #<_ini[TOOLCHANGER]POCKET_18_X>
+    #<_tc_y> = #<_ini[TOOLCHANGER]POCKET_18_Y>
+    #<_tc_z> = #<_ini[TOOLCHANGER]POCKET_18_Z>
+  o100 elseif [#1 EQ 19]
+    #<_tc_x> = #<_ini[TOOLCHANGER]POCKET_19_X>
+    #<_tc_y> = #<_ini[TOOLCHANGER]POCKET_19_Y>
+    #<_tc_z> = #<_ini[TOOLCHANGER]POCKET_19_Z>
+  o100 elseif [#1 EQ 20]
+    #<_tc_x> = #<_ini[TOOLCHANGER]POCKET_20_X>
+    #<_tc_y> = #<_ini[TOOLCHANGER]POCKET_20_Y>
+    #<_tc_z> = #<_ini[TOOLCHANGER]POCKET_20_Z>
+  o100 else
+    (abort, Tool change: tool has no pocket in toolchanger.ini)
+  o100 endif
+o<tc_pocket> endsub
+M2

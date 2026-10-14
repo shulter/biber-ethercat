@@ -1,0 +1,77 @@
+; M210 — measure the loaded tool's length on the tool height probe.
+; Remapped in biber3ax.ini: REMAP = M210 modalgroup=10 ngc=m210
+; Positions and feed: [TOOLCHANGER]PROBE_* (toolchanger.ini), machine coordinates.
+; Probe: lcec.0.io-din5.din-0 -> motion.probe-input (io.hal). Flush air: out-07.
+; Tool length = trigger Z - PROBE_Z_REF, written with G10 L1 and applied with
+; G43. Modal state is saved with M70 and restored with M72 before the G43
+; (M73 would undo the G43 on return).
+; G38 has no G53, so the probe target is shifted into the current coordinate
+; system by #<dz> (all Z offsets, incl. tool length).
+
+o<m210> sub
+
+  ; preview / verify: nothing to do
+  o10 if [#<_task> EQ 0]
+    o<m210> return
+  o10 endif
+
+  M70                 ; save modal state
+  G21 G90 G94 G40
+
+  #<tool> = #<_current_tool>
+  #<ztop> = #<_ini[AXIS_Z]MAX_LIMIT>
+  #<xclr> = #<_ini[TOOLCHANGER]PROBE_X_CLEAR>
+  #<zmin> = #<_ini[TOOLCHANGER]PROBE_Z_MIN>
+
+  ; --- checks ---
+  o20 if [#<tool> LE 0]
+    (abort, M210: no tool loaded)
+  o20 endif
+
+  M66 P5 L0
+  o30 if [#5399 NE 1]
+    (abort, M210: machine not homed)
+  o30 endif
+
+  M5
+  M66 P0 L3 Q30
+  o40 if [#5399 NE 1]
+    (abort, M210: spindle still turning)
+  o40 endif
+
+  ; --- to the probe ---
+  G53 G0 Z#<ztop>
+  o50 if [#<_abs_x> LT #<xclr>]
+    G53 G0 X#<xclr>
+  o50 endif
+  G53 G0 X#<_ini[TOOLCHANGER]PROBE_X> Y#<_ini[TOOLCHANGER]PROBE_Y>
+  G53 G0 Z#<_ini[TOOLCHANGER]PROBE_Z_START>
+
+  ; --- probe down with flush air ---
+  M64 P7
+  #<dz> = [#<_z> - #<_abs_z>]
+  F#<_ini[TOOLCHANGER]PROBE_FEED>
+  G38.3 Z[#<zmin> + #<dz>]
+  #<hit> = #5070
+  #<ztrig> = [#5063 - #<dz>]
+
+  o60 if [#<hit> NE 1]
+    M65 P7
+    G53 G0 Z#<ztop>
+    (abort, M210: probe not triggered - tool missing or broken)
+  o60 endif
+
+  #<len> = [#<ztrig> - #<_ini[TOOLCHANGER]PROBE_Z_REF>]
+  G10 L1 P#<tool> Z#<len>
+  (debug, M210: T#<tool> length #<len>)
+
+  ; --- back out ---
+  M65 P7
+  G53 G0 Z#<ztop>
+  G53 G0 X#<xclr>
+
+  M72                 ; restore modal state
+  G43
+
+o<m210> endsub
+M2
