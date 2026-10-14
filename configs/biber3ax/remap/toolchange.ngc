@@ -1,6 +1,10 @@
 ; M6 — tool change with the linear rack (positions in toolchanger.ini).
 ; Remapped in biber3ax.ini: REMAP = M6 modalgroup=6 ngc=toolchange
 ; Tool number = pocket number: T1..T20, T0 = unload only.
+; Boring tools T101..T107 (vertical spindles 1-7), T201..T204 (horizontal,
+; 201/202 X aggregate, 203/204 Y aggregate): the HSK spindle gets the dust seal
+; dummy T20, the VFD switches to the boring motor and the spindle is lowered.
+; Their X/Y/Z offsets to the HSK spindle are in tool.tbl (G43).
 ;
 ; HAL (io.hal, postgui.hal):
 ;   in-00 spindle not turning   in-02 air pressure ok   in-03 tool clamped
@@ -8,6 +12,8 @@
 ;   out-00 drawbar release      out-07 flush air
 ;   out-08 tool change area (m101.ngc / m102.ngc, cleared again by on_abort.ngc)
 ;   out-09 machine off (halui.machine.off)
+;   out-10 boring motor (contactor + KEB set 2 instead of HSK + set 5)
+;   out-11..19 boring spindles down (tc_aggregate_down.ngc), in-06/07 X/Y horizontal up
 ; M66 ... L0 also serves as a queue buster: everything before it has executed.
 
 o<toolchange> sub
@@ -33,12 +39,23 @@ o<toolchange> sub
   F#<_ini[TOOLCHANGER]FEED>
 
   ; --- checks ---
-  o30 if [#<new> LT 0 OR #<new> GT 20]
-    (abort, Tool change: selected tool is not in the rack - use T1..T20, T0 to unload)
+  #<new_bore> = [[#<new> GE 101 AND #<new> LE 107] OR [#<new> GE 201 AND #<new> LE 204]]
+  #<old_bore> = [[#<old> GE 101 AND #<old> LE 107] OR [#<old> GE 201 AND #<old> LE 204]]
+  o30 if [[#<new> LT 0 OR #<new> GT 20] AND #<new_bore> EQ 0]
+    (abort, Tool change: unknown tool - use T1..T20, T101..T107, T201..T204, T0 to unload)
   o30 endif
-  o31 if [#<old> GT 20]
+  o31 if [#<old> GT 20 AND #<old_bore> EQ 0]
     (abort, Tool change: loaded tool is not a rack tool - remove it by hand, then M61 Q0)
   o31 endif
+
+  ; HSK spindle content: boring tools run with the dummy T20 in it
+  o37 if [#<old_bore>]
+    #<old> = 20
+  o37 endif
+  #<hsk> = #<new>
+  o38 if [#<new_bore>]
+    #<hsk> = 20
+  o38 endif
 
   M65 P9              ; reset the machine-off request
 
@@ -53,6 +70,7 @@ o<toolchange> sub
   o33 endif
 
   M5                  ; stop the spindle, checked at the first pocket + X_OFFSET
+  o<tc_aggregate_up> call [#<old_bore>]
 
   M66 P3 L0
   #<present> = #5399
@@ -64,90 +82,107 @@ o<toolchange> sub
     #<old> = 0
   o36 endif
 
-  ; --- enter the tool change area ---
   G53 G0 Z#<ztop>
-  o<m102> call
 
-  ; --- deposit the current tool into its pocket ---
-  o100 if [#<old> GT 0]
-    o<tc_pocket> call [#<old>]
-    #<px> = #<_tc_x>
-    #<py> = #<_tc_y>
-    #<pz> = #<_tc_z>
+  ; --- HSK change, skipped if the HSK tool stays (dummy T20 between boring tools) ---
+  o40 if [#<old> NE #<hsk>]
+    ; --- enter the tool change area ---
+    o<m102> call
 
-    G53 G0 X[#<px> + #<off>] Y#<py>
-    o<tc_spindle_stopped> call
-    G53 G0 Z#<pz>
-    G53 G1 X#<px>
-    M64 P0            ; release
-    M64 P7            ; flush air
-    M66 P4 L3 Q3      ; wait for drawbar released
-    #<ok> = [#5399 EQ 1]
-    o110 if [#<ok>]
-      G53 G1 Z[#<pz> + #<zchk>]
-      G4 P0.2
-      M66 P3 L0
-      #<ok> = [#5399 NE 1]   ; tool must be gone
-    o110 endif
+    ; --- deposit the current tool into its pocket ---
+    o100 if [#<old> GT 0]
+      o<tc_pocket> call [#<old>]
+      #<px> = #<_tc_x>
+      #<py> = #<_tc_y>
+      #<pz> = #<_tc_z>
 
-    o120 if [#<ok> EQ 0]
-      ; tool stuck: put it back, clamp, move out, machine off
+      G53 G0 X[#<px> + #<off>] Y#<py>
+      o<tc_spindle_stopped> call
+      G53 G0 Z#<pz>
+      G53 G1 X#<px>
+      M64 P0            ; release
+      M64 P7            ; flush air
+      M66 P4 L3 Q3      ; wait for drawbar released
+      #<ok> = [#5399 EQ 1]
+      o110 if [#<ok>]
+        G53 G1 Z[#<pz> + #<zchk>]
+        G4 P0.2
+        M66 P3 L0
+        #<ok> = [#5399 NE 1]   ; tool must be gone
+      o110 endif
+
+      o120 if [#<ok> EQ 0]
+        ; tool stuck: put it back, clamp, move out, machine off
+        M65 P7
+        G53 G1 Z#<pz>
+        M65 P0
+        M66 P3 L3 Q3
+        G53 G1 X[#<px> + #<off>]
+        (msg, Tool change: tool stuck in spindle - machine off, operator must intervene)
+        M64 P9
+        M66 P0 L0
+        (abort, Tool change: tool stuck in spindle - machine off, operator must intervene)
+      o120 endif
+
+      G53 G0 Z#<ztop>
       M65 P7
+      M65 P0            ; clamp (empty)
+      G53 G0 X[#<px> + #<_ini[TOOLCHANGER]X_BACKOFF>]
+    o100 endif
+
+    ; --- pick the new tool ---
+    o200 if [#<hsk> GT 0]
+      o<tc_pocket> call [#<hsk>]
+      #<px> = #<_tc_x>
+      #<py> = #<_tc_y>
+      #<pz> = #<_tc_z>
+
+      G53 G0 X[#<px> + #<off>] Y#<py>
+      o<tc_spindle_stopped> call
+      G53 G0 X#<px>
+      M64 P0            ; release
+      M64 P7            ; flush air
+      M66 P4 L3 Q3
+      o210 if [#5399 NE 1]
+        M65 P7
+        M65 P0
+        (abort, Tool change: drawbar did not release)
+      o210 endif
+
+      G53 G0 Z[#<pz> + #<zchk>]
       G53 G1 Z#<pz>
-      M65 P0
-      M66 P3 L3 Q3
-      G53 G1 X[#<px> + #<off>]
-      (msg, Tool change: tool stuck in spindle - machine off, operator must intervene)
-      M64 P9
-      M66 P0 L0
-      (abort, Tool change: tool stuck in spindle - machine off, operator must intervene)
-    o120 endif
-
-    G53 G0 Z#<ztop>
-    M65 P7
-    M65 P0            ; clamp (empty)
-    G53 G0 X[#<px> + #<_ini[TOOLCHANGER]X_BACKOFF>]
-  o100 endif
-
-  ; --- pick the new tool ---
-  o200 if [#<new> GT 0]
-    o<tc_pocket> call [#<new>]
-    #<px> = #<_tc_x>
-    #<py> = #<_tc_y>
-    #<pz> = #<_tc_z>
-
-    G53 G0 X[#<px> + #<off>] Y#<py>
-    o<tc_spindle_stopped> call
-    G53 G0 X#<px>
-    M64 P0            ; release
-    M64 P7            ; flush air
-    M66 P4 L3 Q3
-    o210 if [#5399 NE 1]
+      M65 P0            ; clamp
+      M66 P3 L3 Q3      ; wait for tool clamped
+      #<ok> = [#5399 EQ 1]
       M65 P7
-      M65 P0
-      (abort, Tool change: drawbar did not release)
-    o210 endif
+      o220 if [#<ok> EQ 0]
+        (msg, Tool change: new tool not clamped - machine off, operator must intervene)
+        M64 P9
+        M66 P0 L0
+        (abort, Tool change: new tool not clamped - machine off, operator must intervene)
+      o220 endif
 
-    G53 G0 Z[#<pz> + #<zchk>]
-    G53 G1 Z#<pz>
-    M65 P0            ; clamp
-    M66 P3 L3 Q3      ; wait for tool clamped
-    #<ok> = [#5399 EQ 1]
-    M65 P7
-    o220 if [#<ok> EQ 0]
-      (msg, Tool change: new tool not clamped - machine off, operator must intervene)
-      M64 P9
-      M66 P0 L0
-      (abort, Tool change: new tool not clamped - machine off, operator must intervene)
-    o220 endif
+      G53 G1 X[#<px> + #<off>]
+      G53 G0 Z#<ztop>
+      G53 G0 X#<_ini[AXIS_X]MIN_LIMIT>
+    o200 endif
 
-    G53 G1 X[#<px> + #<off>]
-    G53 G0 Z#<ztop>
-    G53 G0 X#<_ini[AXIS_X]MIN_LIMIT>
-  o200 endif
+    ; --- back to the work area ---
+    o<m101> call
 
-  ; --- back to the work area ---
-  o<m101> call
+  o40 endif
+
+  ; --- motor: KEB set + contactor, only with the spindle stopped ---
+  o<tc_spindle_stopped> call
+  o300 if [#<new_bore>]
+    M64 P10
+  o300 else
+    M65 P10
+  o300 endif
+  G4 P0.5             ; contactors switched before anything can start the motor
+  o310 if [#<new_bore>]
+    o<tc_aggregate_down> call [#<new>]
+  o310 endif
 
   M61 Q#<new>
 

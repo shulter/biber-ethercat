@@ -27,6 +27,9 @@ o<m210> sub
   o20 if [#<tool> LE 0]
     (abort, M210: no tool loaded)
   o20 endif
+  o21 if [#<tool> GT 100]
+    (abort, M210: boring tool loaded - only HSK tools can be measured)
+  o21 endif
 
   M66 P5 L0
   o30 if [#5399 NE 1]

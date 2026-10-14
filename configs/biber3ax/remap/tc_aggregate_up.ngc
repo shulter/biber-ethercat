@@ -1,0 +1,27 @@
+; tc_aggregate_up — raise all boring spindles (motion.digital-out-11..19).
+; #1 = 1 if a boring tool was active: wait for the horizontal aggregates' up
+; sensors (in-06 X, in-07 Y) and give the vertical spindles (no sensors) time.
+
+o<tc_aggregate_up> sub
+  M65 P11
+  M65 P12
+  M65 P13
+  M65 P14
+  M65 P15
+  M65 P16
+  M65 P17
+  M65 P18
+  M65 P19
+  o100 if [#1]
+    G4 P0.5
+    M66 P6 L3 Q5
+    o110 if [#5399 NE 1]
+      (abort, Tool change: X horizontal boring aggregate not up)
+    o110 endif
+    M66 P7 L3 Q5
+    o120 if [#5399 NE 1]
+      (abort, Tool change: Y horizontal boring aggregate not up)
+    o120 endif
+  o100 endif
+o<tc_aggregate_up> endsub
+M2

@@ -30,8 +30,8 @@ net io-din1-0 <= lcec.0.io-din1.din-0   # pendant button for main spindle tool r
 net io-din2-2 <= lcec.0.io-din2.din-2   # HSK main spindle: tool clamped / drawbar up (TRUE = clamped) — see spindle interlock below
 net io-din2-3 <= lcec.0.io-din2.din-3   # HSK main spindle: tool released / drawbar down (TRUE = released) — see spindle interlock below
 net io-din2-4 <= lcec.0.io-din2.din-4   # HSK spindle: not turning (back EMF measurement, TRUE = not turning) — see drawbar-release below
-# net io-din2-5 <= lcec.0.io-din2.din-5   # X horizontal drill aggregate is up
-# net io-din2-6 <= lcec.0.io-din2.din-6   # Y horizontal drill aggregate is up
+net io-din2-5 <= lcec.0.io-din2.din-5   # X horizontal drill aggregate is up (TRUE = up) — tool change
+net io-din2-6 <= lcec.0.io-din2.din-6   # Y horizontal drill aggregate is up (TRUE = up) — tool change
 # net io-din2-7 <= lcec.0.io-din2.din-7   # vacuum sensor, pressure ok
 
 # --- EL1808 #3 (digital inputs, slave idx 7) ---
@@ -76,13 +76,15 @@ net z-brake-release <= z-brake-delay.out => lcec.0.io-dout1.dout-1 # Z brake rel
 
 # dout-2 / dout-3: VFD output contactors. The single KEB VFD feeds either the
 # boring aggregate motor (dout-2) or the HSK milling spindle (dout-3) through
-# its own contactor. Tool numbers select the motor (to be implemented with
-# the tool change routine):
+# its own contactor. M6 selects the motor on motion.digital-out-10 (boring),
+# only while the spindle is stopped:
 #   T1..T100   HSK milling spindle            -> dout-3
 #   T101..T107 vertical boring spindles 1-7   -> dout-2
 #   T201..T204 horizontal boring head         -> dout-2
-# For now the milling spindle contactor is closed whenever the machine is on
-# (machine-enable), and the boring aggregate contactor stays open.
+# The selected contactor is closed whenever the machine is on (machine-enable).
+# lut5 (loaded in ethercat.hal), in-0 = spindle-contactor, in-1 = boring:
+#   hsk-contactor-gate    in-0 AND NOT in-1 -> index 1 -> 0x2
+#   boring-contactor-gate in-0 AND in-1     -> index 3 -> 0x8
 # The contactor opens only 10 s after machine-enable drops (machine off, F2 or
 # e-stop): machine off stops the spindle (spindle.0.forward/reverse drop — verify
 # with halcmd when commissioning), and the KEB needs
@@ -94,9 +96,15 @@ net z-brake-release <= z-brake-delay.out => lcec.0.io-dout1.dout-1 # Z brake rel
 addf spindle-contactor-delay servo-thread
 setp spindle-contactor-delay.on-delay  0.0
 setp spindle-contactor-delay.off-delay 10.0
-# net io-dout1-2 => lcec.0.io-dout1.dout-2   # Drill Aggregate Enable Contactor
+addf hsk-contactor-gate    servo-thread
+addf boring-contactor-gate servo-thread
+setp hsk-contactor-gate.function    0x2
+setp boring-contactor-gate.function 0x8
 net machine-enable => spindle-contactor-delay.in
-net spindle-contactor <= spindle-contactor-delay.out => lcec.0.io-dout1.dout-3   # HSK Milling Spindle Enable Contactor
+net spindle-contactor <= spindle-contactor-delay.out => hsk-contactor-gate.in-0 boring-contactor-gate.in-0
+net boring-select     <= motion.digital-out-10       => hsk-contactor-gate.in-1 boring-contactor-gate.in-1
+net boring-contactor  <= boring-contactor-gate.out => lcec.0.io-dout1.dout-2   # Drill Aggregate Enable Contactor
+net hsk-contactor     <= hsk-contactor-gate.out    => lcec.0.io-dout1.dout-3   # HSK Milling Spindle Enable Contactor
 net vacuum-pump         <= motion.digital-out-04 => lcec.0.io-dout1.dout-4   # Vacuum pump Enable Contactor — M240-M243, see io-dout2 below
 # dout-5 / dout-6: KEB parameter set select (KEB inputs I1 / I4, per
 # D/KEB/F5_SKF9KW.dw5 in the original TwinCAT backup). One must be on for the
@@ -104,11 +112,10 @@ net vacuum-pump         <= motion.digital-out-04 => lcec.0.io-dout1.dout-4   # V
 # misuse/blocked motor) and the spindle won't run.
 #   I1 (dout-5) -> set 2: boring aggregate motor, 50 Hz
 #   I4 (dout-6) -> set 5: HSK SKF spindle with milling tool, 400 Hz
-# Like the contactors, for now only the HSK set is used: I4 follows the HSK
-# contactor (on with machine-enable, off 10 s later) so the KEB keeps set 5
-# while it ramps the spindle down after machine off.
-# net vfd-set-drill => lcec.0.io-dout1.dout-5   # KEB I1: parameter set 2, boring aggregate
-net spindle-contactor => lcec.0.io-dout1.dout-6   # KEB I4: parameter set 5, HSK milling spindle
+# Each set input follows its motor's contactor (on with machine-enable, off
+# 10 s later) so the KEB keeps the set while it ramps the motor down.
+net boring-contactor => lcec.0.io-dout1.dout-5   # KEB I1: parameter set 2, boring aggregate
+net hsk-contactor    => lcec.0.io-dout1.dout-6   # KEB I4: parameter set 5, HSK milling spindle
 net tc-flush-air <= motion.digital-out-07 => lcec.0.io-dout1.dout-7   # HSK spindle flush air — tool change
 
 # --- EL2808 #2 (digital outputs, slave idx 10) ---
@@ -272,18 +279,24 @@ net dust-hood-down     <= dust-hood.out     => lcec.0.io-dout3.dout-3   # Dust h
 net dust-hood-up       <= dust-hood.out-not => lcec.0.io-dout3.dout-2 dust-hood.data   # Dust hood up
 # net io-dout3-4 => lcec.0.io-dout3.dout-4   # Auflage rechts A1
 # net io-dout3-5 => lcec.0.io-dout3.dout-5   # Auflage rechts A2
-# net io-dout3-6 => lcec.0.io-dout3.dout-6   # X horizontal drill aggregate down
-# net io-dout3-7 => lcec.0.io-dout3.dout-7   # horizontal drill aggregates all up
+# dout-6 / dout-7 and EL2808 #4: boring spindles, lowered by M6
+# (remap/tc_aggregate_down.ngc) and raised again at the next M6. The common
+# up valve is on while no horizontal aggregate is down:
+# lut5 horizontal-up-valve, NOR(in-0, in-1) -> index 0 -> 0x1.
+addf horizontal-up-valve servo-thread
+setp horizontal-up-valve.function 0x1
+net x-horizontal-down <= motion.digital-out-18 => lcec.0.io-dout3.dout-6 horizontal-up-valve.in-0   # X horizontal drill aggregate down (T201/T202)
+net y-horizontal-down <= motion.digital-out-19 => lcec.0.io-dout4.dout-0 horizontal-up-valve.in-1   # Y horizontal drill aggregate down (T203/T204)
+net horizontal-up     <= horizontal-up-valve.out => lcec.0.io-dout3.dout-7                         # horizontal drill aggregates all up
 
 # --- EL2808 #4 (digital outputs, slave idx 14) ---
-# net io-dout4-0 => lcec.0.io-dout4.dout-0   # Y horizontal drill aggregate down
-# net io-dout4-1 => lcec.0.io-dout4.dout-1   # 1st vertical drill spindle down
-# net io-dout4-2 => lcec.0.io-dout4.dout-2   # 2nd vertical drill spindle down
-# net io-dout4-3 => lcec.0.io-dout4.dout-3   # 3rd vertical drill spindle down
-# net io-dout4-4 => lcec.0.io-dout4.dout-4   # 4th vertical drill spindle down
-# net io-dout4-5 => lcec.0.io-dout4.dout-5   # 5th vertical drill spindle down
-# net io-dout4-6 => lcec.0.io-dout4.dout-6   # 6th vertical drill spindle down
-# net io-dout4-7 => lcec.0.io-dout4.dout-7   # 7th vertical drill spindle down
+net vertical-1-down <= motion.digital-out-11 => lcec.0.io-dout4.dout-1   # 1st vertical drill spindle down (T101)
+net vertical-2-down <= motion.digital-out-12 => lcec.0.io-dout4.dout-2   # 2nd vertical drill spindle down (T102)
+net vertical-3-down <= motion.digital-out-13 => lcec.0.io-dout4.dout-3   # 3rd vertical drill spindle down (T103)
+net vertical-4-down <= motion.digital-out-14 => lcec.0.io-dout4.dout-4   # 4th vertical drill spindle down (T104)
+net vertical-5-down <= motion.digital-out-15 => lcec.0.io-dout4.dout-5   # 5th vertical drill spindle down (T105)
+net vertical-6-down <= motion.digital-out-16 => lcec.0.io-dout4.dout-6   # 6th vertical drill spindle down (T106)
+net vertical-7-down <= motion.digital-out-17 => lcec.0.io-dout4.dout-7   # 7th vertical drill spindle down (T107)
 
 # --- EL4032 (2-ch analog output, spindle 0-10V — slave idx 15) ---
 # Spindle speed wiring lives in ethercat.hal (net spindle-aout-cmd), since
@@ -296,6 +309,8 @@ net dust-hood-up       <= dust-hood.out-not => lcec.0.io-dout3.dout-2 dust-hood.
 net io-din3-0        => motion.digital-in-02   # air pressure ok
 net io-din2-2        => motion.digital-in-03   # tool clamped
 net io-din2-3        => motion.digital-in-04   # tool released
+net io-din2-5        => motion.digital-in-06   # X horizontal boring aggregate up
+net io-din2-6        => motion.digital-in-07   # Y horizontal boring aggregate up
 net all-homed        <= motion.is-all-homed => motion.digital-in-05
 net tc-machine-off   <= motion.digital-out-09 => halui.machine.off
 # T / built-in M6 handshakes: no hardware, M6 is remapped and sets the tool with M61

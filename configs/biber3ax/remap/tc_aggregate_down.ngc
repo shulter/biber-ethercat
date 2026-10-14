@@ -1,0 +1,24 @@
+; tc_aggregate_down — lower the boring spindle for tool #1.
+;   T101..T107 -> vertical spindle 1-7, out-11..17
+;   T201/T202  -> X horizontal aggregate, out-18 (waits for in-06 up to drop)
+;   T203/T204  -> Y horizontal aggregate, out-19 (waits for in-07 up to drop)
+
+o<tc_aggregate_down> sub
+  o100 if [#1 GE 101 AND #1 LE 107]
+    M64 P[#1 - 90]
+    G4 P0.5
+  o100 elseif [#1 EQ 201 OR #1 EQ 202]
+    M64 P18
+    M66 P6 L4 Q5
+    o110 if [#5399 NE 0]
+      (abort, Tool change: X horizontal boring aggregate did not leave its up position)
+    o110 endif
+  o100 elseif [#1 EQ 203 OR #1 EQ 204]
+    M64 P19
+    M66 P7 L4 Q5
+    o120 if [#5399 NE 0]
+      (abort, Tool change: Y horizontal boring aggregate did not leave its up position)
+    o120 endif
+  o100 endif
+o<tc_aggregate_down> endsub
+M2

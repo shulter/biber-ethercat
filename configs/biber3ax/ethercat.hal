@@ -4,10 +4,10 @@
 # Requires: lcec, cia402 HAL components
 
 loadrt [KINS]KINEMATICS
-# num_dio=16: motion.digital-out-00..15 / digital-in-00..15 for the remapped
+# num_dio=24: motion.digital-out-00..23 / digital-in-00..23 for the remapped
 # M-codes (see [RS274NGC] REMAP in biber3ax.ini and io.hal); the tool change
-# uses out-07..09.
-loadrt [EMCMOT]EMCMOT servo_period_nsec=[EMCMOT]SERVO_PERIOD num_joints=[KINS]JOINTS num_dio=16
+# uses out-07..19, in-02..07.
+loadrt [EMCMOT]EMCMOT servo_period_nsec=[EMCMOT]SERVO_PERIOD num_joints=[KINS]JOINTS num_dio=24
 
 loadusr -W lcec_conf ethercat-conf.xml
 loadrt lcec
@@ -61,9 +61,10 @@ net estop-ok          <= estop-chain.out             => iocontrol.0.emc-enable-i
 # lut5 function 0x2: out = in-0 AND NOT in-1 (true only for index 1).
 # (drawbar-release, spindle-inhibit and spindle-tool-fault are the HSK tool
 # release / tool-clamped interlocks, spindle-cw-gate / spindle-ccw-gate gate the
-# VFD direction outputs with them; all set up and wired in io.hal — lut5 can
+# VFD direction outputs with them, hsk-/boring-contactor-gate select the VFD
+# motor, horizontal-up-valve drives the boring aggregates' common up valve; all set up and wired in io.hal — lut5 can
 # only be loadrt'd once, so all its instances are loaded here.)
-loadrt lut5      names=x-left-not-op,x-right-not-op,y-not-op,z-not-op,drawbar-release,spindle-inhibit,spindle-tool-fault,spindle-cw-gate,spindle-ccw-gate
+loadrt lut5      names=x-left-not-op,x-right-not-op,y-not-op,z-not-op,drawbar-release,spindle-inhibit,spindle-tool-fault,spindle-cw-gate,spindle-ccw-gate,hsk-contactor-gate,boring-contactor-gate,horizontal-up-valve
 # (z-brake-delay is the Z brake release delay, spindle-contactor-delay the HSK
 # spindle contactor off-delay, both set up and wired in io.hal — timedelay can
 # only be loadrt'd once, so all its instances are loaded here.)
