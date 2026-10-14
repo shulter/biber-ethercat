@@ -61,6 +61,18 @@ EL9110 is declared generic (vid `00000002`, pid `23963052`) — this lcec doesn'
 - Spindle start needs tool clamped: `din2-2` TRUE, `din2-3` FALSE, release off. Else
   `spindle.0.inhibit` + spindle amp fault.
 
+## Tool magazine
+
+Linear rack, 20 pockets along Y at the X− end. Machine coordinates (pocket 1 extrapolated, not populated):
+
+| Pocket | X | Y | Z |
+|--------|---|---|---|
+| 20 | 18.116 | 0.237 | −103.387 |
+| 2 | 14.936 | 1638.770 | −101.891 |
+| 1 | 14.760 | 1729.800 | −101.808 |
+
+Pocket *n* = pocket 20 + (20 − *n*) × (−0.1767, +91.0296, +0.0831). Pocket 1 is 2.2 mm inside Y `MAX_LIMIT`.
+
 ## M-codes
 
 | Code | Function |
