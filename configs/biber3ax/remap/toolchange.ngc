@@ -108,7 +108,7 @@ o<toolchange> sub
       G53 G1 X#<px>
       M64 P0            ; release
       M64 P7            ; flush air
-      M66 P4 L3 Q3      ; wait for drawbar released
+      M66 P4 L3 Q2      ; wait up to 2 s for tool released, then Z up
       #<ok> = [#5399 EQ 1]
       o110 if [#<ok>]
         G53 G1 Z[#<pz> + #<zchk>]
@@ -148,7 +148,7 @@ o<toolchange> sub
       G53 G0 X#<px>
       M64 P0            ; release
       M64 P7            ; flush air
-      M66 P4 L3 Q3
+      M66 P4 L3 Q2      ; wait up to 2 s for tool released, then Z down
       o210 if [#5399 NE 1]
         M65 P7
         M65 P0
