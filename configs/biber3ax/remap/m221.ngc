@@ -1,0 +1,13 @@
+; M221 — tool change area soft limits: X MIN_LIMIT = [TOOLCHANGER]X_MIN_LIMIT.
+; Remapped in biber3ax.ini: REMAP = M221 modalgroup=10 ngc=m221
+; Sets motion.digital-out-08 (mux2 tc-x-min-limit -> ini.*.min_limit,
+; postgui.hal). Also called by toolchange.ngc; M220 or any abort restores the
+; work area. The dwell + M66 queue buster let task apply the limit before more
+; moves are queued.
+
+o<m221> sub
+  M64 P8
+  G4 P0.2
+  M66 P2 L0
+o<m221> endsub
+M2

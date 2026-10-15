@@ -1,13 +1,13 @@
-; M101 — work area soft limits: X MIN_LIMIT = [AXIS_X]MIN_LIMIT.
-; Remapped in biber3ax.ini: REMAP = M101 modalgroup=10 ngc=m101
+; M220 — work area soft limits: X MIN_LIMIT = [AXIS_X]MIN_LIMIT.
+; Remapped in biber3ax.ini: REMAP = M220 modalgroup=10 ngc=m220
 ; Clears motion.digital-out-08 (mux2 tc-x-min-limit -> ini.*.min_limit,
 ; postgui.hal). Also called by toolchange.ngc; on_abort.ngc clears it too.
 ; The dwell + M66 queue buster let task apply the limit before more moves
 ; are queued.
 
-o<m101> sub
+o<m220> sub
   M65 P8
   G4 P0.2
   M66 P2 L0
-o<m101> endsub
+o<m220> endsub
 M2

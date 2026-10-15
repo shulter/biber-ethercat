@@ -105,7 +105,7 @@ net spindle-turning => pyvcp.spindle-turning-led
 net dust-hood-toggle-btn pyvcp.dust-hood-toggle => dust-hood.clk
 net dust-hood-down => pyvcp.dust-hood-down-led
 
-# Tool change area (M102 / M101, remap/m102.ngc / m101.ngc): motion.digital-out-08 switches the
+# Tool change area (M221 / M220, remap/m221.ngc / m220.ngc): motion.digital-out-08 switches the
 # X min limit from the work area ([AXIS_X]MIN_LIMIT) to
 # [TOOLCHANGER]X_MIN_LIMIT. Here because the ini.* pins are created by
 # milltask, which starts after the HALFILEs.

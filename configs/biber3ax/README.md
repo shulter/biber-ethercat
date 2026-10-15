@@ -68,9 +68,9 @@ EL9110 is declared generic (vid `00000002`, pid `23963052`) — this lcec doesn'
 Linear rack, 20 pockets along Y at the X− end. Tool number = pocket number (T1–T20, T0 = unload).
 Pocket positions and approach offsets: `toolchanger.ini` (`#INCLUDE`d into `biber3ax.ini`).
 
-- **Work area:** X ≥ `[AXIS_X]MIN_LIMIT` for jogging and programs (M101). M102 sets
+- **Work area:** X ≥ `[AXIS_X]MIN_LIMIT` for jogging and programs (M220). M221 sets
   `motion.digital-out-08`, which lowers the X limit to `[TOOLCHANGER]X_MIN_LIMIT` (`ini.*` pins,
-  `postgui.hal`). M6 does M102 … M101 itself; any abort restores the work area (`on_abort.ngc`).
+  `postgui.hal`). M6 does M221 … M220 itself; any abort restores the work area (`on_abort.ngc`).
 - **Checks:** homed, air pressure (`io-din3.din-0`), tool sensor (`io-din2.din-2`) agrees with the
   loaded tool. M5 at the start without waiting; the spindle must be stopped at the first pocket +
   X_OFFSET (waits up to 10 s, else abort).
@@ -90,7 +90,7 @@ Pocket positions and approach offsets: `toolchanger.ini` (`#INCLUDE`d into `bibe
 | Code | Function |
 |------|----------|
 | M6 | Tool change, see above |
-| M101 / M102 | X soft limits: work area / extended into the tool change area |
+| M220 / M221 | X soft limits: work area / extended into the tool change area |
 | M210 | Measure loaded tool length on the probe (`[TOOLCHANGER]PROBE_*`), write to tool table |
 | M250 / M251 | Release tool (checks spindle off + not turning) / clamp |
 | M200 / M201 | Dust hood down / up (also panel toggle) |

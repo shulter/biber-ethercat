@@ -13,7 +13,7 @@
 ;   in-00 spindle not turning   in-02 air pressure ok   in-03 tool clamped
 ;   in-04 tool released         in-05 all joints homed
 ;   out-00 drawbar release      out-07 flush air
-;   out-08 tool change area (m101.ngc / m102.ngc, cleared again by on_abort.ngc)
+;   out-08 tool change area (m220.ngc / m221.ngc, cleared again by on_abort.ngc)
 ;   out-09 machine off (halui.machine.off)
 ;   out-10 boring motor (contactor + KEB set 2 instead of HSK + set 5)
 ;   out-11..19 boring spindles down (tc_aggregate_down.ngc), in-06/07 X/Y horizontal up
@@ -93,7 +93,7 @@ o<toolchange> sub
   ; --- HSK change, skipped if the HSK tool stays (dummy between boring tools) ---
   o40 if [#<old> NE #<hsk>]
     ; --- enter the tool change area ---
-    o<m102> call
+    o<m221> call
 
     ; --- deposit the current tool into its pocket ---
     o100 if [#<old> GT 0]
@@ -174,7 +174,7 @@ o<toolchange> sub
     o200 endif
 
     ; --- back to the work area ---
-    o<m101> call
+    o<m220> call
 
   o40 endif
 
