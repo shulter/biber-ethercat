@@ -1,0 +1,10 @@
+; tc_tlo — tool length offset for the current tool: G43, or G49 for T0.
+
+o<tc_tlo> sub
+  o100 if [#<_current_tool> GT 0]
+    G43
+  o100 else
+    G49
+  o100 endif
+o<tc_tlo> endsub
+M2

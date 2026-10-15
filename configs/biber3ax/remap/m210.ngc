@@ -74,6 +74,7 @@ o<m210> sub
   G53 G0 X#<xclr>
 
   M72                 ; restore modal state
+  M5                  ; M72 may restore M3/M4
   G43
 
 o<m210> endsub

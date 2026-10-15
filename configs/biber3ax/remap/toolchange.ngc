@@ -4,7 +4,10 @@
 ; Boring tools T101..T107 (vertical spindles 1-7), T201..T204 (horizontal,
 ; 201/202 X aggregate, 203/204 Y aggregate): the HSK spindle gets the dust seal
 ; dummy T20, the VFD switches to the boring motor and the spindle is lowered.
-; Their X/Y/Z offsets to the HSK spindle are in tool.tbl (G43).
+; Their X/Y/Z offsets to the HSK spindle are in tool.tbl.
+; Ends with G43 for the new tool (G49 for T0). Modal state is saved with M70
+; and restored with M72 before the G43 (M73 would undo it on return); M5 after
+; M72 so a restored M3/M4 doesn't restart the spindle.
 ;
 ; HAL (io.hal, postgui.hal):
 ;   in-00 spindle not turning   in-02 air pressure ok   in-03 tool clamped
@@ -21,14 +24,16 @@ o<toolchange> sub
   ; preview / verify: only track the tool
   o10 if [#<_task> EQ 0]
     M61 Q#<_selected_tool>
+    o<tc_tlo> call
     o<toolchange> return
   o10 endif
 
   o20 if [#<_selected_tool> EQ #<_current_tool>]
+    o<tc_tlo> call
     o<toolchange> return
   o20 endif
 
-  M73                 ; restore modal state on return
+  M70                 ; save modal state
   G21 G90 G94
 
   #<old>  = #<_current_tool>
@@ -185,6 +190,10 @@ o<toolchange> sub
   o310 endif
 
   M61 Q#<new>
+
+  M72                 ; restore modal state
+  M5
+  o<tc_tlo> call
 
 o<toolchange> endsub
 M2

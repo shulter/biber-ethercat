@@ -81,7 +81,8 @@ Pocket positions and approach offsets: `toolchanger.ini` (`#INCLUDE`d into `bibe
 - **Boring tools (T101–107, T201–204):** HSK tool is swapped for the dummy T20, the VFD switches to the
   boring motor + set 2 (spindle stopped), the selected spindle/aggregate goes down
   (`io-dout4.dout-1..7`, `io-dout3.dout-6` / `io-dout4.dout-0`) and stays down until the next M6, which
-  raises everything first. X/Y/Z offsets to the HSK spindle: `tool.tbl`, applied with G43.
+  raises everything first. X/Y/Z offsets to the HSK spindle: `tool.tbl`.
+- M6 ends with G43 for the new tool (G49 for T0); the spindle stays off.
 - Preview (`#<_task>` = 0) only sets the tool, no moves.
 
 ## M-codes
