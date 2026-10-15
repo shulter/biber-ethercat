@@ -3,7 +3,7 @@
 ; Tool number = pocket number: T1..T20, T0 = unload only.
 ; Boring tools T101..T107 (vertical spindles 1-7), T201..T204 (horizontal,
 ; 201/202 X aggregate, 203/204 Y aggregate): the HSK spindle gets the dust seal
-; dummy T20, the VFD switches to the boring motor and the spindle is lowered.
+; dummy ([TOOLCHANGER]DUMMY_TOOL), the VFD switches to the boring motor and the spindle is lowered.
 ; Their X/Y/Z offsets to the HSK spindle are in tool.tbl.
 ; Ends with G43 for the new tool (G49 for T0). Modal state is saved with M70
 ; and restored with M72 before the G43 (M73 would undo it on return); M5 after
@@ -53,13 +53,14 @@ o<toolchange> sub
     (abort, Tool change: loaded tool is not a rack tool - remove it by hand, then M61 Q0)
   o31 endif
 
-  ; HSK spindle content: boring tools run with the dummy T20 in it
+  ; HSK spindle content: boring tools run with the dust seal dummy in it
+  #<dummy> = #<_ini[TOOLCHANGER]DUMMY_TOOL>
   o37 if [#<old_bore>]
-    #<old> = 20
+    #<old> = #<dummy>
   o37 endif
   #<hsk> = #<new>
   o38 if [#<new_bore>]
-    #<hsk> = 20
+    #<hsk> = #<dummy>
   o38 endif
 
   M65 P9              ; reset the machine-off request
@@ -89,7 +90,7 @@ o<toolchange> sub
 
   G53 G0 Z#<ztop>
 
-  ; --- HSK change, skipped if the HSK tool stays (dummy T20 between boring tools) ---
+  ; --- HSK change, skipped if the HSK tool stays (dummy between boring tools) ---
   o40 if [#<old> NE #<hsk>]
     ; --- enter the tool change area ---
     o<m102> call

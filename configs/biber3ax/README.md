@@ -53,7 +53,7 @@ EL9110 is declared generic (vid `00000002`, pid `23963052`) — this lcec doesn'
 - Contactors: `io-dout1.dout-3` HSK spindle, `dout-2` boring aggregate — the one selected by M6
   (`motion.digital-out-10`) is on with the machine, 10 s off-delay. KEB parameter set follows the
   contactor: `dout-6` = I4 (set 5, HSK), `dout-5` = I1 (set 2, boring).
-- Tool numbers: T1–100 HSK (T1–T20 in the rack, T20 = dust seal dummy), T101–107 vertical boring 1–7,
+- Tool numbers: T1–100 HSK (T1–T20 in the rack, T17 = dust seal dummy, `DUMMY_TOOL`), T101–107 vertical boring 1–7,
   T201/202 X horizontal aggregate, T203/204 Y horizontal aggregate.
 
 ## HSK tool release
@@ -78,7 +78,7 @@ Pocket positions and approach offsets: `toolchanger.ini` (`#INCLUDE`d into `bibe
   tool must be gone. Else: back down, clamp, move out, machine off (`halui.machine.off`), abort.
 - **Pick:** Z top → X +X_BACKOFF → pocket + X_OFFSET → above pocket → release + flush air → down → clamp
   (must report clamped, else machine off) → out by X_OFFSET → Z top → X to work area.
-- **Boring tools (T101–107, T201–204):** HSK tool is swapped for the dummy T20, the VFD switches to the
+- **Boring tools (T101–107, T201–204):** HSK tool is swapped for the dummy T17, the VFD switches to the
   boring motor + set 2 (spindle stopped), the selected spindle/aggregate goes down
   (`io-dout4.dout-1..7`, `io-dout3.dout-6` / `io-dout4.dout-0`) and stays down until the next M6, which
   raises everything first. X/Y/Z offsets to the HSK spindle: `tool.tbl`.

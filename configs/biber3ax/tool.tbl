@@ -1,5 +1,5 @@
 T1 P1 D0.0 ; placeholder tool
-T20 P20 Z0 D0.0 ; HSK dust seal dummy, in the spindle while boring
+T17 P17 Z0 D0.0 ; HSK dust seal dummy, in the spindle while boring
 T101 P101 X0 Y0 Z0 D0.0 ; vertical boring spindle 1 - measure X/Y/Z offset to HSK spindle
 T102 P102 X0 Y0 Z0 D0.0 ; vertical boring spindle 2 - measure X/Y/Z offset to HSK spindle
 T103 P103 X0 Y0 Z0 D0.0 ; vertical boring spindle 3 - measure X/Y/Z offset to HSK spindle
