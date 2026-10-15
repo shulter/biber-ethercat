@@ -83,6 +83,8 @@ Pocket positions and approach offsets: `toolchanger.ini` (`#INCLUDE`d into `bibe
   (`io-dout4.dout-1..7`, `io-dout3.dout-6` / `io-dout4.dout-0`) and stays down until the next M6, which
   raises everything first. X/Y/Z offsets to the HSK spindle: `tool.tbl`.
 - M6 ends with G43 for the new tool (G49 for T0); the spindle stays off.
+- Tool in spindle survives restart: M6 stores it in #3990 (persistent via `linuxcnc.var`),
+  `remap/startup.ngc` reloads it. A manual `M61 Q…` is not stored.
 - Preview (`#<_task>` = 0) only sets the tool, no moves.
 
 ## M-codes

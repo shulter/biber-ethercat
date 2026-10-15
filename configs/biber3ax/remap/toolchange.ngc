@@ -191,8 +191,9 @@ o<toolchange> sub
   o310 endif
 
   M61 Q#<new>
+  #3990 = #<new>      ; persisted, restored at startup (startup.ngc)
 
-  M72                 ; restore modal state
+  M72                ; restore modal state
   M5
   o<tc_tlo> call
 

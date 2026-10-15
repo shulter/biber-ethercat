@@ -1,0 +1,11 @@
+; startup — RS274NGC_STARTUP_CODE: modal defaults, then reload the tool in the spindle.
+; #3990 = last tool set by M6 (persistent: listed in linuxcnc.var).
+
+o<startup> sub
+  G21 G40 G90 G94 G97 G64 P0.005
+  o100 if [#3990 GT 0]
+    M61 Q#3990
+  o100 endif
+  o<tc_tlo> call
+o<startup> endsub
+M2
