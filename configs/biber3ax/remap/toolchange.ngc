@@ -40,6 +40,7 @@ o<toolchange> sub
   #<new>  = #<_selected_tool>
   #<off>  = #<_ini[TOOLCHANGER]X_OFFSET>
   #<zchk> = #<_ini[TOOLCHANGER]Z_CHECK>
+  #<fz>   = #<_ini[TOOLCHANGER]FLUSH_Z>
   #<ztop> = #<_ini[AXIS_Z]MAX_LIMIT>
   F#<_ini[TOOLCHANGER]FEED>
 
@@ -134,8 +135,9 @@ o<toolchange> sub
       M61 Q0            ; tool is in its pocket: spindle empty if aborted from here
       #3990 = 0
 
+      G53 G0 Z[#<pz> + #<fz>]
+      M63 P7            ; flush air off for the rest of the lift
       G53 G0 Z#<ztop>
-      M65 P7
       M65 P0            ; clamp (empty)
       G53 G0 X[#<px> + #<_ini[TOOLCHANGER]X_BACKOFF>]
     o100 endif
@@ -151,7 +153,6 @@ o<toolchange> sub
       o<tc_spindle_stopped> call
       G53 G0 X#<px>
       M64 P0            ; release
-      M64 P7            ; flush air
       M66 P4 L3 Q2      ; wait up to 2 s for tool released, then Z down
       o210 if [#5399 NE 1]
         M65 P7
@@ -159,6 +160,8 @@ o<toolchange> sub
         (abort, Tool change: drawbar did not release)
       o210 endif
 
+      G53 G0 Z[#<pz> + #<fz>]
+      M62 P7            ; flush air on for the last FLUSH_Z above the tool
       G53 G0 Z[#<pz> + #<zchk>]
       G53 G1 Z#<pz>
       M65 P0            ; clamp
