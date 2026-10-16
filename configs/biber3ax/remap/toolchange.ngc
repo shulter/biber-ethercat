@@ -11,7 +11,7 @@
 ;
 ; HAL (io.hal, postgui.hal):
 ;   in-00 spindle not turning   in-02 air pressure ok   in-03 tool clamped
-;   in-04 tool released         in-05 all joints homed
+;   in-04 tool released         in-05 all joints homed      in-08 dust hood down
 ;   out-00 drawbar release      out-07 flush air
 ;   out-08 tool change area (m220.ngc / m221.ngc, cleared again by on_abort.ngc)
 ;   out-09 machine off (halui.machine.off)
@@ -76,6 +76,14 @@ o<toolchange> sub
   o33 if [#5399 NE 1]
     (abort, Tool change: air pressure too low)
   o33 endif
+
+  ; dust hood up for the change; put back at the end
+  M66 P8 L0
+  #<hood> = #5399
+  o<m201> call
+  o34 if [#<hood>]
+    G4 P1             ; hood travel
+  o34 endif
 
   M5                  ; stop the spindle, checked at the first pocket + X_OFFSET
   o<tc_aggregate_up> call [#<old_bore>]
@@ -201,6 +209,10 @@ o<toolchange> sub
 
   M61 Q#<new>
   #3990 = #<new>      ; persisted, restored at startup (startup.ngc)
+
+  o320 if [#<hood>]
+    o<m200> call      ; dust hood back down
+  o320 endif
 
   M72                ; restore modal state
   M5
