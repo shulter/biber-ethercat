@@ -1,0 +1,3 @@
+# biber3ax-abs.ini only (added by abs-ini.sh): Home All on every Machine On (rising edge) —
+# instant with absolute encoders, no motion. AXIS then switches to world mode.
+net machine-enable => halui.home-all

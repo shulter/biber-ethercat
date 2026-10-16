@@ -11,6 +11,17 @@ linuxcnc biber3ax.ini
 ```
 F1 (e-stop reset) → F2 (machine on) → home (Z, X tandem, Y).
 
+### Absolute encoders (`biber3ax-abs.ini`)
+
+`linuxcnc biber3ax-abs.ini`: Machine On homes all joints at once (no motion, `abs-home.hal`), using the drives'
+battery-backed absolute position. Otherwise identical: `abs-ini.sh` regenerates it from
+`biber3ax.ini` on every start. Setup, once:
+
+1. A6 drives: absolute encoder mode on, battery fitted, multi-turn data reset (drive manual).
+2. Home with `biber3ax.ini`, then `./abs-ini.sh measure` → offsets into `[ABS_ENCODER]`.
+
+Re-measure after a battery/encoder alarm or multi-turn reset — otherwise every position is wrong.
+
 ## Files
 
 | File | Content |

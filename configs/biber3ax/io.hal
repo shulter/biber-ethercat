@@ -144,7 +144,7 @@ net vacuum-right-open   <= motion.digital-out-06 => lcec.0.io-dout2.dout-6 vacuu
 net vacuum-right-closed <= vacuum-right-close.out => lcec.0.io-dout2.dout-7                        # vaccuum port right close
 
 # --- EL1018 (fast digital inputs, 10us, slave idx 11) ---
-net tool-probe <= lcec.0.io-din5.din-0 => motion.probe-input   # Tool height probe (M210), TRUE = triggered (NO; use din-0-not if NC)
+net tool-probe <= lcec.0.io-din5.din-0-not => motion.probe-input   # Tool height probe (M210), TRUE = triggered (NC)
 
 # Limit switches, din-1..din-4. Each axis homes onto one of its limit
 # switches, which doubles as the home switch (HOME_IGNORE_LIMITS = YES in the

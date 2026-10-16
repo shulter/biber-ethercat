@@ -47,11 +47,16 @@ o<m210> sub
   o50 if [#<_abs_x> LT #<xclr>]
     G53 G0 X#<xclr>
   o50 endif
-  G53 G0 X#<_ini[TOOLCHANGER]PROBE_X> Y#<_ini[TOOLCHANGER]PROBE_Y>
+  G53 G0 X[#<_ini[TOOLCHANGER]PROBE_X> - 50] Y[#<_ini[TOOLCHANGER]PROBE_Y> + 100]
   G53 G0 Z#<_ini[TOOLCHANGER]PROBE_Z_START>
 
-  ; --- probe down with flush air ---
+  ; --- quick air blast to clear the tool probe ---
   M64 P7
+  G4P0.5
+  M65 P7
+  
+  G53 G0 X#<_ini[TOOLCHANGER]PROBE_X> Y#<_ini[TOOLCHANGER]PROBE_Y>
+  ; --- probe down ---
   #<dz> = [#<_z> - #<_abs_z>]
   F#<_ini[TOOLCHANGER]PROBE_FEED>
   G38.3 Z[#<zmin> + #<dz>]
