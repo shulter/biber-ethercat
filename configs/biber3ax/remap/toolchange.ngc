@@ -40,6 +40,7 @@ o<toolchange> sub
   #<new>  = #<_selected_tool>
   #<off>  = #<_ini[TOOLCHANGER]X_OFFSET>
   #<zchk> = #<_ini[TOOLCHANGER]Z_CHECK>
+  #<zrel> = #<_ini[TOOLCHANGER]RELEASE_Z>
   #<fz>   = #<_ini[TOOLCHANGER]FLUSH_Z>
   #<ztop> = #<_ini[AXIS_Z]MAX_LIMIT>
   F#<_ini[TOOLCHANGER]FEED>
@@ -109,13 +110,11 @@ o<toolchange> sub
       o<tc_spindle_stopped> call
       G53 G0 Z#<pz>
       G53 G1 X#<px>
-      M64 P0            ; release
-      M64 P7            ; flush air
-      M66 P4 L3 Q2      ; wait up to 2 s for tool released, then Z up
+      M64 P0            ; release (as M250)
+      M66 P4 L3 Q3      ; wait up to 3 s for tool released
       #<ok> = [#5399 EQ 1]
       o110 if [#<ok>]
-        G53 G1 Z[#<pz> + #<zchk>]
-        G4 P0.2
+        G53 G1 Z[#<pz> + #<zrel>]
         M66 P3 L0
         #<ok> = [#5399 NE 1]   ; tool must be gone
       o110 endif
@@ -127,18 +126,19 @@ o<toolchange> sub
         M65 P0
         M66 P3 L3 Q3
         G53 G1 X[#<px> + #<off>]
-        (msg, Tool change: tool stuck in spindle - machine off, operator must intervene)
+        (msg, Tool change: tool not released or stuck in spindle - machine off, operator must intervene)
         M64 P9
         M66 P0 L0
-        (abort, Tool change: tool stuck in spindle - machine off, operator must intervene)
+        (abort, Tool change: tool not released or stuck in spindle - machine off, operator must intervene)
       o120 endif
       M61 Q0            ; tool is in its pocket: spindle empty if aborted from here
       #3990 = 0
 
-      G53 G0 Z[#<pz> + #<fz>]
+      M65 P0            ; drawbar up (empty)
+      M62 P7            ; flush air on with the next move
+      G53 G0 Z[#<pz> + #<zrel> + #<fz>]
       M63 P7            ; flush air off for the rest of the lift
       G53 G0 Z#<ztop>
-      M65 P0            ; clamp (empty)
       G53 G0 X[#<px> + #<_ini[TOOLCHANGER]X_BACKOFF>]
     o100 endif
 
