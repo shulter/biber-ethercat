@@ -19,8 +19,8 @@ net io-din1-0 <= lcec.0.io-din1.din-0   # pendant button for main spindle tool r
 # net io-din1-1 <= lcec.0.io-din1.din-1   # pendant button for reset
 # net io-din1-2 <= lcec.0.io-din1.din-2   # footswitch right
 # net io-din1-3 <= lcec.0.io-din1.din-3   # footswitch left
-# net io-din1-4 <= lcec.0.io-din1.din-4   # pendant button negative jog
-# net io-din1-5 <= lcec.0.io-din1.din-5   # pendant button positive jog
+net io-din1-4 <= lcec.0.io-din1.din-4   # pendant button negative jog — see pendant jog below
+net io-din1-5 <= lcec.0.io-din1.din-5   # pendant button positive jog — see pendant jog below
 # net io-din1-6 <= lcec.0.io-din1.din-6   # pendant button F1 TBD
 # net io-din1-7 <= lcec.0.io-din1.din-7   # pendant button F2 TBD
 
@@ -45,10 +45,10 @@ net io-din3-0 <= lcec.0.io-din3.din-0   # Pneumatic air sensor, pressure ok (TRU
 # net io-din3-7 <= lcec.0.io-din3.din-7   # TODO: assign
 
 # --- EL1808 #4 (digital inputs, slave idx 8) ---
-# net io-din4-0 <= lcec.0.io-din4.din-0   # pendant rotary dial grey-code bit 0
-# net io-din4-1 <= lcec.0.io-din4.din-1   # pendant rotary dial grey-code bit 1
-# net io-din4-2 <= lcec.0.io-din4.din-2   # pendant rotary dial grey-code bit 2
-# net io-din4-3 <= lcec.0.io-din4.din-3   # pendant rotary dial grey-code bit 3
+net io-din4-0 <= lcec.0.io-din4.din-0   # pendant axis select dial, grey-code bit 0 — see pendant jog below
+net io-din4-1 <= lcec.0.io-din4.din-1   # pendant axis select dial, grey-code bit 1
+net io-din4-2 <= lcec.0.io-din4.din-2   # pendant axis select dial, grey-code bit 2
+net io-din4-3 <= lcec.0.io-din4.din-3   # pendant axis select dial, grey-code bit 3
 # net io-din4-4 <= lcec.0.io-din4.din-4   # TODO: assign
 # net io-din4-5 <= lcec.0.io-din4.din-5   # TODO: assign
 # net io-din4-6 <= lcec.0.io-din4.din-6   # TODO: assign
@@ -302,6 +302,40 @@ net vertical-7-down <= motion.digital-out-17 => lcec.0.io-dout4.dout-7   # 7th v
 # Spindle speed wiring lives in ethercat.hal (net spindle-aout-cmd), since
 # it's driven by spindle.0.speed-out-abs rather than a plain machine I/O net.
 # Channel 1 (aout-1-*) is the terminal's second channel, unused here.
+
+# --- Pendant jog: axis select dial + positive / negative buttons ---
+# Jogs the selected axis (halui, world mode: only after homing, X moves both
+# gantry motors) at [HALUI]JOG_SPEED while the button is held.
+# One lut5 per axis and direction, in-0..3 = dial bits, in-4 = button:
+#   dial code = din4-0 + 2*din4-1 + 4*din4-2 + 8*din4-3
+#   function  = 1 << (16 + code)
+# Codes are assumed (X=1, Y=3, Z=2) — check with `halcmd show pin io-din4`
+# per dial position and adjust the functions.
+addf pendant-x-plus  servo-thread
+addf pendant-x-minus servo-thread
+addf pendant-y-plus  servo-thread
+addf pendant-y-minus servo-thread
+addf pendant-z-plus  servo-thread
+addf pendant-z-minus servo-thread
+setp pendant-x-plus.function  0x20000   # code 1
+setp pendant-x-minus.function 0x20000
+setp pendant-y-plus.function  0x80000   # code 3
+setp pendant-y-minus.function 0x80000
+setp pendant-z-plus.function  0x40000   # code 2
+setp pendant-z-minus.function 0x40000
+net io-din4-0 => pendant-x-plus.in-0 pendant-x-minus.in-0 pendant-y-plus.in-0 pendant-y-minus.in-0 pendant-z-plus.in-0 pendant-z-minus.in-0
+net io-din4-1 => pendant-x-plus.in-1 pendant-x-minus.in-1 pendant-y-plus.in-1 pendant-y-minus.in-1 pendant-z-plus.in-1 pendant-z-minus.in-1
+net io-din4-2 => pendant-x-plus.in-2 pendant-x-minus.in-2 pendant-y-plus.in-2 pendant-y-minus.in-2 pendant-z-plus.in-2 pendant-z-minus.in-2
+net io-din4-3 => pendant-x-plus.in-3 pendant-x-minus.in-3 pendant-y-plus.in-3 pendant-y-minus.in-3 pendant-z-plus.in-3 pendant-z-minus.in-3
+net io-din1-5 => pendant-x-plus.in-4  pendant-y-plus.in-4  pendant-z-plus.in-4
+net io-din1-4 => pendant-x-minus.in-4 pendant-y-minus.in-4 pendant-z-minus.in-4
+net pendant-x-plus  <= pendant-x-plus.out  => halui.axis.x.plus
+net pendant-x-minus <= pendant-x-minus.out => halui.axis.x.minus
+net pendant-y-plus  <= pendant-y-plus.out  => halui.axis.y.plus
+net pendant-y-minus <= pendant-y-minus.out => halui.axis.y.minus
+net pendant-z-plus  <= pendant-z-plus.out  => halui.axis.z.plus
+net pendant-z-minus <= pendant-z-minus.out => halui.axis.z.minus
+setp halui.axis.jog-speed [HALUI]JOG_SPEED
 
 # --- Tool changer (M6, remap/toolchange.ngc) ---
 # Inputs for M66, machine-off request for faults the operator must clear.
