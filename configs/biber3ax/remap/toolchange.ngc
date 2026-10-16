@@ -153,11 +153,11 @@ o<toolchange> sub
       o<tc_spindle_stopped> call
       G53 G0 X#<px>
       M64 P0            ; release
-      M66 P4 L3 Q2      ; wait up to 2 s for tool released, then Z down
+      M66 P4 L3 Q6      ; wait up to 2 s for tool released, then Z down
       o210 if [#5399 NE 1]
         M65 P7
         M65 P0
-        (abort, Tool change: drawbar did not release)
+        (abort, Tool change: drawbar did not release at approach)
       o210 endif
 
       G53 G0 Z[#<pz> + #<fz>]
