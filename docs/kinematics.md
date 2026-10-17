@@ -8,10 +8,12 @@ accelerations are in `configs/biber3ax/biber3ax.ini`; the maxima below are mecha
 | Parameter | Value |
 |-----------|-------|
 | Reduction | 10:1 |
-| Pinion | M2 × 20T → Ø40 mm → 125.664 mm/rev |
-| Travel per motor rev | **12.566 mm** |
-| **pos-scale** | 131072 / 12.566 = **10434.4** |
-| Max velocity @ 5800 rpm | 1215 mm/s |
+| Pinion | helical M2, 19°31'42", 18T → 18 × 2π / cos β = 120 mm/rev |
+| Travel per motor rev | **12 mm** |
+| **pos-scale** | 131072 / 12 = **10922.667** |
+| Max velocity @ 5800 rpm | 1160 mm/s |
+
+Verified: 2000 mm workpiece read 2094.11 mm with the former straight-20T assumption (10434.4).
 
 ## Y — ball screw, belt reduction
 
@@ -33,7 +35,7 @@ accelerations are in `configs/biber3ax/biber3ax.ini`; the maxima below are mecha
 
 ## Gantry
 
-- Motors are mirrored: joint 0 (x-left) `CIA402_POS_SCALE = -10434.4`, joint 1 (x-right) `+10434.4`.
+- Motors are mirrored: joint 0 (x-left) `CIA402_POS_SCALE = -10922.667`, joint 1 (x-right) `+10922.667`.
   If X moves the wrong way, flip both signs.
 - One home switch for both joints, tandem homing (same negative `HOME_SEQUENCE`). Square the gantry
   via per-joint `HOME_OFFSET`.

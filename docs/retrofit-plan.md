@@ -50,7 +50,7 @@ before installing on the machine.
 3. Update INI soft limits to 0–3780 mm
 4. Set `NO_FORCE_HOMING = 0` and configure tandem homing (`HOME_SEQUENCE = -1` on both X joints)
 5. Run gantry homing; square the gantry using `HOME_OFFSET` on each joint if needed
-6. Verify max velocity (~1215 mm/s) and acceleration (5000 mm/s²) at reduced feed first
+6. Verify max velocity (~1160 mm/s) and acceleration (5000 mm/s²) at reduced feed first
 
 ## Phase 3 — Y and Z Axes
 
