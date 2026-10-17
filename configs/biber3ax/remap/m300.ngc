@@ -1,12 +1,16 @@
 ; M300 P<xy> [Q<z>] — set max acceleration via M100, effective for the next move.
 ; M66 L0 stops read-ahead until M100 has run, so later moves are planned with it.
+; Tracks the values in #<_accel_x/y/z> for accel_restore.ngc.
 
 o<m300> sub
   o100 if [EXISTS[#<q>]]
     M100 P#<p> Q#<q>
+    #<_accel_z> = #<q>
   o100 else
     M100 P#<p>
   o100 endif
+  #<_accel_x> = #<p>
+  #<_accel_y> = #<p>
   M66 P0 L0
 o<m300> endsub
 M2

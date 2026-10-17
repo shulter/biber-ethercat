@@ -17,6 +17,7 @@ o<m210> sub
 
   M70                 ; save modal state
   G21 G90 G94 G40
+  o<accel_rapid> call
 
   #<tool> = #<_current_tool>
   #<ztop> = #<_ini[AXIS_Z]MAX_LIMIT>
@@ -78,6 +79,7 @@ o<m210> sub
   G53 G0 Z#<ztop>
   G53 G0 X#<xclr>
 
+  o<accel_restore> call
   M72                 ; restore modal state
   M5                  ; M72 may restore M3/M4
   G43

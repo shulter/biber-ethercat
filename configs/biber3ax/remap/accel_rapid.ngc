@@ -1,0 +1,8 @@
+; accel_rapid — X/Y acceleration = [TOOLCHANGER]RAPID_ACCEL_XY (tool change, tool measurement).
+; Undo with o<accel_restore>; on_abort.ngc restores too.
+
+o<accel_rapid> sub
+  M101 P#<_ini[TOOLCHANGER]RAPID_ACCEL_XY> Q#<_ini[TOOLCHANGER]RAPID_ACCEL_XY>
+  M66 P0 L0           ; queue buster: following moves use the new limit
+o<accel_rapid> endsub
+M2

@@ -1,5 +1,6 @@
 ; startup — RS274NGC_STARTUP_CODE: modal defaults, then reload the tool in the spindle.
 ; #3990 = last tool set by M6 (persistent: listed in linuxcnc.var).
+; #<_accel_x/y/z> = current max accelerations (INI, updated by M300; see accel_restore.ngc).
 
 o<startup> sub
   G21 G40 G90 G94 G97 G64 P0.005
@@ -7,5 +8,10 @@ o<startup> sub
     M61 Q#3990
   o100 endif
   o<tc_tlo> call
+  o110 if [EXISTS[#<_accel_x>] EQ 0]
+    #<_accel_x> = #<_ini[AXIS_X]MAX_ACCELERATION>
+    #<_accel_y> = #<_ini[AXIS_Y]MAX_ACCELERATION>
+    #<_accel_z> = #<_ini[AXIS_Z]MAX_ACCELERATION>
+  o110 endif
 o<startup> endsub
 M2

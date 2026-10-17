@@ -1,0 +1,7 @@
+#!/bin/bash
+# M101 P<x> Q<y> — max acceleration [mm/s²] of X (P, joints 0/1) and Y (Q, joint 2) separately.
+# Used by accel.ngc to restore X/Y after RAPID_ACCEL_XY. Missing/zero values are left unchanged.
+set_acc() { [ -n "$2" ] && awk "BEGIN{exit !($2 > 0)}" && for p in $1; do halcmd setp "$p" "$2" || exit 1; done; }
+set_acc "ini.0.max_acceleration ini.1.max_acceleration ini.x.max_acceleration" "$1"
+set_acc "ini.2.max_acceleration ini.y.max_acceleration" "$2"
+exit 0

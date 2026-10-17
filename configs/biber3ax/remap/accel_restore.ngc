@@ -1,0 +1,7 @@
+; accel_restore — X/Y acceleration back to the tracked values (#<_accel_x/y>: INI, or last M300).
+
+o<accel_restore> sub
+  M101 P#<_accel_x> Q#<_accel_y>
+  M66 P0 L0           ; queue buster
+o<accel_restore> endsub
+M2
