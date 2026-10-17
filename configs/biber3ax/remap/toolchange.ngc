@@ -189,6 +189,8 @@ o<toolchange> sub
       G53 G1 X[#<px> + #<off>]
       G53 G0 Z#<ztop>
       G53 G0 X#<_ini[AXIS_X]MIN_LIMIT>
+    o200 else
+      G53 G0 X[#<_ini[AXIS_X]MIN_LIMIT> + 1]   ; T0: back inside the work area
     o200 endif
 
     ; --- back to the work area ---
