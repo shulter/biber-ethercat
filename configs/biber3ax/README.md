@@ -104,7 +104,7 @@ Pocket positions and approach offsets: `toolchanger.ini` (`#INCLUDE`d into `bibe
 |------|----------|
 | M6 | Tool change, see above |
 | M220 / M221 | X soft limits: work area / extended into the tool change area |
-| M270 P*xy* [Q*z*] | Max acceleration X/Y [, Z] in mm/s², effective immediately (calls M100 + queue buster) |
+| M300 P*xy* [Q*z*] | Max acceleration X/Y [, Z] in mm/s², effective immediately (calls M100 + queue buster) |
 | M210 | Measure loaded tool length on the probe (`[TOOLCHANGER]PROBE_*`), write to tool table |
 | M250 / M251 | Release tool (checks spindle off + not turning) / clamp |
 | M200 / M201 | Dust hood down / up (also panel toggle) |

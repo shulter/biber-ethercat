@@ -1,6 +1,6 @@
 #!/bin/bash
 # M100 P<xy> [Q<z>] — max acceleration [mm/s²] of X/Y (P) and Z (Q, optional).
-# Use M270 in programs: it adds the queue buster so the change applies right away.
+# Use M300 in programs: it adds the queue buster so the change applies right away.
 # Missing/zero values are left unchanged.
 set_acc() { [ -n "$2" ] && awk "BEGIN{exit !($2 > 0)}" && for p in $1; do halcmd setp "$p" "$2" || exit 1; done; }
 set_acc "ini.0.max_acceleration ini.1.max_acceleration ini.2.max_acceleration ini.x.max_acceleration ini.y.max_acceleration" "$1"

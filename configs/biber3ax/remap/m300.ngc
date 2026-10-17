@@ -1,12 +1,12 @@
-; M270 P<xy> [Q<z>] — set max acceleration via M100, effective for the next move.
+; M300 P<xy> [Q<z>] — set max acceleration via M100, effective for the next move.
 ; M66 L0 stops read-ahead until M100 has run, so later moves are planned with it.
 
-o<m270> sub
+o<m300> sub
   o100 if [EXISTS[#<q>]]
     M100 P#<p> Q#<q>
   o100 else
     M100 P#<p>
   o100 endif
   M66 P0 L0
-o<m270> endsub
+o<m300> endsub
 M2
