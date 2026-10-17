@@ -1,11 +1,14 @@
 ; on_abort — runs on every abort ([RS274NGC] ON_ABORT_COMMAND).
 ; Flush air off, drawbar up (tool clamped), X limit back to the work area
-; (tool change area off), X/Y acceleration restored.
+; (tool change area off), X/Y acceleration restored, dust hood up/down
+; pulses cleared (the hood keeps its position).
 
 o<on_abort> sub
   M65 P7
   M65 P0
   M65 P8
+  M65 P1
+  M65 P2
   o<accel_restore> call
 o<on_abort> endsub
 M2

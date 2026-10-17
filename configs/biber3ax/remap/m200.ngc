@@ -6,6 +6,7 @@
 ; the PyVCP toggle button keeps working after this. M201 does the opposite.
 
 o<m200> sub
+  M65 P2              ; clear an "up" request left on by an aborted M201
   M64 P1
   G4 P0.05
   M65 P1
