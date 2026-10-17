@@ -1,6 +1,7 @@
 ; M210 — measure the loaded tool's length on the tool height probe.
 ; Remapped in biber3ax.ini: REMAP = M210 modalgroup=10 ngc=m210
-; Positions and feed: [TOOLCHANGER]PROBE_* (toolchanger.ini), machine coordinates.
+; Positions and feeds: [TOOLCHANGER]PROBE_* (toolchanger.ini), machine coordinates.
+; Two stages: fast search, back off past the release point, slow measuring touch.
 ; Probe: lcec.0.io-din5.din-0 -> motion.probe-input (io.hal). Flush air: out-07.
 ; Tool length = trigger Z - PROBE_Z_REF, written with G10 L1 and applied with
 ; G43. Modal state is saved with M70 and restored with M72 before the G43
@@ -57,18 +58,31 @@ o<m210> sub
   M65 P7
   
   G53 G0 X#<_ini[TOOLCHANGER]PROBE_X> Y#<_ini[TOOLCHANGER]PROBE_Y>
-  ; --- probe down ---
+  ; --- fast search ---
   #<dz> = [#<_z> - #<_abs_z>]
-  F#<_ini[TOOLCHANGER]PROBE_FEED>
+  F#<_ini[TOOLCHANGER]PROBE_FAST_FEED>
   G38.3 Z[#<zmin> + #<dz>]
-  #<hit> = #5070
-  #<ztrig> = [#5063 - #<dz>]
-
-  o60 if [#<hit> NE 1]
-    M65 P7
+  o60 if [#5070 NE 1]
     G53 G0 Z#<ztop>
     (abort, M210: probe not triggered - tool missing or broken)
   o60 endif
+
+  ; --- back off until the switch releases, then BACKOFF more ---
+  F#<_ini[TOOLCHANGER]PROBE_FEED>
+  G38.5 Z[#5063 + #<_ini[TOOLCHANGER]PROBE_RELEASE_MAX>]
+  o61 if [#5070 NE 1]
+    G53 G0 Z#<ztop>
+    (abort, M210: probe switch did not release)
+  o61 endif
+  G1 Z[#5063 + #<_ini[TOOLCHANGER]PROBE_BACKOFF>]
+
+  ; --- measuring touch ---
+  G38.3 Z[#<_z> - #<_ini[TOOLCHANGER]PROBE_SLOW_TRAVEL>]
+  o62 if [#5070 NE 1]
+    G53 G0 Z#<ztop>
+    (abort, M210: probe not triggered on the slow touch)
+  o62 endif
+  #<ztrig> = [#5063 - #<dz>]
 
   #<len> = [#<ztrig> - #<_ini[TOOLCHANGER]PROBE_Z_REF>]
   G10 L1 P#<tool> Z#<len>
