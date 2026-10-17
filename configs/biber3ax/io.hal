@@ -309,8 +309,9 @@ net vertical-7-down <= motion.digital-out-17 => lcec.0.io-dout4.dout-7   # 7th v
 # One lut5 per axis and direction, in-0..3 = dial bits, in-4 = button:
 #   dial code = din4-0 + 2*din4-1 + 4*din4-2 + 8*din4-3
 #   function  = 1 << (16 + code)
-# Codes are assumed (X=1, Y=3, Z=2) — check with `halcmd show pin io-din4`
-# per dial position and adjust the functions.
+# Codes are assumed as gray(position): X=1, Y=3, Z=2, spindle override (pos 7)
+# = 4, jog speed (pos 8) = 12 — check with `halcmd show pin io-din4` per dial
+# position and adjust the functions.
 addf pendant-x-plus  servo-thread
 addf pendant-x-minus servo-thread
 addf pendant-y-plus  servo-thread
@@ -335,7 +336,41 @@ net pendant-y-plus  <= pendant-y-plus.out  => halui.axis.y.plus
 net pendant-y-minus <= pendant-y-minus.out => halui.axis.y.minus
 net pendant-z-plus  <= pendant-z-plus.out  => halui.axis.z.plus
 net pendant-z-minus <= pendant-z-minus.out => halui.axis.z.minus
-setp halui.axis.jog-speed [HALUI]JOG_SPEED
+
+# Dial position 7: buttons step the spindle override by 5 %.
+# Dial position 8: buttons step the jog speed: [HALUI]JOG_SPEED + count *
+# JOG_SPEED_STEP, count -5..18 (500..12000 mm/min with 3000 / 500).
+loadrt updown names=pendant-jog-count
+loadrt scaled_s32_sums names=pendant-jog-speed
+addf pendant-so-up       servo-thread
+addf pendant-so-down     servo-thread
+addf pendant-jog-up      servo-thread
+addf pendant-jog-down    servo-thread
+addf pendant-jog-count   servo-thread
+addf pendant-jog-speed   servo-thread
+setp pendant-so-up.function    0x100000     # code 4
+setp pendant-so-down.function  0x100000
+setp pendant-jog-up.function   0x10000000   # code 12
+setp pendant-jog-down.function 0x10000000
+net io-din4-0 => pendant-so-up.in-0 pendant-so-down.in-0 pendant-jog-up.in-0 pendant-jog-down.in-0
+net io-din4-1 => pendant-so-up.in-1 pendant-so-down.in-1 pendant-jog-up.in-1 pendant-jog-down.in-1
+net io-din4-2 => pendant-so-up.in-2 pendant-so-down.in-2 pendant-jog-up.in-2 pendant-jog-down.in-2
+net io-din4-3 => pendant-so-up.in-3 pendant-so-down.in-3 pendant-jog-up.in-3 pendant-jog-down.in-3
+net io-din1-5 => pendant-so-up.in-4   pendant-jog-up.in-4
+net io-din1-4 => pendant-so-down.in-4 pendant-jog-down.in-4
+setp halui.spindle.0.override.scale 0.05
+net pendant-so-up   <= pendant-so-up.out   => halui.spindle.0.override.increase
+net pendant-so-down <= pendant-so-down.out => halui.spindle.0.override.decrease
+setp pendant-jog-count.clamp 1
+setp pendant-jog-count.min -5
+setp pendant-jog-count.max 18
+net pendant-jog-up   <= pendant-jog-up.out   => pendant-jog-count.countup
+net pendant-jog-down <= pendant-jog-down.out => pendant-jog-count.countdown
+net pendant-jog-steps <= pendant-jog-count.count => pendant-jog-speed.in0
+setp pendant-jog-speed.scale0 [HALUI]JOG_SPEED_STEP
+setp pendant-jog-speed.in1 1
+setp pendant-jog-speed.scale1 [HALUI]JOG_SPEED
+net pendant-jog-speed <= pendant-jog-speed.out-f => halui.axis.jog-speed
 
 # --- Tool changer (M6, remap/toolchange.ngc) ---
 # Inputs for M66, machine-off request for faults the operator must clear.
