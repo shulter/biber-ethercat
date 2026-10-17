@@ -1,3 +1,24 @@
-# biber3ax-abs.ini only (added by abs-ini.sh): Home All on every Machine On (rising edge) —
-# instant with absolute encoders, no motion. AXIS then switches to world mode.
-net machine-enable => halui.home-all
+# biber3ax-abs.ini only (added by abs-ini.sh): home each joint once, on the first Machine On —
+# instant with absolute encoders, no motion. AXIS then switches to world mode. Chained, as only
+# one joint can home at a time: joint 0 when on and unhomed, joint n when n-1 homed and n not.
+# xor2 works as "a AND NOT b" for the chain, since joint n can't be homed before n-1.
+loadrt logic names=abs-home-0 personality=0x102
+loadrt xor2  names=abs-home-not-0,abs-home-1,abs-home-2,abs-home-3
+addf abs-home-not-0 servo-thread
+addf abs-home-0     servo-thread
+addf abs-home-1     servo-thread
+addf abs-home-2     servo-thread
+addf abs-home-3     servo-thread
+
+setp abs-home-not-0.in1 TRUE
+net abs-homed-0 <= joint.0.homed => abs-home-not-0.in0 abs-home-1.in0
+net abs-homed-1 <= joint.1.homed => abs-home-1.in1     abs-home-2.in0
+net abs-homed-2 <= joint.2.homed => abs-home-2.in1     abs-home-3.in0
+net abs-homed-3 <= joint.3.homed => abs-home-3.in1
+
+net machine-enable                               => abs-home-0.in-00
+net abs-unhomed-0 <= abs-home-not-0.out          => abs-home-0.in-01
+net abs-home-0    <= abs-home-0.and              => halui.joint.0.home
+net abs-home-1    <= abs-home-1.out              => halui.joint.1.home
+net abs-home-2    <= abs-home-2.out              => halui.joint.2.home
+net abs-home-3    <= abs-home-3.out              => halui.joint.3.home

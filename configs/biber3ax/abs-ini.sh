@@ -1,8 +1,8 @@
 #!/bin/sh
 # Run by the #INCLUDE in biber3ax-abs.ini: writes biber3ax.ini (its #INCLUDEs expanded) to
 # biber3ax-abs.ini.gen with HOME_ABSOLUTE_ENCODER = 2 and the [ABS_ENCODER] offset at the top of
-# each [JOINT_n] (LinuxCNC 2.9 takes the first match, shadowing the switch homing values), plus
-# abs-home.hal (Home All on Machine On).
+# each [JOINT_n] (LinuxCNC 2.9 takes the first match, shadowing the switch homing values), no
+# HOME_SEQUENCE (no Home All), plus abs-home.hal (homes each joint on the first Machine On).
 # Prints the file name. "abs-ini.sh measure": print the offsets (LinuxCNC running, homed, at rest).
 cd "$(dirname "$0")" || exit 1
 
@@ -37,6 +37,8 @@ FNR == NR {
     next
 }
 /^#INCLUDE / { while ((getline l < $2) > 0) print l; close($2); next }
+/^\[/ { sec = $0 }
+sec ~ /^\[JOINT_/ && $1 == "HOME_SEQUENCE" { next }
 { print }
 /^\[HAL\]/ { print "POSTGUI_HALFILE = abs-home.hal" }
 /^\[JOINT_[0-9]+\]/ {

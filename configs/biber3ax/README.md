@@ -13,7 +13,7 @@ F1 (e-stop reset) → F2 (machine on) → home (Z, X tandem, Y).
 
 ### Absolute encoders (`biber3ax-abs.ini`)
 
-`linuxcnc biber3ax-abs.ini`: Machine On homes all joints at once (no motion, `abs-home.hal`), using the drives'
+`linuxcnc biber3ax-abs.ini`: the first Machine On homes each joint once (no motion, no Home All, `abs-home.hal`), using the drives'
 battery-backed absolute position. Otherwise identical: `abs-ini.sh` regenerates it from
 `biber3ax.ini` on every start. Setup, once:
 
