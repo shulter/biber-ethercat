@@ -6,6 +6,7 @@ o<startup> sub
   G21 G40 G90 G94 G97 G64 P0.005
   o100 if [#3990 GT 0]
     M61 Q#3990
+    G43
   o100 endif
   o<tc_tlo> call
   o110 if [EXISTS[#<_accel_x>] EQ 0]

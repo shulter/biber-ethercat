@@ -17,8 +17,8 @@
 # --- EL1808 #1 (digital inputs, slave idx 5) ---
 net io-din1-0 <= lcec.0.io-din1.din-0   # pendant button for main spindle tool release (NO, TRUE = pressed) — see drawbar-release below
 # net io-din1-1 <= lcec.0.io-din1.din-1   # pendant button for reset
-# net io-din1-2 <= lcec.0.io-din1.din-2   # footswitch right
-# net io-din1-3 <= lcec.0.io-din1.din-3   # footswitch left
+net io-din1-2 <= lcec.0.io-din1.din-2   # footswitch right — toggles vacuum pump
+net io-din1-3 <= lcec.0.io-din1.din-3   # footswitch left — toggles vacuum pump
 net io-din1-4 <= lcec.0.io-din1.din-4   # pendant button negative jog — see pendant jog below
 net io-din1-5 <= lcec.0.io-din1.din-5   # pendant button positive jog — see pendant jog below
 # net io-din1-6 <= lcec.0.io-din1.din-6   # pendant button F1 TBD
@@ -105,7 +105,7 @@ net spindle-contactor <= spindle-contactor-delay.out => hsk-contactor-gate.in-0 
 net boring-select     <= motion.digital-out-10       => hsk-contactor-gate.in-1 boring-contactor-gate.in-1
 net boring-contactor  <= boring-contactor-gate.out => lcec.0.io-dout1.dout-2   # Drill Aggregate Enable Contactor
 net hsk-contactor     <= hsk-contactor-gate.out    => lcec.0.io-dout1.dout-3   # HSK Milling Spindle Enable Contactor
-net vacuum-pump         <= motion.digital-out-04 => lcec.0.io-dout1.dout-4   # Vacuum pump Enable Contactor — M240-M243, see io-dout2 below
+# dout-4: vacuum pump contactor — wired with the vacuum table below.
 # dout-5 / dout-6: KEB parameter set select (KEB inputs I1 / I4, per
 # D/KEB/F5_SKF9KW.dw5 in the original TwinCAT backup). One must be on for the
 # connected motor; with none active the KEB falls back to set 0 (stop set for
@@ -127,6 +127,12 @@ net tc-flush-air <= motion.digital-out-07 => lcec.0.io-dout1.dout-7   # HSK spin
 #   out-06 -> dout2-6 right port open.
 #   M241 pump on, both zones   M242 pump on, left zone only
 #   M243 pump on, right zone only   M240 pump off, both ports closed
+# The pump state is held in a flipflop (like the dust hood): M241-M243 pulse
+# out-04 onto set, M240 pulses out-20 onto reset, either foot switch or the
+# PyVCP button (postgui.hal) toggles it. Reset is also held while the machine is off, so the pump
+# stops on power off and stays off after power on until an M-code or button.
+# lut5 vacuum-pump-off (loaded in ethercat.hal): in-0 OR NOT in-1 -> 0xB.
+# lut5 vacuum-pump-toggle: in-0 OR in-1 OR in-2 -> 0xFE, onto clk.
 # Each port has separate open / close valves. The close valve (dout2-5 left,
 # dout2-7 right) is driven by the inverse of the open request (not
 # components), so exactly one of each pair is energised — both ports are
@@ -142,6 +148,22 @@ net vacuum-left-open    <= motion.digital-out-05 => lcec.0.io-dout2.dout-4 vacuu
 net vacuum-left-closed  <= vacuum-left-close.out => lcec.0.io-dout2.dout-5                         # vaccuum port left close
 net vacuum-right-open   <= motion.digital-out-06 => lcec.0.io-dout2.dout-6 vacuum-right-close.in   # vaccuum port right open
 net vacuum-right-closed <= vacuum-right-close.out => lcec.0.io-dout2.dout-7                        # vaccuum port right close
+
+loadrt flipflop names=vacuum-pump,dust-hood   # dust-hood: see io-dout3 below
+addf vacuum-pump-off servo-thread
+addf vacuum-pump-toggle servo-thread
+addf vacuum-pump     servo-thread
+setp vacuum-pump-off.function 0xB
+setp vacuum-pump-toggle.function 0xFE
+net vacuum-pump-off-req <= motion.digital-out-20 => vacuum-pump-off.in-0
+net machine-enable                               => vacuum-pump-off.in-1
+net vacuum-pump-reset   <= vacuum-pump-off.out   => vacuum-pump.reset
+net vacuum-pump-on-req  <= motion.digital-out-04 => vacuum-pump.set
+net vacuum-pump-on      <= vacuum-pump.out       => lcec.0.io-dout1.dout-4   # Vacuum pump Enable Contactor
+net vacuum-pump-is-off  <= vacuum-pump.out-not   => vacuum-pump.data
+net io-din1-2                                    => vacuum-pump-toggle.in-0
+net io-din1-3                                    => vacuum-pump-toggle.in-1
+net vacuum-pump-clk     <= vacuum-pump-toggle.out => vacuum-pump.clk
 
 # --- EL1018 (fast digital inputs, 10us, slave idx 11) ---
 net tool-probe <= lcec.0.io-din5.din-0-not => motion.probe-input   # Tool height probe (M210), TRUE = triggered (NC)
@@ -271,7 +293,6 @@ net spindle-ccw <= spindle-ccw-gate.out => lcec.0.io-dout2.dout-3   # VFD CCW Co
 #   is pure HAL, so it works while a program is running.
 # The M-codes only pulse, so they never block the button, and the button
 # never confuses the M-codes: M200 always lowers, M201 always raises.
-loadrt flipflop names=dust-hood
 addf dust-hood servo-thread
 net dust-hood-down-req <= motion.digital-out-01 => dust-hood.set
 net dust-hood-up-req   <= motion.digital-out-02 => dust-hood.reset

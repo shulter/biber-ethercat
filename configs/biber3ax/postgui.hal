@@ -105,6 +105,12 @@ net spindle-turning => pyvcp.spindle-turning-led
 net dust-hood-toggle-btn pyvcp.dust-hood-toggle => dust-hood.clk
 net dust-hood-down => pyvcp.dust-hood-down-led
 
+# --- Vacuum pump toggle button + "on" LED ---
+# ORed with the foot switches onto the vacuum-pump flipflop clk (io.hal);
+# ignored while the machine is off.
+net vacuum-pump-toggle-btn pyvcp.vacuum-pump-toggle => vacuum-pump-toggle.in-2
+net vacuum-pump-on => pyvcp.vacuum-pump-on-led
+
 # Tool change area (M221 / M220, remap/m221.ngc / m220.ngc): motion.digital-out-08 switches the
 # X min limit from the work area ([AXIS_X]MIN_LIMIT) to
 # [TOOLCHANGER]X_MIN_LIMIT. Here because the ini.* pins are created by

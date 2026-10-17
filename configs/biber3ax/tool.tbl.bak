@@ -1,12 +1,12 @@
 T1  P1  ;placeholder tool
-T2  P2  D6  ;end mill 6mm
+T2  P2  D12  ;end mill 12mm PCD 3F compr
 T3  P3  D3.3  ;drill 3.3 mm
 T4  P4  D12  ;chamfer tool 12 mm
 T5  P5  D8  ;straight flute end mill 8 mm
 T6  P6  Z233.390125  D12  ;roughing end mill 12 mm
 T7  P7  D5  ;drill 5 mm
 T8  P8  D3.175  ;end mill 3.175 mm
-T9  P9  D5  ;ball end mill 5 mm
+T9  P9  D6  ;end mill 6mm 2f straight
 T10  P10  D140  ;four flute planer 140 mm
 T11  P11  D6  ;end mill 6 mm
 T12  P12  D20  ;ball end mill 20 mm, 2 flute

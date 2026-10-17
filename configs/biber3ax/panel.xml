@@ -130,6 +130,26 @@
 </vbox>
 </labelframe>
 
+<labelframe text="Vacuum Pump">
+<hbox>
+
+<button>
+  <halpin>"vacuum-pump-toggle"</halpin>
+  <text>"Pump On / Off"</text>
+</button>
+<led>
+  <halpin>"vacuum-pump-on-led"</halpin>
+  <size>15</size>
+  <on_color>"green"</on_color>
+  <off_color>"grey"</off_color>
+</led>
+<label>
+  <text>"on"</text>
+</label>
+
+</hbox>
+</labelframe>
+
 <labelframe text="Dust Hood">
 <hbox>
 

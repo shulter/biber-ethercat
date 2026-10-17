@@ -1,6 +1,6 @@
 ; M243 — vacuum pump on, right zone only.
 ; Remapped in biber3ax.ini: REMAP = M243 modalgroup=10 ngc=m243
-; Vacuum outputs (io.hal): motion.digital-out-04 -> io-dout1.dout-4 pump,
+; Vacuum outputs (io.hal): motion.digital-out-04 / -20 pulse pump on / off,
 ; -05 -> io-dout2.dout-4 left port open, -06 -> io-dout2.dout-6 right port open.
 ; The close valves (dout2-5 left, dout2-7 right) follow as the inverse in HAL.
 ; M240 off, M241 both zones, M242 left only, M243 right only.
@@ -8,6 +8,8 @@
 o<m243> sub
   M65 P5   ; close left port
   M64 P6   ; open right port
-  M64 P4   ; pump on
+  M64 P4   ; pump on (pulse onto vacuum-pump flipflop set, io.hal)
+  G4 P0.05
+  M65 P4
 o<m243> endsub
 M2

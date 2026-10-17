@@ -5,6 +5,7 @@ LinuxCNC config for a Weeke Vantage 33M retrofit with StepperOnline A6 EtherCAT 
 - [`configs/biber3ax/`](configs/biber3ax/) — machine config (4× A6: X gantry, Y, Z)
 - [`docs/kinematics.md`](docs/kinematics.md) — scaling, homing, gantry
 - [`docs/retrofit-plan.md`](docs/retrofit-plan.md) — original phased plan
+- [`tools/servo-tune.py`](tools/servo-tune.py) — GUI: A6 gain/feedforward over EtherCAT SDO, live, with peak following error
 
 ## Hardware
 

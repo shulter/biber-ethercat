@@ -1,12 +1,10 @@
 ;wobble back and forth for servo tuning
+G21
+G90
+G64P0.01
 
-#<feed> = 60000
-#<anzahl_n> = 2
-#<actual_xpos> = #<_z>
-
-o111 repeat [#<anzahl_n>]
-     G1 Z[#<actual_xpos> - 20]F#<feed>
-     Z[#<actual_xpos>]
-     G4P0.2
+o111 repeat [2]
+     G1 Z-60 F90000
+     Z0
 o111 endrepeat
 M2

@@ -17,6 +17,16 @@ set ::watchlist {
     pin+joint.3.home-sw-in
     pin+ini.2.ferror
     pin+ini.2.min_ferror
+    sig+io-din4-0
+    sig+io-din4-1
+    sig+io-din4-2
+    sig+io-din4-3
+    sig+pendant-x-minus
+    sig+pendant-x-plus
+    sig+pendant-y-minus
+    sig+pendant-y-plus
+    sig+pendant-z-minus
+    sig+pendant-z-plus
 }
 set ::workmode watchhal
 set ::watchInterval 100

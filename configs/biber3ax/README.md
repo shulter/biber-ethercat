@@ -113,7 +113,7 @@ Pocket positions and approach offsets: `toolchanger.ini` (`#INCLUDE`d into `bibe
 
 ## Panel
 
-Torque and speed per servo, commanded spindle speed, spindle-turning LED, dust hood toggle.
+Torque and speed per servo, commanded spindle speed, spindle-turning LED, vacuum pump and dust hood toggles.
 
 ## Troubleshooting
 
