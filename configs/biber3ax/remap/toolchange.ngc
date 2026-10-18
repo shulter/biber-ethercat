@@ -127,8 +127,9 @@ o<toolchange> sub
         M65 P0            ; drawbar up: tool present only if it came along
         M66 P4 L4 Q3      ; wait for drawbar up
         #<up> = [#5399 EQ 0]
-        M66 P3 L3 Q1      ; tool present?
-        #<ok> = [#<up> AND [#5399 EQ -1]]   ; drawbar up and tool gone
+        G4 P0.5           ; "tool present" flashes while the empty drawbar passes the clamp position
+        M66 P3 L0         ; tool present?
+        #<ok> = [#<up> AND [#5399 EQ 0]]    ; drawbar up and tool gone
       o110 endif
 
       o120 if [#<ok> EQ 0]

@@ -3,6 +3,8 @@
 ; (tool change area off), X/Y acceleration restored, vacuum pump on/off pulses
 ; cleared (the pump itself keeps its state), dust hood up/down pulses cleared
 ; (the hood keeps its position).
+; No queue busters (M66, M61 ...): task never resumes on_abort after one, and the
+; stale call stack swallows the next MDI command.
 
 o<on_abort> sub
   M65 P7
@@ -12,6 +14,6 @@ o<on_abort> sub
   M65 P2
   M65 P4
   M65 P20
-  o<accel_restore> call
+  M101 P#<_accel_x> Q#<_accel_y>   ; not accel_restore: on_abort stops at a queue buster
 o<on_abort> endsub
 M2
