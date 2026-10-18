@@ -162,7 +162,7 @@ o<toolchange> sub
       o<tc_spindle_stopped> call
       G53 G0 X#<px>
       M64 P0            ; release
-      M66 P4 L3 Q6      ; wait up to 2 s for tool released, then Z down
+      M66 P4 L3 Q6      ; wait up to 6 s for tool released, then Z down
       o210 if [#5399 NE 1]
         M65 P7
         M65 P0
@@ -172,11 +172,12 @@ o<toolchange> sub
       G53 G0 Z[#<pz> + #<fz>]
       M62 P7            ; flush air on for the last FLUSH_Z above the tool
       G53 G0 Z[#<pz> + #<zchk>]
+      M63 P7            ; flush air off before seating: it keeps the tool from clamping
       G53 G1 Z#<pz>
+      M65 P7
       M65 P0            ; clamp
       M66 P3 L3 Q3      ; wait for tool clamped
       #<ok> = [#5399 EQ 1]
-      M65 P7
       o220 if [#<ok> EQ 0]
         (msg, Tool change: new tool not clamped - machine off, operator must intervene)
         M64 P9
