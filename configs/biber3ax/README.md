@@ -71,7 +71,8 @@ EL9110 is declared generic (vid `00000002`, pid `23963052`) — this lcec doesn'
 
 - Release output `io-dout3.dout-1` = (pendant `io-din1.din-0` OR M250) AND not turning (`io-din2.din-4`)
   AND spindle off.
-- Spindle start needs tool clamped: `din2-2` TRUE, `din2-3` FALSE, release off. Else
+- `din2-2` = tool present and clamped; drawbar up without a tool: `din2-2` and `din2-3` both FALSE.
+- Spindle start needs a tool clamped: `din2-2` TRUE, `din2-3` FALSE, release off. Else
   `spindle.0.inhibit` + spindle amp fault.
 
 ## Tool changer (M6)
@@ -85,8 +86,8 @@ Pocket positions and approach offsets: `toolchanger.ini` (`#INCLUDE`d into `bibe
 - **Checks:** homed, air pressure (`io-din3.din-0`), tool sensor (`io-din2.din-2`) agrees with the
   loaded tool. M5 at the start without waiting; the spindle must be stopped at the first pocket +
   X_OFFSET (waits up to 10 s, else abort).
-- **Deposit:** Z top → pocket + X_OFFSET → Z pocket → G1 into pocket → release + flush air → Z +Z_CHECK →
-  tool must be gone. Else: back down, clamp, move out, machine off (`halui.machine.off`), abort.
+- **Deposit:** Z top → pocket + X_OFFSET → Z pocket → G1 into pocket → release + flush air → Z +RELEASE_Z →
+  drawbar up, tool must be gone (`din2-2` FALSE). Else: back down, clamp, move out, machine off (`halui.machine.off`), abort.
 - **Pick:** Z top → X +X_BACKOFF → pocket + X_OFFSET → above pocket → release + flush air → down → clamp
   (must report clamped, else machine off) → out by X_OFFSET → Z top → X to work area.
 - **Boring tools (T101–107, T201–204):** HSK tool is swapped for the dummy T17, the VFD switches to the

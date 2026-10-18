@@ -10,7 +10,7 @@
 ; M72 so a restored M3/M4 doesn't restart the spindle.
 ;
 ; HAL (io.hal, postgui.hal):
-;   in-00 spindle not turning   in-02 air pressure ok   in-03 tool clamped
+;   in-00 spindle not turning   in-02 air pressure ok   in-03 tool present and clamped
 ;   in-04 tool released         in-05 all joints homed      in-08 dust hood down
 ;   out-00 drawbar release      out-07 flush air
 ;   out-08 tool change area (m220.ngc / m221.ngc, cleared again by on_abort.ngc)
@@ -124,8 +124,11 @@ o<toolchange> sub
       #<ok> = [#5399 EQ 1]
       o110 if [#<ok>]
         G53 G1 Z[#<pz> + #<zrel>]
-        M66 P3 L0
-        #<ok> = [#5399 NE 1]   ; tool must be gone
+        M65 P0            ; drawbar up: tool present only if it came along
+        M66 P4 L4 Q3      ; wait for drawbar up
+        #<up> = [#5399 EQ 0]
+        M66 P3 L3 Q1      ; tool present?
+        #<ok> = [#<up> AND [#5399 EQ -1]]   ; drawbar up and tool gone
       o110 endif
 
       o120 if [#<ok> EQ 0]
@@ -143,7 +146,6 @@ o<toolchange> sub
       M61 Q0            ; tool is in its pocket: spindle empty if aborted from here
       #3990 = 0
 
-      M65 P0            ; drawbar up (empty)
       M62 P7            ; flush air on with the next move
       G53 G0 Z[#<pz> + #<zrel> + #<fz>]
       M63 P7            ; flush air off for the rest of the lift
@@ -176,7 +178,7 @@ o<toolchange> sub
       G53 G1 Z#<pz>
       M65 P7
       M65 P0            ; clamp
-      M66 P3 L3 Q3      ; wait for tool clamped
+      M66 P3 L3 Q3      ; wait for tool present and clamped
       #<ok> = [#5399 EQ 1]
       o220 if [#<ok> EQ 0]
         (msg, Tool change: new tool not clamped - machine off, operator must intervene)

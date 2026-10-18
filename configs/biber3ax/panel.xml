@@ -129,13 +129,13 @@
 
 <hbox>
 <led>
-  <halpin>"drawbar-up-led"</halpin>
+  <halpin>"tool-clamped-led"</halpin>
   <size>15</size>
   <on_color>"green"</on_color>
   <off_color>"grey"</off_color>
 </led>
 <label>
-  <text>"drawbar up (tool clamped)"</text>
+  <text>"tool present and clamped"</text>
 </label>
 </hbox>
 
@@ -147,7 +147,7 @@
   <off_color>"grey"</off_color>
 </led>
 <label>
-  <text>"drawbar down (not clamped)"</text>
+  <text>"drawbar down (released)"</text>
 </label>
 </hbox>
 

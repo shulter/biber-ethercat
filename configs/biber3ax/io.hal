@@ -27,7 +27,7 @@ net io-din1-5 <= lcec.0.io-din1.din-5   # pendant button positive jog — see pe
 # --- EL1808 #2 (digital inputs, slave idx 6) ---
 # net io-din2-0 <= lcec.0.io-din2.din-0   # VFD not turning
 # net io-din2-1 <= lcec.0.io-din2.din-1   # VFD spindle at speed
-net io-din2-2 <= lcec.0.io-din2.din-2   # HSK main spindle: tool clamped / drawbar up (TRUE = clamped) — see spindle interlock below
+net io-din2-2 <= lcec.0.io-din2.din-2   # HSK main spindle: tool present and clamped (drawbar up without tool: FALSE) — see spindle interlock below
 net io-din2-3 <= lcec.0.io-din2.din-3   # HSK main spindle: tool released / drawbar down (TRUE = released) — see spindle interlock below
 net io-din2-4 <= lcec.0.io-din2.din-4   # HSK spindle: not turning (back EMF measurement, TRUE = not turning) — see drawbar-release below
 net io-din2-5 <= lcec.0.io-din2.din-5   # X horizontal drill aggregate is up (TRUE = up) — tool change
@@ -244,7 +244,7 @@ net drawbar-release-out   <= drawbar-release.out   => lcec.0.io-dout3.dout-1   #
 net io-din2-4         => spindle-turning.in
 net spindle-turning   <= spindle-turning.out
 
-# Spindle start interlock: the spindle may only run with the tool clamped.
+# Spindle start interlock: the spindle may only run with a tool present and clamped.
 #
 #   tool-clamped = din2-2 (clamped) AND NOT din2-3 (released)
 #                  AND NOT drawbar release output
@@ -407,7 +407,7 @@ net pendant-jog-speed <= pendant-jog-speed.out-f => halui.axis.jog-speed
 # Inputs for M66, machine-off request for faults the operator must clear.
 # out-08 (tool change area / X limit) is wired in postgui.hal.
 net io-din3-0        => motion.digital-in-02   # air pressure ok
-net io-din2-2        => motion.digital-in-03   # tool clamped
+net io-din2-2        => motion.digital-in-03   # tool present and clamped
 net io-din2-3        => motion.digital-in-04   # tool released
 net io-din2-5        => motion.digital-in-06   # X horizontal boring aggregate up
 net io-din2-6        => motion.digital-in-07   # Y horizontal boring aggregate up

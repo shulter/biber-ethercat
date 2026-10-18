@@ -99,8 +99,8 @@ net spindle-speed-cmd => pyvcp.spindle-speed
 # also lights while the spindle coasts down after M5.
 net spindle-turning => pyvcp.spindle-turning-led
 
-# Drawbar LEDs, straight from the HSK clamp sensors (io.hal).
-net io-din2-2 => pyvcp.drawbar-up-led     # tool clamped
+# Drawbar LEDs, straight from the HSK sensors (io.hal). Both off = drawbar up, no tool.
+net io-din2-2 => pyvcp.tool-clamped-led   # tool present and clamped
 net io-din2-3 => pyvcp.drawbar-down-led   # tool released
 
 # --- Dust hood toggle button + "down" LED ---
