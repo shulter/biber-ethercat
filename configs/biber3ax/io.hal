@@ -116,7 +116,17 @@ net hsk-contactor     <= hsk-contactor-gate.out    => lcec.0.io-dout1.dout-3   #
 # 10 s later) so the KEB keeps the set while it ramps the motor down.
 net boring-contactor => lcec.0.io-dout1.dout-5   # KEB I1: parameter set 2, boring aggregate
 net hsk-contactor    => lcec.0.io-dout1.dout-6   # KEB I4: parameter set 5, HSK milling spindle
-net tc-flush-air <= motion.digital-out-07 => lcec.0.io-dout1.dout-7   # HSK spindle flush air — tool change
+# HSK spindle flush air: M6 (motion.digital-out-07) OR a 0.1 s pulse when the
+# pendant release button is let go (tool clamps).
+loadrt edge names=clamp-flush-pulse
+addf clamp-flush-pulse servo-thread
+addf tc-flush-or       servo-thread
+setp clamp-flush-pulse.in-edge      0           # falling edge
+setp clamp-flush-pulse.out-width-ns 100000000   # 0.1 s
+net io-din1-0      => clamp-flush-pulse.in
+net clamp-flush    <= clamp-flush-pulse.out       => tc-flush-or.in1
+net tc-flush-req   <= motion.digital-out-07       => tc-flush-or.in0
+net tc-flush-air   <= tc-flush-or.out             => lcec.0.io-dout1.dout-7
 
 # --- EL2808 #2 (digital outputs, slave idx 10) ---
 # net io-dout2-0 => lcec.0.io-dout2.dout-0   # oil dispenser X axis rack and pinion
