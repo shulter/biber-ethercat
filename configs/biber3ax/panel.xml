@@ -127,6 +127,30 @@
 </label>
 </hbox>
 
+<hbox>
+<led>
+  <halpin>"drawbar-up-led"</halpin>
+  <size>15</size>
+  <on_color>"green"</on_color>
+  <off_color>"grey"</off_color>
+</led>
+<label>
+  <text>"drawbar up (tool clamped)"</text>
+</label>
+</hbox>
+
+<hbox>
+<led>
+  <halpin>"drawbar-down-led"</halpin>
+  <size>15</size>
+  <on_color>"yellow"</on_color>
+  <off_color>"grey"</off_color>
+</led>
+<label>
+  <text>"drawbar down (not clamped)"</text>
+</label>
+</hbox>
+
 </vbox>
 </labelframe>
 
