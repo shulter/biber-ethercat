@@ -90,7 +90,7 @@
 <sdoConfig idx="2001" subIdx="15"><sdoDataRaw data="E8 03"/></sdoConfig>  <!-- C01.14 = 100.0 % -->
 <sdoConfig idx="2001" subIdx="16"><sdoDataRaw data="A0 0F"/></sdoConfig>  <!-- C01.15 = 4000 Hz -->
 <sdoConfig idx="2001" subIdx="17"><sdoDataRaw data="01 00"/></sdoConfig>  <!-- C01.16 = 1 0/1/2/5 -->
-<sdoConfig idx="2001" subIdx="18"><sdoDataRaw data="D4 03"/></sdoConfig>  <!-- C01.17 = 98.0 % -->
+<sdoConfig idx="2001" subIdx="18"><sdoDataRaw data="58 02"/></sdoConfig>  <!-- C01.17 = 60.0 % -->
 <sdoConfig idx="2001" subIdx="19"><sdoDataRaw data="3E 01"/></sdoConfig>  <!-- C01.18 = 318 Hz -->
 <sdoConfig idx="2001" subIdx="1C"><sdoDataRaw data="E8 03"/></sdoConfig>  <!-- C01.1B = 100.0 % -->
 <sdoConfig idx="2001" subIdx="31"><sdoDataRaw data="00 00"/></sdoConfig>  <!-- C01.30 = 0 0-4 -->

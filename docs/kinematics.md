@@ -9,8 +9,8 @@ accelerations are in `configs/biber3ax/biber3ax.ini`; the maxima below are mecha
 |-----------|-------|
 | Reduction | 10:1 |
 | Pinion | helical M2, 19°31'42", 18T → 18 × 2π / cos β = 120 mm/rev |
-| Travel per motor rev | **12 mm** |
-| **pos-scale** | 131072 / 12 = **10922.667** |
+| Travel per motor rev | **11.99816 mm** (nominal 12; TwinCAT: 119.9816 mm per pinion rev) |
+| **pos-scale** | 131072 / 11.99816 = **10924.342** |
 | Max velocity @ 5800 rpm | 1160 mm/s |
 
 Verified: 2000 mm workpiece read 2094.11 mm with the former straight-20T assumption (10434.4).
@@ -21,8 +21,8 @@ Verified: 2000 mm workpiece read 2094.11 mm with the former straight-20T assumpt
 |-----------|-------|
 | Belt | 24T → 60T = 2.5:1 |
 | Screw pitch | 25 mm |
-| Travel per motor rev | **10 mm** |
-| **pos-scale** | 131072 / 10 = **13107.2** |
+| Travel per motor rev | **9.99908 mm** (nominal 10; TwinCAT: 24.9977 mm per screw rev) |
+| **pos-scale** | 131072 / 9.99908 = **13108.406** |
 | Max velocity @ 5800 rpm | 967 mm/s |
 
 ## Z — direct ball screw
@@ -35,7 +35,7 @@ Verified: 2000 mm workpiece read 2094.11 mm with the former straight-20T assumpt
 
 ## Gantry
 
-- Motors are mirrored: joint 0 (x-left) `CIA402_POS_SCALE = -10922.667`, joint 1 (x-right) `+10922.667`.
+- Motors are mirrored: joint 0 (x-left) `CIA402_POS_SCALE = -10924.342`, joint 1 (x-right) `+10924.342`.
   If X moves the wrong way, flip both signs.
 - One home switch for both joints, tandem homing (same negative `HOME_SEQUENCE`). Square the gantry
   via per-joint `HOME_OFFSET`.

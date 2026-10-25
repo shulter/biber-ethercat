@@ -73,10 +73,10 @@ o<toolchange> sub
     (abort, Tool change: machine not homed)
   o32 endif
 
-  M66 P2 L0
-  o33 if [#5399 NE 1]
-    (abort, Tool change: air pressure too low)
-  o33 endif
+  ; M66 P2 L0
+  ; o33 if [#5399 NE 1]
+  ;   (abort, Tool change: air pressure too low)
+  ; o33 endif
 
   ; dust hood up for the change; put back at the end
   M66 P8 L0
@@ -139,10 +139,10 @@ o<toolchange> sub
         M65 P0
         M66 P3 L3 Q3
         G53 G1 X[#<px> + #<off>]
-        (msg, Tool change: tool not released or stuck in spindle - machine off, operator must intervene)
+        (msg, Tool change: tool release unsuccessful, tool still deteced)
         M64 P9
         M66 P0 L0
-        (abort, Tool change: tool not released or stuck in spindle - machine off, operator must intervene)
+        (abort, Tool change: tool not released - machine off, operator must intervene)
       o120 endif
       M61 Q0            ; tool is in its pocket: spindle empty if aborted from here
       #3990 = 0

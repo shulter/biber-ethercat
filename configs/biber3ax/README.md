@@ -111,6 +111,7 @@ Pocket positions and approach offsets: `toolchanger.ini` (`#INCLUDE`d into `bibe
 | M200 / M201 | Dust hood down / up (also panel toggle) |
 | M231 / M230 | Reg pins up / down |
 | M241 / M242 / M243 / M240 | Vacuum both / left / right / off |
+| M270 | X rack oiling cycle now (normally every 30 min of X movement) |
 
 ## Panel
 

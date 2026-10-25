@@ -26,7 +26,7 @@ net io-din1-5 <= lcec.0.io-din1.din-5   # pendant button positive jog — see pe
 
 # --- EL1808 #2 (digital inputs, slave idx 6) ---
 # net io-din2-0 <= lcec.0.io-din2.din-0   # VFD not turning
-# net io-din2-1 <= lcec.0.io-din2.din-1   # VFD spindle at speed
+net io-din2-1 <= lcec.0.io-din2.din-1   # VFD spindle at speed (TRUE = at speed) — see spindle at-speed wait below
 net io-din2-2 <= lcec.0.io-din2.din-2   # HSK main spindle: tool present and clamped (drawbar up without tool: FALSE) — see spindle interlock below
 net io-din2-3 <= lcec.0.io-din2.din-3   # HSK main spindle: tool released / drawbar down (TRUE = released) — see spindle interlock below
 net io-din2-4 <= lcec.0.io-din2.din-4   # HSK spindle: not turning (back EMF measurement, TRUE = not turning) — see drawbar-release below
@@ -129,8 +129,48 @@ net tc-flush-req   <= motion.digital-out-07       => tc-flush-or.in0
 net tc-flush-air   <= tc-flush-or.out             => lcec.0.io-dout1.dout-7
 
 # --- EL2808 #2 (digital outputs, slave idx 10) ---
-# net io-dout2-0 => lcec.0.io-dout2.dout-0   # oil dispenser X axis rack and pinion
-# net io-dout2-1 => lcec.0.io-dout2.dout-1   # Schmierung Blasluft
+# dout-0 / dout-1: X rack oiler — per 30 min of X movement (original TwinCAT:
+# 25 min) a 0.6 s pulse on the air-driven grease pump, 1 s pause, then 10 s
+# blow air pushes the dose through the line onto the rack (as the original).
+# M270 (remap/m270.ngc) starts the cycle by hand via motion.digital-out-21.
+# X moves while |joint.0.vel-cmd| >= 0.1 mm/s; integ sums the moving seconds.
+# Not persistent: restarts at 0 with LinuxCNC.
+loadrt wcomp          names=x-still
+loadrt conv_bit_float names=x-moving-float
+loadrt integ          names=x-oil-time
+loadrt comp           names=x-oil-due
+loadrt oneshot        names=x-oil-pulse,x-oil-pause,x-oil-air
+addf x-still        servo-thread
+addf x-moving       servo-thread
+addf x-moving-float servo-thread
+addf x-oil-time     servo-thread
+addf x-oil-due      servo-thread
+addf x-oil-start    servo-thread
+addf x-oil-pulse    servo-thread
+addf x-oil-pause    servo-thread
+addf x-oil-air      servo-thread
+setp x-still.min      -0.1
+setp x-still.max       0.1
+setp x-oil-due.in0      1800.0
+setp x-oil-pulse.width  0.6
+setp x-oil-pause.width  1.0
+setp x-oil-air.width   10.0
+setp x-oil-pause.rising  0   # both start on the falling edge of the previous step
+setp x-oil-pause.falling 1
+setp x-oil-air.rising    0
+setp x-oil-air.falling   1
+net x-vel-cmd     <= joint.0.vel-cmd    => x-still.in
+net x-vel-under   <= x-still.under      => x-moving.in0
+net x-vel-over    <= x-still.over       => x-moving.in1
+net x-moving      <= x-moving.out       => x-moving-float.in
+net x-moving-time <= x-moving-float.out => x-oil-time.in
+net x-oil-time    <= x-oil-time.out     => x-oil-due.in1
+net x-oil-due     <= x-oil-due.out      => x-oil-start.in0
+net x-oil-req     <= motion.digital-out-21 => x-oil-start.in1
+net x-oil-start   <= x-oil-start.out    => x-oil-pulse.in
+net x-oil         <= x-oil-pulse.out    => x-oil-time.reset x-oil-pause.in lcec.0.io-dout2.dout-0   # oil dispenser X axis rack and pinion
+net x-oil-pause   <= x-oil-pause.out    => x-oil-air.in
+net x-oil-air     <= x-oil-air.out      => lcec.0.io-dout2.dout-1   # Schmierung Blasluft
 # dout-2 / dout-3: VFD CW / CCW — wired after the spindle start interlock below.
 # Vacuum table (remap/m240..m243.ngc), via motion digital outputs:
 #   out-04 -> io-dout1-4 pump, out-05 -> dout2-4 left port open,
@@ -291,6 +331,15 @@ net spindle-reverse     <= spindle.0.reverse     => spindle-ccw-gate.in-0
 net spindle-inhibit-out => spindle-cw-gate.in-1 spindle-ccw-gate.in-1
 net spindle-cw  <= spindle-cw-gate.out  => lcec.0.io-dout2.dout-2   # VFD CW Clockwise
 net spindle-ccw <= spindle-ccw-gate.out => lcec.0.io-dout2.dout-3   # VFD CCW Counter Clockwise
+
+# Spindle at-speed wait: after M3/M4 (or an S change) motion holds the next
+# feed move until spindle.0.at-speed. Rapids still run.
+#   at-speed = din2-1 OR NOT spindle.0.on   (lut5 0xB; TRUE while off, so M5 doesn't wait)
+addf spindle-at-speed servo-thread
+setp spindle-at-speed.function 0xB
+net io-din2-1            => spindle-at-speed.in-0
+net spindle-on           => spindle-at-speed.in-1
+net spindle-at-speed-out <= spindle-at-speed.out => spindle.0.at-speed
 
 # dout-2 / dout-3: dust hood pneumatic solenoids (TRUE = push up / push down).
 # The hood position is held in a flipflop (dust-hood): out = down solenoid,
