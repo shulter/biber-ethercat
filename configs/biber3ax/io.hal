@@ -179,10 +179,8 @@ net x-oil-air     <= x-oil-air.out      => lcec.0.io-dout2.dout-1   # Schmierung
 #   M243 pump on, right zone only   M240 pump off, both ports closed
 # The pump state is held in a flipflop (like the dust hood): M241-M243 pulse
 # out-04 onto set, M240 pulses out-20 onto reset, either foot switch or the
-# PyVCP button (postgui.hal) toggles it. Reset is also held while the machine is off, so the pump
-# stops on power off and stays off after power on until an M-code or button.
-# lut5 vacuum-pump-off (loaded in ethercat.hal): in-0 OR NOT in-1 -> 0xB.
-# lut5 vacuum-pump-toggle: in-0 OR in-1 OR in-2 -> 0xFE, onto clk.
+# PyVCP button (postgui.hal) toggles it. Machine off doesn't stop the pump.
+# lut5 vacuum-pump-toggle (loaded in ethercat.hal): in-0 OR in-1 OR in-2 -> 0xFE, onto clk.
 # Each port has separate open / close valves. The close valve (dout2-5 left,
 # dout2-7 right) is driven by the inverse of the open request (not
 # components), so exactly one of each pair is energised — both ports are
@@ -200,14 +198,10 @@ net vacuum-right-open   <= motion.digital-out-06 => lcec.0.io-dout2.dout-6 vacuu
 net vacuum-right-closed <= vacuum-right-close.out => lcec.0.io-dout2.dout-7                        # vaccuum port right close
 
 loadrt flipflop names=vacuum-pump,dust-hood   # dust-hood: see io-dout3 below
-addf vacuum-pump-off servo-thread
 addf vacuum-pump-toggle servo-thread
 addf vacuum-pump     servo-thread
-setp vacuum-pump-off.function 0xB
 setp vacuum-pump-toggle.function 0xFE
-net vacuum-pump-off-req <= motion.digital-out-20 => vacuum-pump-off.in-0
-net machine-enable                               => vacuum-pump-off.in-1
-net vacuum-pump-reset   <= vacuum-pump-off.out   => vacuum-pump.reset
+net vacuum-pump-off-req <= motion.digital-out-20 => vacuum-pump.reset
 net vacuum-pump-on-req  <= motion.digital-out-04 => vacuum-pump.set
 net vacuum-pump-on      <= vacuum-pump.out       => lcec.0.io-dout1.dout-4   # Vacuum pump Enable Contactor
 net vacuum-pump-is-off  <= vacuum-pump.out-not   => vacuum-pump.data

@@ -115,7 +115,7 @@ net dust-hood-down => pyvcp.dust-hood-down-led
 
 # --- Vacuum pump toggle button + "on" LED ---
 # ORed with the foot switches onto the vacuum-pump flipflop clk (io.hal);
-# ignored while the machine is off.
+# works with the machine off too.
 net vacuum-pump-toggle-btn pyvcp.vacuum-pump-toggle => vacuum-pump-toggle.in-2
 net vacuum-pump-on => pyvcp.vacuum-pump-on-led
 

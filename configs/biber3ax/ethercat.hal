@@ -65,7 +65,7 @@ net estop-ok          <= estop-chain.out             => iocontrol.0.emc-enable-i
 # motor, horizontal-up-valve drives the boring aggregates' common up valve, pendant-* the pendant jog,
 # spindle-at-speed the spindle at-speed wait; all set up and wired in io.hal — lut5 can
 # only be loadrt'd once, so all its instances are loaded here.)
-loadrt lut5      names=x-left-not-op,x-right-not-op,y-not-op,z-not-op,drawbar-release,spindle-inhibit,spindle-tool-fault,spindle-cw-gate,spindle-ccw-gate,hsk-contactor-gate,boring-contactor-gate,horizontal-up-valve,pendant-x-plus,pendant-x-minus,pendant-y-plus,pendant-y-minus,pendant-z-plus,pendant-z-minus,pendant-so-up,pendant-so-down,pendant-jog-up,pendant-jog-down,vacuum-pump-off,vacuum-pump-toggle,spindle-at-speed
+loadrt lut5      names=x-left-not-op,x-right-not-op,y-not-op,z-not-op,drawbar-release,spindle-inhibit,spindle-tool-fault,spindle-cw-gate,spindle-ccw-gate,hsk-contactor-gate,boring-contactor-gate,horizontal-up-valve,pendant-x-plus,pendant-x-minus,pendant-y-plus,pendant-y-minus,pendant-z-plus,pendant-z-minus,pendant-so-up,pendant-so-down,pendant-jog-up,pendant-jog-down,vacuum-pump-toggle,spindle-at-speed
 # (z-brake-delay is the Z brake release delay, spindle-contactor-delay the HSK
 # spindle contactor off-delay, both set up and wired in io.hal — timedelay can
 # only be loadrt'd once, so all its instances are loaded here.)
