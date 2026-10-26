@@ -1,229 +1,197 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Vantage 33M — PyVCP panel. AXIS renders this in the pane to the right of
-  the g-code preview automatically (see [DISPLAY] PYVCP in biber3ax.ini) —
-  no separate tab, no embedding setup needed. Layout copied from the
-  benchtest-servo config.
-
-  Shows live servo torque and speed for the 4 servos (X left, X right, Y, Z):
-  torque as a bidirectional bar (-11 to 0 to +11 Nm, ~ +/-peak torque), speed as absolute RPM
-  (0-6000), plus commanded spindle speed (0-24000 RPM), and a dust hood
-  up/down toggle button with a "down" LED. See postgui.hal for the HAL wiring.
-
-  Tag names (bar, min_, max_, halpin, text, labelframe) confirmed working
-  against a real AXIS/PyVCP. With min_ negative and max_ positive, PyVCP's
-  stock bar widget is assumed to fill from a center zero line — red toward
-  min_, green toward max_. If it doesn't color that way in practice, this
-  can be redone as two stacked bars (a green 0..+11 bar fed by
-  max(torque,0) and a red 0..+11 bar fed by -min(torque,0)) instead.
+  Vantage 33M — PyVCP panel (AXIS, [DISPLAY] PYVCP), wired in postgui.hal.
+  Servo torque (Nm, -11..+11 ~ peak) and speed (RPM), commanded spindle speed,
+  spindle / drawbar LEDs, vacuum pump and dust hood toggles, tool change area.
+  Bars: canvas_height < bar_height + 10 hides the min/max labels; the value
+  is shown inside the bar.
 -->
 <pyvcp>
 
-<labelframe text="Servo Torque">
-<vbox>
+<table>
+<tablesticky sticky="w"/>
+<tablerow/>
+<label><text>""</text></label>
+<label><text>"Torque Nm"</text></label>
+<label><text>"Speed RPM"</text></label>
 
-<label>
-  <text>"X Left Torque (Nm)"</text>
-</label>
+<tablerow/>
+<label><text>"X L"</text></label>
 <bar>
   <halpin>"x-left-torque"</halpin>
   <min_>-11</min_>
   <max_>11</max_>
+  <canvas_width>96</canvas_width>
+  <canvas_height>18</canvas_height>
+  <bar_width>92</bar_width>
+  <bar_height>16</bar_height>
+  <format>"3.1f"</format>
 </bar>
-
-<label>
-  <text>"X Right Torque (Nm)"</text>
-</label>
-<bar>
-  <halpin>"x-right-torque"</halpin>
-  <min_>-11</min_>
-  <max_>11</max_>
-</bar>
-
-<label>
-  <text>"Y Torque (Nm)"</text>
-</label>
-<bar>
-  <halpin>"y-torque"</halpin>
-  <min_>-11</min_>
-  <max_>11</max_>
-</bar>
-
-<label>
-  <text>"Z Torque (Nm)"</text>
-</label>
-<bar>
-  <halpin>"z-torque"</halpin>
-  <min_>-11</min_>
-  <max_>11</max_>
-</bar>
-
-</vbox>
-</labelframe>
-
-<labelframe text="Servo Speed">
-<vbox>
-
-<label>
-  <text>"X Left Speed (RPM)"</text>
-</label>
 <bar>
   <halpin>"x-left-rpm"</halpin>
   <min_>0</min_>
   <max_>6000</max_>
+  <canvas_width>96</canvas_width>
+  <canvas_height>18</canvas_height>
+  <bar_width>92</bar_width>
+  <bar_height>16</bar_height>
+  <format>"4.0f"</format>
 </bar>
 
-<label>
-  <text>"X Right Speed (RPM)"</text>
-</label>
+<tablerow/>
+<label><text>"X R"</text></label>
+<bar>
+  <halpin>"x-right-torque"</halpin>
+  <min_>-11</min_>
+  <max_>11</max_>
+  <canvas_width>96</canvas_width>
+  <canvas_height>18</canvas_height>
+  <bar_width>92</bar_width>
+  <bar_height>16</bar_height>
+  <format>"3.1f"</format>
+</bar>
 <bar>
   <halpin>"x-right-rpm"</halpin>
   <min_>0</min_>
   <max_>6000</max_>
+  <canvas_width>96</canvas_width>
+  <canvas_height>18</canvas_height>
+  <bar_width>92</bar_width>
+  <bar_height>16</bar_height>
+  <format>"4.0f"</format>
 </bar>
 
-<label>
-  <text>"Y Speed (RPM)"</text>
-</label>
+<tablerow/>
+<label><text>"Y"</text></label>
+<bar>
+  <halpin>"y-torque"</halpin>
+  <min_>-11</min_>
+  <max_>11</max_>
+  <canvas_width>96</canvas_width>
+  <canvas_height>18</canvas_height>
+  <bar_width>92</bar_width>
+  <bar_height>16</bar_height>
+  <format>"3.1f"</format>
+</bar>
 <bar>
   <halpin>"y-rpm"</halpin>
   <min_>0</min_>
   <max_>6000</max_>
+  <canvas_width>96</canvas_width>
+  <canvas_height>18</canvas_height>
+  <bar_width>92</bar_width>
+  <bar_height>16</bar_height>
+  <format>"4.0f"</format>
 </bar>
 
-<label>
-  <text>"Z Speed (RPM)"</text>
-</label>
+<tablerow/>
+<label><text>"Z"</text></label>
+<bar>
+  <halpin>"z-torque"</halpin>
+  <min_>-11</min_>
+  <max_>11</max_>
+  <canvas_width>96</canvas_width>
+  <canvas_height>18</canvas_height>
+  <bar_width>92</bar_width>
+  <bar_height>16</bar_height>
+  <format>"3.1f"</format>
+</bar>
 <bar>
   <halpin>"z-rpm"</halpin>
   <min_>0</min_>
   <max_>6000</max_>
+  <canvas_width>96</canvas_width>
+  <canvas_height>18</canvas_height>
+  <bar_width>92</bar_width>
+  <bar_height>16</bar_height>
+  <format>"4.0f"</format>
 </bar>
 
-</vbox>
-</labelframe>
-
-<labelframe text="Spindle">
-<vbox>
-
-<label>
-  <text>"Spindle Speed cmd (RPM)"</text>
-</label>
+<tablerow/>
+<label><text>"Spdl"</text></label>
+<tablespan columns="2"/>
 <bar>
   <halpin>"spindle-speed"</halpin>
   <min_>0</min_>
   <max_>24000</max_>
+  <canvas_width>192</canvas_width>
+  <canvas_height>18</canvas_height>
+  <bar_width>188</bar_width>
+  <bar_height>16</bar_height>
+  <format>"5.0f"</format>
 </bar>
+</table>
 
+<!-- spindle: turning (back EMF), at speed (VFD), tool present and clamped, drawbar released -->
 <hbox>
 <led>
   <halpin>"spindle-turning-led"</halpin>
-  <size>15</size>
+  <size>12</size>
   <on_color>"green"</on_color>
   <off_color>"grey"</off_color>
 </led>
-<label>
-  <text>"turning (back EMF)"</text>
-</label>
-</hbox>
-
-<hbox>
+<label><text>"turning"</text></label>
 <led>
   <halpin>"spindle-at-speed-led"</halpin>
-  <size>15</size>
+  <size>12</size>
   <on_color>"green"</on_color>
   <off_color>"grey"</off_color>
 </led>
-<label>
-  <text>"at speed (VFD)"</text>
-</label>
+<label><text>"at speed"</text></label>
 </hbox>
 
 <hbox>
 <led>
   <halpin>"tool-clamped-led"</halpin>
-  <size>15</size>
+  <size>12</size>
   <on_color>"green"</on_color>
   <off_color>"grey"</off_color>
 </led>
-<label>
-  <text>"tool present and clamped"</text>
-</label>
-</hbox>
-
-<hbox>
+<label><text>"tool clamped"</text></label>
 <led>
   <halpin>"drawbar-down-led"</halpin>
-  <size>15</size>
+  <size>12</size>
   <on_color>"yellow"</on_color>
   <off_color>"grey"</off_color>
 </led>
-<label>
-  <text>"drawbar down (released)"</text>
-</label>
+<label><text>"released"</text></label>
 </hbox>
 
-</vbox>
-</labelframe>
-
-<labelframe text="Vacuum Pump">
 <hbox>
-
 <button>
   <halpin>"vacuum-pump-toggle"</halpin>
-  <text>"Pump On / Off"</text>
+  <text>"Vacuum"</text>
 </button>
 <led>
   <halpin>"vacuum-pump-on-led"</halpin>
-  <size>15</size>
+  <size>12</size>
   <on_color>"green"</on_color>
   <off_color>"grey"</off_color>
 </led>
-<label>
-  <text>"on"</text>
-</label>
-
-</hbox>
-</labelframe>
-
-<labelframe text="Dust Hood">
-<hbox>
-
 <button>
   <halpin>"dust-hood-toggle"</halpin>
-  <text>"Hood Up / Down"</text>
+  <text>"Hood"</text>
 </button>
 <led>
   <halpin>"dust-hood-down-led"</halpin>
-  <size>15</size>
+  <size>12</size>
   <on_color>"green"</on_color>
   <off_color>"grey"</off_color>
 </led>
-<label>
-  <text>"down"</text>
-</label>
-
+<label><text>"down"</text></label>
 </hbox>
-</labelframe>
 
-<labelframe text="X Limit">
 <hbox>
-
 <checkbutton>
   <halpin>"tc-area-check"</halpin>
   <text>"Tool change area"</text>
 </checkbutton>
 <led>
   <halpin>"tc-area-led"</halpin>
-  <size>15</size>
+  <size>12</size>
   <on_color>"yellow"</on_color>
   <off_color>"grey"</off_color>
 </led>
-<label>
-  <text>"active"</text>
-</label>
-
 </hbox>
-</labelframe>
 
 </pyvcp>
