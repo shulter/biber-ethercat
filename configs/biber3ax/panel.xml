@@ -122,76 +122,81 @@
 </bar>
 </table>
 
-<!-- spindle: turning (back EMF), at speed (VFD), tool present and clamped, drawbar released -->
-<hbox>
+<!-- status LEDs, then toggles: LED left, its text / button right; one per row -->
+<table>
+<tablesticky sticky="w"/>
+<tablerow/>
 <led>
   <halpin>"spindle-turning-led"</halpin>
-  <size>12</size>
+  <size>14</size>
   <on_color>"green"</on_color>
   <off_color>"grey"</off_color>
 </led>
-<label><text>"turning"</text></label>
+<label><text>"Spindle turning"</text><padx>6</padx></label>
+<tablerow/>
 <led>
   <halpin>"spindle-at-speed-led"</halpin>
-  <size>12</size>
+  <size>14</size>
   <on_color>"green"</on_color>
   <off_color>"grey"</off_color>
 </led>
-<label><text>"at speed"</text></label>
-</hbox>
-
-<hbox>
+<label><text>"Spindle at speed"</text><padx>6</padx></label>
+<tablerow/>
 <led>
   <halpin>"tool-clamped-led"</halpin>
-  <size>12</size>
+  <size>14</size>
   <on_color>"green"</on_color>
   <off_color>"grey"</off_color>
 </led>
-<label><text>"tool clamped"</text></label>
+<label><text>"Tool clamped"</text><padx>6</padx></label>
+<tablerow/>
 <led>
   <halpin>"drawbar-down-led"</halpin>
-  <size>12</size>
+  <size>14</size>
   <on_color>"yellow"</on_color>
   <off_color>"grey"</off_color>
 </led>
-<label><text>"released"</text></label>
-</hbox>
-
-<hbox>
-<button>
-  <halpin>"vacuum-pump-toggle"</halpin>
-  <text>"Vacuum"</text>
-</button>
+<label><text>"Drawbar released"</text><padx>6</padx></label>
+<tablerow/>
+<label><text>""</text></label>
+<label><text>""</text></label>
+<tablerow/>
 <led>
   <halpin>"vacuum-pump-on-led"</halpin>
-  <size>12</size>
+  <size>14</size>
+  <on_color>"green"</on_color>
+  <off_color>"grey"</off_color>
+</led>
+<button>
+  <halpin>"vacuum-pump-toggle"</halpin>
+  <text>"Vacuum pump"</text>
+  <width>16</width>
+</button>
+<tablerow/>
+<led>
+  <halpin>"dust-hood-down-led"</halpin>
+  <size>14</size>
   <on_color>"green"</on_color>
   <off_color>"grey"</off_color>
 </led>
 <button>
   <halpin>"dust-hood-toggle"</halpin>
-  <text>"Hood"</text>
+  <text>"Dust hood down"</text>
+  <width>16</width>
 </button>
-<led>
-  <halpin>"dust-hood-down-led"</halpin>
-  <size>12</size>
-  <on_color>"green"</on_color>
-  <off_color>"grey"</off_color>
-</led>
-<label><text>"down"</text></label>
-</hbox>
-
-<hbox>
-<checkbutton>
-  <halpin>"tc-area-check"</halpin>
-  <text>"Tool change area"</text>
-</checkbutton>
+<tablerow/>
 <led>
   <halpin>"tc-area-led"</halpin>
-  <size>12</size>
+  <size>14</size>
   <on_color>"yellow"</on_color>
   <off_color>"grey"</off_color>
 </led>
-</hbox>
+<checkbutton>
+  <halpin>"tc-area-check"</halpin>
+  <text>"Tool change area"</text>
+  <width>16</width>
+  <anchor>"w"</anchor>
+</checkbutton>
+</table>
 
 </pyvcp>
