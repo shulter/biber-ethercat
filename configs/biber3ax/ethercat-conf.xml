@@ -65,6 +65,8 @@
                     <pdoEntry idx="6064" subIdx="00" bitLen="32" halPin="actual-position" halType="s32" />
                     <pdoEntry idx="606C" subIdx="00" bitLen="32" halPin="actual-velocity" halType="s32"/>
                     <pdoEntry idx="6077" subIdx="00" bitLen="16" halPin="actual-torque" halType="s32"/>
+                    <!-- 0x2040:08 U40.07 average load ratio, 0.1 % of rated torque -> % -->
+                    <pdoEntry idx="2040" subIdx="08" bitLen="16" halPin="load-ratio" halType="float" scale="0.1"/>
                     <!-- 0x60F4 following error actual (counts), scaled to mm: 1 / CIA402_POS_SCALE (-10434.4, docs/kinematics.md) -->
                     <pdoEntry idx="60F4" subIdx="00" bitLen="32" halPin="following-error" halType="float" scale="-9.583684735e-05"/>
                     <pdoEntry idx="60FD" subIdx="0" bitLen="32" halType="complex">
@@ -137,6 +139,8 @@
                     <pdoEntry idx="6064" subIdx="00" bitLen="32" halPin="actual-position" halType="s32" />
                     <pdoEntry idx="606C" subIdx="00" bitLen="32" halPin="actual-velocity" halType="s32"/>
                     <pdoEntry idx="6077" subIdx="00" bitLen="16" halPin="actual-torque" halType="s32"/>
+                    <!-- 0x2040:08 U40.07 average load ratio, 0.1 % of rated torque -> % -->
+                    <pdoEntry idx="2040" subIdx="08" bitLen="16" halPin="load-ratio" halType="float" scale="0.1"/>
                     <!-- 0x60F4 following error actual (counts), scaled to mm: 1 / CIA402_POS_SCALE (10434.4, docs/kinematics.md) -->
                     <pdoEntry idx="60F4" subIdx="00" bitLen="32" halPin="following-error" halType="float" scale="9.583684735e-05"/>
                     <pdoEntry idx="60FD" subIdx="0" bitLen="32" halType="complex">
@@ -209,6 +213,8 @@
                     <pdoEntry idx="6064" subIdx="00" bitLen="32" halPin="actual-position" halType="s32" />
                     <pdoEntry idx="606C" subIdx="00" bitLen="32" halPin="actual-velocity" halType="s32"/>
                     <pdoEntry idx="6077" subIdx="00" bitLen="16" halPin="actual-torque" halType="s32"/>
+                    <!-- 0x2040:08 U40.07 average load ratio, 0.1 % of rated torque -> % -->
+                    <pdoEntry idx="2040" subIdx="08" bitLen="16" halPin="load-ratio" halType="float" scale="0.1"/>
                     <!-- 0x60F4 following error actual (counts), scaled to mm: 1 / CIA402_POS_SCALE (13107.2, docs/kinematics.md) -->
                     <pdoEntry idx="60F4" subIdx="00" bitLen="32" halPin="following-error" halType="float" scale="7.629394531e-05"/>
                     <pdoEntry idx="60FD" subIdx="0" bitLen="32" halType="complex">
@@ -281,6 +287,8 @@
                     <pdoEntry idx="6064" subIdx="00" bitLen="32" halPin="actual-position" halType="s32" />
                     <pdoEntry idx="606C" subIdx="00" bitLen="32" halPin="actual-velocity" halType="s32"/>
                     <pdoEntry idx="6077" subIdx="00" bitLen="16" halPin="actual-torque" halType="s32"/>
+                    <!-- 0x2040:08 U40.07 average load ratio, 0.1 % of rated torque -> % -->
+                    <pdoEntry idx="2040" subIdx="08" bitLen="16" halPin="load-ratio" halType="float" scale="0.1"/>
                     <!-- 0x60F4 following error actual (counts), scaled to mm: 1 / CIA402_POS_SCALE (26214.4, docs/kinematics.md) -->
                     <pdoEntry idx="60F4" subIdx="00" bitLen="32" halPin="following-error" halType="float" scale="3.814697266e-05"/>
                     <pdoEntry idx="60FD" subIdx="0" bitLen="32" halType="complex">

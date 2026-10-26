@@ -5,14 +5,13 @@
 # this can't live in ethercat.hal.
 #
 # Each realtime component (conv_s32_float, scale, abs) can only be loadrt'd
-# once per HAL session, even with multiple named instances. The *-torque-scale
-# and *-vel-scale instances are loaded+addf'd in ethercat.hal together with
-# spindle-scale, so they are only setp'd/netted here.
+# once per HAL session, even with multiple named instances. The *-vel-scale
+# instances are loaded+addf'd in ethercat.hal together with spindle-scale, so
+# they are only setp'd/netted here.
 #
-# 6077h "torque actual value" (the actual-torque PDO entry mapped in
-# ethercat-conf.xml) is CiA402-standard units: 0.1% of rated torque, raw
-# 1000 = 100% of rated torque. The motors' rated torque is 3.18 Nm (peak
-# 11.13 Nm = 350%, raw 3500), so the panel bars span -11..+11 Nm.
+# Servo load: drive monitor U40.07 (0x2040:08) "average load ratio", the
+# drive's average torque in % of rated torque (its overload protection value),
+# mapped as lcec.0.<name>.load-ratio in % (ethercat-conf.xml).
 #
 # 606Ch "velocity actual value" raw units are assumed to be encoder counts/s
 # (device default, no SI velocity object configured). RPM = counts/s *
@@ -20,11 +19,7 @@
 # Verify this against the A6/SV660N drive parameters; if the drive reports
 # SI-scaled velocity instead, the *-vel-scale.gain values below are wrong.
 
-loadrt conv_s32_float names=x-left-torque-conv,x-right-torque-conv,y-torque-conv,z-torque-conv,x-left-vel-conv,x-right-vel-conv,y-vel-conv,z-vel-conv
-addf x-left-torque-conv  servo-thread
-addf x-right-torque-conv servo-thread
-addf y-torque-conv       servo-thread
-addf z-torque-conv       servo-thread
+loadrt conv_s32_float names=x-left-vel-conv,x-right-vel-conv,y-vel-conv,z-vel-conv
 addf x-left-vel-conv     servo-thread
 addf x-right-vel-conv    servo-thread
 addf y-vel-conv          servo-thread
@@ -36,33 +31,17 @@ addf x-right-vel-abs servo-thread
 addf y-vel-abs       servo-thread
 addf z-vel-abs       servo-thread
 
-# 3.18 Nm / 1000 (raw units at 100% rated torque) = 0.00318 Nm per raw count
-setp x-left-torque-scale.gain  -0.00318  # negative: matches JOINT_0 pos-scale < 0 (mirrored gantry motors)
-setp x-right-torque-scale.gain 0.00318
-setp y-torque-scale.gain       0.00318
-setp z-torque-scale.gain       0.00318
-
 # 60 / 131072 = 0.00045777 RPM per count/s
 setp x-left-vel-scale.gain  0.00045777
 setp x-right-vel-scale.gain 0.00045777
 setp y-vel-scale.gain       0.00045777
 setp z-vel-scale.gain       0.00045777
 
-# --- Torque (X left, X right, Y, Z — Nm, signed) ---
-net x-left-torque-raw   <= lcec.0.x-left.actual-torque  => x-left-torque-conv.in
-net x-right-torque-raw  <= lcec.0.x-right.actual-torque => x-right-torque-conv.in
-net y-torque-raw        <= lcec.0.y.actual-torque       => y-torque-conv.in
-net z-torque-raw        <= lcec.0.z.actual-torque       => z-torque-conv.in
-
-net x-left-torque-f   x-left-torque-conv.out  => x-left-torque-scale.in
-net x-right-torque-f  x-right-torque-conv.out => x-right-torque-scale.in
-net y-torque-f        y-torque-conv.out       => y-torque-scale.in
-net z-torque-f        z-torque-conv.out       => z-torque-scale.in
-
-net x-left-torque-nm   x-left-torque-scale.out  => pyvcp.x-left-torque
-net x-right-torque-nm  x-right-torque-scale.out => pyvcp.x-right-torque
-net y-torque-nm        y-torque-scale.out       => pyvcp.y-torque
-net z-torque-nm        z-torque-scale.out       => pyvcp.z-torque
+# --- Servo load (X left, X right, Y, Z — % of rated torque, average) ---
+net x-left-load   <= lcec.0.x-left.load-ratio  => pyvcp.x-left-load
+net x-right-load  <= lcec.0.x-right.load-ratio => pyvcp.x-right-load
+net y-load        <= lcec.0.y.load-ratio       => pyvcp.y-load
+net z-load        <= lcec.0.z.load-ratio       => pyvcp.z-load
 
 # --- Speed (X left, X right, Y, Z — RPM, absolute value) ---
 # actual-velocity is already netted to cia402 in ethercat.hal (a HAL pin can

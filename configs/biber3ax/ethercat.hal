@@ -210,17 +210,13 @@ net z-drv-target-vel cia402.3.drv-target-velocity   => lcec.0.z.target-velocity
 # unless the spindle is actually commanded on.
 # The "scale" RT component can only be loadrt'd once per HAL session, even
 # for multiple named instances — so every scale instance needed anywhere in
-# this config (here, plus the torque/speed display instances postgui.hal nets up
+# this config (here, plus the speed display instances postgui.hal nets up
 # once the GUI has loaded) is loaded together in this one call, in this file,
 # since ethercat.hal loads first. postgui.hal only setp/nets these pins —
 # loadrt or addf'ing "scale" again there would fail with "already exists" /
 # "already in thread".
-loadrt scale names=spindle-scale,x-left-torque-scale,x-right-torque-scale,y-torque-scale,z-torque-scale,x-left-vel-scale,x-right-vel-scale,y-vel-scale,z-vel-scale
+loadrt scale names=spindle-scale,x-left-vel-scale,x-right-vel-scale,y-vel-scale,z-vel-scale
 addf spindle-scale        servo-thread
-addf x-left-torque-scale  servo-thread
-addf x-right-torque-scale servo-thread
-addf y-torque-scale       servo-thread
-addf z-torque-scale       servo-thread
 addf x-left-vel-scale     servo-thread
 addf x-right-vel-scale    servo-thread
 addf y-vel-scale          servo-thread

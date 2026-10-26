@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   Vantage 33M — PyVCP panel (AXIS, [DISPLAY] PYVCP), wired in postgui.hal.
-  Servo torque (Nm, -11..+11 ~ peak) and speed (RPM), commanded spindle speed,
+  Servo load (average, % of rated torque) and speed (RPM), commanded spindle speed,
   spindle / drawbar LEDs, vacuum pump and dust hood toggles, dust hood keep-up, tool change area.
   Bars: canvas_height < bar_height + 10 hides the min/max labels; the value
   is shown inside the bar.
@@ -12,20 +12,20 @@
 <tablesticky sticky="w"/>
 <tablerow/>
 <label><text>""</text></label>
-<label><text>"Torque Nm"</text></label>
+<label><text>"Servo load %"</text></label>
 <label><text>"Speed RPM"</text></label>
 
 <tablerow/>
 <label><text>"X L"</text></label>
 <bar>
-  <halpin>"x-left-torque"</halpin>
-  <min_>-11</min_>
-  <max_>11</max_>
+  <halpin>"x-left-load"</halpin>
+  <min_>0</min_>
+  <max_>200</max_>
   <canvas_width>96</canvas_width>
   <canvas_height>18</canvas_height>
   <bar_width>92</bar_width>
   <bar_height>16</bar_height>
-  <format>"3.1f"</format>
+  <format>"3.0f"</format>
 </bar>
 <bar>
   <halpin>"x-left-rpm"</halpin>
@@ -41,14 +41,14 @@
 <tablerow/>
 <label><text>"X R"</text></label>
 <bar>
-  <halpin>"x-right-torque"</halpin>
-  <min_>-11</min_>
-  <max_>11</max_>
+  <halpin>"x-right-load"</halpin>
+  <min_>0</min_>
+  <max_>200</max_>
   <canvas_width>96</canvas_width>
   <canvas_height>18</canvas_height>
   <bar_width>92</bar_width>
   <bar_height>16</bar_height>
-  <format>"3.1f"</format>
+  <format>"3.0f"</format>
 </bar>
 <bar>
   <halpin>"x-right-rpm"</halpin>
@@ -64,14 +64,14 @@
 <tablerow/>
 <label><text>"Y"</text></label>
 <bar>
-  <halpin>"y-torque"</halpin>
-  <min_>-11</min_>
-  <max_>11</max_>
+  <halpin>"y-load"</halpin>
+  <min_>0</min_>
+  <max_>200</max_>
   <canvas_width>96</canvas_width>
   <canvas_height>18</canvas_height>
   <bar_width>92</bar_width>
   <bar_height>16</bar_height>
-  <format>"3.1f"</format>
+  <format>"3.0f"</format>
 </bar>
 <bar>
   <halpin>"y-rpm"</halpin>
@@ -87,14 +87,14 @@
 <tablerow/>
 <label><text>"Z"</text></label>
 <bar>
-  <halpin>"z-torque"</halpin>
-  <min_>-11</min_>
-  <max_>11</max_>
+  <halpin>"z-load"</halpin>
+  <min_>0</min_>
+  <max_>200</max_>
   <canvas_width>96</canvas_width>
   <canvas_height>18</canvas_height>
   <bar_width>92</bar_width>
   <bar_height>16</bar_height>
-  <format>"3.1f"</format>
+  <format>"3.0f"</format>
 </bar>
 <bar>
   <halpin>"z-rpm"</halpin>
