@@ -173,11 +173,10 @@ net x-oil-pause   <= x-oil-pause.out    => x-oil-air.in
 net x-oil-air     <= x-oil-air.out      => lcec.0.io-dout2.dout-1   # Schmierung Blasluft
 # dout-2 / dout-3: VFD CW / CCW — wired after the spindle start interlock below.
 # Vacuum table (remap/m240..m243.ngc), via motion digital outputs:
-#   out-04 -> io-dout1-4 pump, out-05 -> dout2-4 left port open,
-#   out-06 -> dout2-6 right port open.
-#   M241 pump on, both zones   M242 pump on, left zone only
-#   M243 pump on, right zone only   M240 pump off, both ports closed
-# The pump state is held in a flipflop (like the dust hood): M241-M243 pulse
+#   out-04 -> io-dout1-4 pump, out-05 -> dout2-4 left gate open,
+#   out-06 -> dout2-6 right gate open.
+#   M241 / M240 pump on / off, M242 / M243 [P0] left / right gate open [close].
+# The pump state is held in a flipflop (like the dust hood): M241 pulses
 # out-04 onto set, M240 pulses out-20 onto reset, either foot switch or the
 # PyVCP button (postgui.hal) toggles it. Machine off doesn't stop the pump.
 # lut5 vacuum-pump-toggle (loaded in ethercat.hal): in-0 OR in-1 OR in-2 -> 0xFE, onto clk.

@@ -1,15 +1,19 @@
-; M242 — vacuum pump on, left zone only.
-; Remapped in biber3ax.ini: REMAP = M242 modalgroup=10 ngc=m242
+; M242 [P0] — open the left vacuum gate; P0 closes it. Pump unchanged.
+; Remapped in biber3ax.ini: REMAP = M242 modalgroup=10 argspec=p ngc=m242
 ; Vacuum outputs (io.hal): motion.digital-out-04 / -20 pulse pump on / off,
-; -05 -> io-dout2.dout-4 left port open, -06 -> io-dout2.dout-6 right port open.
+; -05 -> io-dout2.dout-4 left gate open, -06 -> io-dout2.dout-6 right gate open.
 ; The close valves (dout2-5 left, dout2-7 right) follow as the inverse in HAL.
-; M240 off, M241 both zones, M242 left only, M243 right only.
+; M240 pump off, M241 pump on, M242 [P0] left gate open [close], M243 [P0] right gate.
 
 o<m242> sub
-  M64 P5   ; open left port
-  M65 P6   ; close right port
-  M64 P4   ; pump on (pulse onto vacuum-pump flipflop set, io.hal)
-  G4 P0.05
-  M65 P4
+  #<open> = 1
+  o10 if [EXISTS[#<p>]]
+    #<open> = [#<p> NE 0]
+  o10 endif
+  o20 if [#<open> EQ 0]
+    M65 P5   ; close left gate
+  o20 else
+    M64 P5   ; open left gate
+  o20 endif
 o<m242> endsub
 M2
