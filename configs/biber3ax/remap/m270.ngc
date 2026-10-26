@@ -1,0 +1,11 @@
+; M270 — run the X rack oiling cycle now (oil, pause, blow air).
+; Remapped in biber3ax.ini: REMAP = M270 modalgroup=10 ngc=m270
+; Pulses motion.digital-out-21 (M64/M65 P21) onto the oiler trigger in io.hal;
+; the cycle runs on in HAL, the program doesn't wait for it.
+
+o<m270> sub
+  M64 P21
+  G4 P0.05
+  M65 P21
+o<m270> endsub
+M2

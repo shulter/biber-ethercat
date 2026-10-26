@@ -1,23 +1,23 @@
 T1  P1  ;placeholder tool
-T2  P2  D12  ;end mill 12mm PCD 3F compr
-T3  P3  D3.3  ;drill 3.3 mm
-T4  P4  D12  ;chamfer tool 12 mm
-T5  P5  D8  ;straight flute end mill 8 mm
+T2  P2  Z108.989189  D12  ;end mill 12mm PCD 3F compr
+T3  P3  Z123.273817  D3.3  ;drill 3.3 mm
+T4  P4  Z102.966357  D12  ;chamfer tool 12 mm
+T5  P5  Z113.663493  D8  ;straight flute end mill 8 mm
 T6  P6  Z233.390125  D12  ;roughing end mill 12 mm
-T7  P7  D5  ;drill 5 mm
-T8  P8  D3.175  ;end mill 3.175 mm
-T9  P9  D6  ;end mill 6mm 2f straight
-T10  P10  D140  ;four flute planer 140 mm
-T11  P11  D6  ;end mill 6 mm
-T12  P12  D20  ;ball end mill 20 mm, 2 flute
-T13  P13  ;corner rounding end mill R3 - set diameter
-T14  P14  ;to be determined
-T15  P15  ;to be determined
-T16  P16  Z219.036563  ;to be determined
+T7  P7  Z117.858168  D5  ;drill 5 mm
+T8  P8  Z97.070129  D3.175  ;end mill 3.175 mm
+T9  P9  Z99.433447  D6  ;end mill 6mm 2f straight
+T10  P10  Z140.091064  D8  ;tapered 2f ball D16/D8
+T11  P11  Z99.531677  D6  ;end mill 6 mm
+T12  P12  Z155.190818  D20  ;ball end mill 20 mm, 2 flute
+T13  P13  Z128.540962  ;corner rounding end mill R3 - set diameter
+T14  P14  Z114.596107  ;to be determined
+T15  P15  Z103.698012  ;to be determined
+T16  P16  Z97.331854  ;to be determined
 T17  P17  ;HSK dust seal dummy, in the spindle while boring
-T18  P18  ;to be determined
-T19  P19  ;to be determined
-T20  P20  ;to be determined
+T18  P18  Z121.325118  ;to be determined
+T19  P19  Z112.915656  ;to be determined
+T20  P20  Z110.684897  ;to be determined
 T101  P101  ;vertical boring spindle 1 - measure X/Y/Z offset to HSK spindle
 T102  P102  ;vertical boring spindle 2 - measure X/Y/Z offset to HSK spindle
 T103  P103  ;vertical boring spindle 3 - measure X/Y/Z offset to HSK spindle

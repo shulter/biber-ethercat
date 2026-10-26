@@ -2,7 +2,7 @@
 <!--
   Vantage 33M — PyVCP panel (AXIS, [DISPLAY] PYVCP), wired in postgui.hal.
   Servo torque (Nm, -11..+11 ~ peak) and speed (RPM), commanded spindle speed,
-  spindle / drawbar LEDs, vacuum pump and dust hood toggles, tool change area.
+  spindle / drawbar LEDs, vacuum pump and dust hood toggles, dust hood keep-up, tool change area.
   Bars: canvas_height < bar_height + 10 hides the min/max labels; the value
   is shown inside the bar.
 -->
@@ -184,6 +184,14 @@
   <text>"Dust hood down"</text>
   <width>16</width>
 </button>
+<tablerow/>
+<label><text>""</text></label>
+<checkbutton>
+  <halpin>"dust-hood-keep-up"</halpin>
+  <text>"Dust hood keep up"</text>
+  <width>16</width>
+  <anchor>"w"</anchor>
+</checkbutton>
 <tablerow/>
 <led>
   <halpin>"tc-area-led"</halpin>

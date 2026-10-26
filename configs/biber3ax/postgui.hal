@@ -112,6 +112,8 @@ net io-din2-3 => pyvcp.drawbar-down-led   # tool released
 # each press toggles the hood; works while a program runs, as it's pure HAL.
 net dust-hood-toggle-btn pyvcp.dust-hood-toggle => dust-hood.clk
 net dust-hood-down => pyvcp.dust-hood-down-led
+# "Dust hood keep up" override: holds the flipflop reset (io.hal).
+net dust-hood-keep-up <= pyvcp.dust-hood-keep-up => dust-hood-up-or.in1
 
 # --- Vacuum pump toggle button + "on" LED ---
 # ORed with the foot switches onto the vacuum-pump flipflop clk (io.hal);

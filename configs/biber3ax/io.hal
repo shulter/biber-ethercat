@@ -345,9 +345,14 @@ net spindle-at-speed-out <= spindle-at-speed.out => spindle.0.at-speed
 #   is pure HAL, so it works while a program is running.
 # The M-codes only pulse, so they never block the button, and the button
 # never confuses the M-codes: M200 always lowers, M201 always raises.
-addf dust-hood servo-thread
+# - The "Dust hood keep up" checkbox (pyvcp.dust-hood-keep-up, postgui.hal)
+#   holds reset via dust-hood-up-or; reset overrides set and clk, so while it
+#   is ticked M200, M6 and the button can't lower the hood.
+addf dust-hood       servo-thread
+addf dust-hood-up-or servo-thread
 net dust-hood-down-req <= motion.digital-out-01 => dust-hood.set
-net dust-hood-up-req   <= motion.digital-out-02 => dust-hood.reset
+net dust-hood-up-req   <= motion.digital-out-02 => dust-hood-up-or.in0
+net dust-hood-up-hold  <= dust-hood-up-or.out   => dust-hood.reset
 net dust-hood-down     <= dust-hood.out     => lcec.0.io-dout3.dout-3 motion.digital-in-08   # Dust hood down (in-08: M6 saves/restores it)
 net dust-hood-up       <= dust-hood.out-not => lcec.0.io-dout3.dout-2 dust-hood.data   # Dust hood up
 # net io-dout3-4 => lcec.0.io-dout3.dout-4   # Auflage rechts A1
