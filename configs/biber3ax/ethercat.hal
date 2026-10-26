@@ -71,7 +71,7 @@ loadrt lut5      names=x-left-not-op,x-right-not-op,y-not-op,z-not-op,drawbar-re
 # only be loadrt'd once, so all its instances are loaded here.)
 loadrt timedelay names=x-left-not-op-delay,x-right-not-op-delay,y-not-op-delay,z-not-op-delay,z-brake-delay,spindle-contactor-delay
 # (x-moving / x-oil-start are the X rack oiler's motion detect / trigger, wired in io.hal.)
-loadrt or2       names=x-left-fault-or,x-right-fault-or,y-fault-or,z-fault-or,tc-flush-or,x-moving,x-oil-start
+loadrt or2       names=x-left-fault-or,x-right-fault-or,y-fault-or,z-fault-or,tc-flush-or,x-moving,x-oil-start,tc-area-or
 addf x-left-not-op         servo-thread
 addf x-right-not-op        servo-thread
 addf y-not-op              servo-thread

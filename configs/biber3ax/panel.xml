@@ -206,4 +206,24 @@
 </hbox>
 </labelframe>
 
+<labelframe text="X Limit">
+<hbox>
+
+<checkbutton>
+  <halpin>"tc-area-check"</halpin>
+  <text>"Tool change area"</text>
+</checkbutton>
+<led>
+  <halpin>"tc-area-led"</halpin>
+  <size>15</size>
+  <on_color>"yellow"</on_color>
+  <off_color>"grey"</off_color>
+</led>
+<label>
+  <text>"active"</text>
+</label>
+
+</hbox>
+</labelframe>
+
 </pyvcp>

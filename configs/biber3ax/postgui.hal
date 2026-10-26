@@ -123,9 +123,13 @@ net vacuum-pump-on => pyvcp.vacuum-pump-on-led
 # X min limit from the work area ([AXIS_X]MIN_LIMIT) to
 # [TOOLCHANGER]X_MIN_LIMIT. Here because the ini.* pins are created by
 # milltask, which starts after the HALFILEs.
+# The panel check button does the same by hand, e.g. to jog out after an abort.
 loadrt mux2 names=tc-x-min-limit
+addf tc-area-or     servo-thread
 addf tc-x-min-limit servo-thread
 setp tc-x-min-limit.in0 [AXIS_X]MIN_LIMIT
 setp tc-x-min-limit.in1 [TOOLCHANGER]X_MIN_LIMIT
-net tc-area     <= motion.digital-out-08 => tc-x-min-limit.sel
+net tc-area       <= motion.digital-out-08 => tc-area-or.in0
+net tc-area-check <= pyvcp.tc-area-check   => tc-area-or.in1
+net tc-area-on    <= tc-area-or.out        => tc-x-min-limit.sel pyvcp.tc-area-led
 net x-min-limit <= tc-x-min-limit.out => ini.0.min_limit ini.1.min_limit ini.x.min_limit

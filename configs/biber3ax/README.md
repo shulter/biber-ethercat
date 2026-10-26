@@ -83,6 +83,7 @@ Pocket positions and approach offsets: `toolchanger.ini` (`#INCLUDE`d into `bibe
 - **Work area:** X ≥ `[AXIS_X]MIN_LIMIT` for jogging and programs (M220). M221 sets
   `motion.digital-out-08`, which lowers the X limit to `[TOOLCHANGER]X_MIN_LIMIT` (`ini.*` pins,
   `postgui.hal`). M6 does M221 … M220 itself; any abort restores the work area (`on_abort.ngc`).
+  Panel check button "Tool change area" does the same by hand, e.g. to jog out after an abort.
 - **Checks:** homed, air pressure (`io-din3.din-0`), tool sensor (`io-din2.din-2`) agrees with the
   loaded tool. M5 at the start without waiting; the spindle must be stopped at the first pocket +
   X_OFFSET (waits up to 10 s, else abort).
