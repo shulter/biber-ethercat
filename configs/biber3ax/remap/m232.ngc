@@ -1,0 +1,12 @@
+; M232 — raise the right side reg pins.
+; Remapped in biber3ax.ini: REMAP = M232 modalgroup=10 ngc=m232
+; Pulses motion.digital-out-23 (M64/M65 P23) onto the set of the reg-pins-right
+; flipflop in io.hal (io-dout3.dout-5). M231: left side, M230: all down.
+
+o<m232> sub
+  M65 P24             ; clear a down request left on by an aborted M230
+  M64 P23
+  G4 P0.05
+  M65 P23
+o<m232> endsub
+M2

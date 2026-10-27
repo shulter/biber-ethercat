@@ -110,7 +110,7 @@ Pocket positions and approach offsets: `toolchanger.ini` (`#INCLUDE`d into `bibe
 | M210 | Measure loaded tool length on the probe (`[TOOLCHANGER]PROBE_*`), write to tool table |
 | M250 / M251 | Release tool (checks spindle off + not turning) / clamp |
 | M200 / M201 | Dust hood down / up (also panel toggle) |
-| M231 / M230 | Reg pins up / down |
+| M231 / M232 / M230 | Reg pins left up / right up / all down (left foot switch toggles all) |
 | M241 / M240 | Vacuum pump on / off |
 | M242 / M243 [P0] | Open [close] left / right vacuum gate (pump unchanged) |
 | M270 | X rack oiling cycle now (normally every 30 min of X movement) |

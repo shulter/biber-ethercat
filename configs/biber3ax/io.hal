@@ -18,7 +18,7 @@
 net io-din1-0 <= lcec.0.io-din1.din-0   # pendant button for main spindle tool release (NO, TRUE = pressed) — see drawbar-release below
 # net io-din1-1 <= lcec.0.io-din1.din-1   # pendant button for reset
 net io-din1-2 <= lcec.0.io-din1.din-2   # footswitch right — toggles vacuum pump
-net io-din1-3 <= lcec.0.io-din1.din-3   # footswitch left — toggles vacuum pump
+net io-din1-3 <= lcec.0.io-din1.din-3   # footswitch left — toggles all reg pins up / down
 net io-din1-4 <= lcec.0.io-din1.din-4   # pendant button negative jog — see pendant jog below
 net io-din1-5 <= lcec.0.io-din1.din-5   # pendant button positive jog — see pendant jog below
 # net io-din1-6 <= lcec.0.io-din1.din-6   # pendant button F1 TBD
@@ -38,18 +38,18 @@ net io-din2-7 <= lcec.0.io-din2.din-7   # vacuum sensor, pressure ok (TRUE = ok)
 net io-din3-0 <= lcec.0.io-din3.din-0   # Pneumatic air sensor, pressure ok (TRUE = ok) — tool change
 # net io-din3-1 <= lcec.0.io-din3.din-1   # Dust hood is at position 1
 # net io-din3-2 <= lcec.0.io-din3.din-2   # Dust hood is at position 2
-net io-din3-3 <= lcec.0.io-din3.din-3   # reg pin 1 down (TRUE = down, out of the way) — panel LED
-net io-din3-4 <= lcec.0.io-din3.din-4   # reg pin 2 down
-net io-din3-5 <= lcec.0.io-din3.din-5   # reg pin 3 down
-net io-din3-6 <= lcec.0.io-din3.din-6   # reg pin 4 down
-net io-din3-7 <= lcec.0.io-din3.din-7   # reg pin 5 down
+net io-din3-3 <= lcec.0.io-din3.din-3   # reg pin Y0L down (TRUE = down, out of the way) — panel LED
+net io-din3-4 <= lcec.0.io-din3.din-4   # reg pin Y1R down
+net io-din3-5 <= lcec.0.io-din3.din-5   # reg pin Y1L down
+net io-din3-6 <= lcec.0.io-din3.din-6   # reg pin R down
+net io-din3-7 <= lcec.0.io-din3.din-7   # reg pin Y0R down
 
 # --- EL1808 #4 (digital inputs, slave idx 8) ---
 net io-din4-0 <= lcec.0.io-din4.din-0   # pendant axis select dial, grey-code bit 0 — see pendant jog below
 net io-din4-1 <= lcec.0.io-din4.din-1   # pendant axis select dial, grey-code bit 1
 net io-din4-2 <= lcec.0.io-din4.din-2   # pendant axis select dial, grey-code bit 2
 net io-din4-3 <= lcec.0.io-din4.din-3   # pendant axis select dial, grey-code bit 3
-net io-din4-4 <= lcec.0.io-din4.din-4   # reg pin 6 down
+net io-din4-4 <= lcec.0.io-din4.din-4   # reg pin L down
 # net io-din4-5 <= lcec.0.io-din4.din-5   # TODO: assign
 # net io-din4-6 <= lcec.0.io-din4.din-6   # TODO: assign
 # net io-din4-7 <= lcec.0.io-din4.din-7   # TODO: assign
@@ -118,7 +118,9 @@ net boring-contactor => lcec.0.io-dout1.dout-5   # KEB I1: parameter set 2, bori
 net hsk-contactor    => lcec.0.io-dout1.dout-6   # KEB I4: parameter set 5, HSK milling spindle
 # HSK spindle flange flush air (33Y7 Abblasdüse): M6 (motion.digital-out-07) OR
 # a 0.1 s pulse when the pendant release button is let go (tool clamps).
-loadrt edge names=clamp-flush-pulse
+# (edge can only be loadrt'd once: foot-left-edge / program-start-edge are
+# the reg pins' instances, see io-dout3 below.)
+loadrt edge names=clamp-flush-pulse,foot-left-edge,program-start-edge
 addf clamp-flush-pulse servo-thread
 addf tc-flush-or       servo-thread
 setp clamp-flush-pulse.in-edge      0           # falling edge
@@ -182,9 +184,10 @@ net x-oil-air     <= x-oil-air.out      => lcec.0.io-dout2.dout-1   # Schmierung
 #   out-06 -> dout2-6 right gate open.
 #   M241 / M240 pump on / off, M242 / M243 [P0] left / right gate open [close].
 # The pump state is held in a flipflop (like the dust hood): M241 pulses
-# out-04 onto set, M240 pulses out-20 onto reset, either foot switch or the
+# out-04 onto set, M240 pulses out-20 onto reset, the right foot switch or the
 # PyVCP button (postgui.hal) toggles it. Machine off doesn't stop the pump.
-# lut5 vacuum-pump-toggle (loaded in ethercat.hal): in-0 OR in-1 OR in-2 -> 0xFE, onto clk.
+# lut5 vacuum-pump-toggle (loaded in ethercat.hal): in-0 OR in-1 OR in-2 -> 0xFE, onto clk
+# (in-1 unused: the left foot switch toggles the reg pins).
 # Each port has separate open / close valves. The close valve (dout2-5 left,
 # dout2-7 right) is driven by the inverse of the open request (not
 # components), so exactly one of each pair is energised — both ports are
@@ -201,7 +204,7 @@ net vacuum-left-closed  <= vacuum-left-close.out => lcec.0.io-dout2.dout-5      
 net vacuum-right-open   <= motion.digital-out-06 => lcec.0.io-dout2.dout-6 vacuum-right-close.in   # vaccuum port right open
 net vacuum-right-closed <= vacuum-right-close.out => lcec.0.io-dout2.dout-7                        # vaccuum port right close
 
-loadrt flipflop names=vacuum-pump,dust-hood   # dust-hood: see io-dout3 below
+loadrt flipflop names=vacuum-pump,dust-hood,reg-pins-left,reg-pins-right   # dust-hood, reg-pins-*: see io-dout3 below
 addf vacuum-pump-toggle servo-thread
 addf vacuum-pump     servo-thread
 setp vacuum-pump-toggle.function 0xFE
@@ -210,7 +213,6 @@ net vacuum-pump-on-req  <= motion.digital-out-04 => vacuum-pump.set
 net vacuum-pump-on      <= vacuum-pump.out       => lcec.0.io-dout1.dout-4   # Vacuum pump Enable Contactor
 net vacuum-pump-is-off  <= vacuum-pump.out-not   => vacuum-pump.data
 net io-din1-2                                    => vacuum-pump-toggle.in-0
-net io-din1-3                                    => vacuum-pump-toggle.in-1
 net vacuum-pump-clk     <= vacuum-pump-toggle.out => vacuum-pump.clk
 
 # --- EL1018 (fast digital inputs, 10us, slave idx 11) ---
@@ -248,10 +250,61 @@ net z-neg-lim <= lcec.0.io-din5.din-4 => joint.3.neg-lim-sw-in                  
 # net io-power-ok <= lcec.0.io-power.power-ok
 
 # --- EL2808 #3 (digital outputs, slave idx 13) ---
-# dout-0: all reg pins (Y0, Y1, rechts, links) — TRUE = pins up / active.
-# Driven by M231 (up) / M230 (down) (remap/m231.ngc, m230.ngc) through
-# motion.digital-out-03 (M64/M65 P3). The pins stay where they were last put.
-net reg-pins-up <= motion.digital-out-03 => lcec.0.io-dout3.dout-0   # All reg pins up: Y0, Y1, rechts, links
+# dout-0 / dout-5: reg pins left / right side — TRUE = pins up. Each side is
+# held in a flipflop (starts down):
+# - M231 / M232 (remap/m231.ngc, m232.ngc) raise left / right: pulse
+#   motion.digital-out-03 / -23 onto set. M230 lowers both: out-24 onto reset.
+# - Left foot switch (io-din1-3, rising edge): all down if any side is up,
+#   else all up.
+# lut5, in-0 = foot edge, in-1 = left up, in-2 = right up, in-3 = M-code pulse:
+#   reg-left-set / reg-right-set  in-3 OR (in-0 AND NOT in-1 AND NOT in-2) -> 0xFF02
+#   reg-pins-down                 in-3 OR (in-0 AND (in-1 OR in-2))         -> 0xFFA8
+addf foot-left-edge  servo-thread
+addf reg-left-set    servo-thread
+addf reg-right-set   servo-thread
+addf reg-pins-down   servo-thread
+addf reg-pins-left   servo-thread
+addf reg-pins-right  servo-thread
+setp foot-left-edge.in-edge    1
+setp reg-left-set.function     0xFF02
+setp reg-right-set.function    0xFF02
+setp reg-pins-down.function    0xFFA8
+net io-din1-3                                    => foot-left-edge.in
+net foot-left-press    <= foot-left-edge.out     => reg-left-set.in-0 reg-right-set.in-0 reg-pins-down.in-0
+net reg-left-up-req    <= motion.digital-out-03  => reg-left-set.in-3
+net reg-right-up-req   <= motion.digital-out-23  => reg-right-set.in-3
+net reg-pins-down-req  <= motion.digital-out-24  => reg-pins-down.in-3
+net reg-left-set-out   <= reg-left-set.out       => reg-pins-left.set
+net reg-right-set-out  <= reg-right-set.out      => reg-pins-right.set
+net reg-pins-down-out  <= reg-pins-down.out      => reg-pins-left.reset reg-pins-right.reset
+net reg-pins-left-up   <= reg-pins-left.out      => lcec.0.io-dout3.dout-0 reg-left-set.in-1 reg-right-set.in-1 reg-pins-down.in-1   # Reg pins left side up
+net reg-pins-right-up  <= reg-pins-right.out     => lcec.0.io-dout3.dout-5 reg-left-set.in-2 reg-right-set.in-2 reg-pins-down.in-2   # Reg pins right side up
+
+# Program start with reg pins up: pause and warn. Start = interpreter leaves
+# idle in AUTO mode (falling edge of halui.program.is-idle, 0.1 s pulse so
+# halui sees it); up = any of the six "down" sensors FALSE.
+# lut5 reg-pins-not-down: NOT all of in-0..4 (din3-3..7) -> 0x7FFFFFFF
+# lut5 reg-pins-start-check: in-0 start AND in-1 auto AND (in-2 OR NOT in-3 (din4-4)) -> 0x8088
+loadrt message names=reg-pins-up-msg messages="Reg pins are up - program paused. Lower them (M230 or left foot switch) then resume."
+addf program-start-edge   servo-thread
+addf reg-pins-not-down    servo-thread
+addf reg-pins-start-check servo-thread
+addf reg-pins-up-msg      servo-thread
+setp program-start-edge.in-edge      0
+setp program-start-edge.out-width-ns 100000000
+setp reg-pins-not-down.function    0x7FFFFFFF
+setp reg-pins-start-check.function 0x8088
+net program-idle     <= halui.program.is-idle   => program-start-edge.in
+net program-start    <= program-start-edge.out  => reg-pins-start-check.in-0
+net mode-auto        <= halui.mode.is-auto      => reg-pins-start-check.in-1
+net io-din3-3        => reg-pins-not-down.in-0
+net io-din3-4        => reg-pins-not-down.in-1
+net io-din3-5        => reg-pins-not-down.in-2
+net io-din3-6        => reg-pins-not-down.in-3
+net io-din3-7        => reg-pins-not-down.in-4
+net reg-pins-not-down-1to5 <= reg-pins-not-down.out => reg-pins-start-check.in-2
+net io-din4-4        => reg-pins-start-check.in-3
+net reg-pins-up-at-start   <= reg-pins-start-check.out => halui.program.pause reg-pins-up-msg.trigger
 
 # dout-1: HSK spindle drawbar — TRUE pushes the drawbar and releases the tool.
 # Interlocked in HAL (lut5 drawbar-release, loaded in ethercat.hal):
@@ -361,7 +414,6 @@ net dust-hood-up-hold  <= dust-hood-up-or.out   => dust-hood.reset
 net dust-hood-down     <= dust-hood.out     => lcec.0.io-dout3.dout-3 motion.digital-in-08   # Dust hood down (in-08: M6 saves/restores it)
 net dust-hood-up       <= dust-hood.out-not => lcec.0.io-dout3.dout-2 dust-hood.data   # Dust hood up
 # dout-4: blow nozzle (33Y6), wired with the flush air above.
-# net io-dout3-5 => lcec.0.io-dout3.dout-5   # Auflage rechts A2
 # dout-6 / dout-7 and EL2808 #4: boring spindles, lowered by M6
 # (remap/tc_aggregate_down.ngc) and raised again at the next M6. The common
 # up valve is on while no horizontal aggregate is down:

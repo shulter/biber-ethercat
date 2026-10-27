@@ -1,9 +1,13 @@
-; M230 — lower all reg pins.
+; M230 — lower all reg pins (left and right).
 ; Remapped in biber3ax.ini: REMAP = M230 modalgroup=10 ngc=m230
-; Clears motion.digital-out-03 (M65 P3) -> io-dout3.dout-0
-; (all reg pins: Y0, Y1, rechts, links). M231 raises them.
+; Pulses motion.digital-out-24 (M64/M65 P24) onto the reset of both reg pin
+; flipflops in io.hal (io-dout3.dout-0 left, dout-5 right).
 
 o<m230> sub
-  M65 P3
+  M65 P3              ; clear up requests left on by an aborted M231 / M232
+  M65 P23
+  M64 P24
+  G4 P0.05
+  M65 P24
 o<m230> endsub
 M2
