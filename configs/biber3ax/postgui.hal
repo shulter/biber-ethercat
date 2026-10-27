@@ -104,6 +104,9 @@ net dust-hood-keep-up <= pyvcp.dust-hood-keep-up => dust-hood-up-or.in1
 net vacuum-pump-toggle-btn pyvcp.vacuum-pump-toggle => vacuum-pump-toggle.in-2
 net vacuum-pump-on => pyvcp.vacuum-pump-on-led
 
+# --- Blow nozzle button: air on while held (ORed with M210 in io.hal) ---
+net blow-nozzle-btn pyvcp.blow-nozzle => blow-nozzle-or.in1
+
 # Tool change area (M221 / M220, remap/m221.ngc / m220.ngc): motion.digital-out-08 switches the
 # X min limit from the work area ([AXIS_X]MIN_LIMIT) to
 # [TOOLCHANGER]X_MIN_LIMIT. Here because the ini.* pins are created by

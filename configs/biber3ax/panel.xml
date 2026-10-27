@@ -221,6 +221,13 @@
   <width>16</width>
   <anchor>"w"</anchor>
 </checkbutton>
+<tablerow/>
+<label><text>""</text></label>
+<button>
+  <halpin>"blow-nozzle"</halpin>
+  <text>"Blow nozzle"</text>
+  <width>16</width>
+</button>
 </table>
 
 </pyvcp>

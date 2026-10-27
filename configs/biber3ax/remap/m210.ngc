@@ -2,7 +2,7 @@
 ; Remapped in biber3ax.ini: REMAP = M210 modalgroup=10 ngc=m210
 ; Positions and feeds: [TOOLCHANGER]PROBE_* (toolchanger.ini), machine coordinates.
 ; Two stages: fast search, back off past the release point, slow measuring touch.
-; Probe: lcec.0.io-din5.din-0 -> motion.probe-input (io.hal). Flush air: out-07.
+; Probe: lcec.0.io-din5.din-0 -> motion.probe-input (io.hal). Blow nozzle: out-22.
 ; Tool length = trigger Z - PROBE_Z_REF, written with G10 L1 and applied with
 ; G43. Modal state is saved with M70 and restored with M72 before the G43
 ; (M73 would undo the G43 on return).
@@ -54,9 +54,9 @@ o<m210> sub
   G53 G0 Z#<_ini[TOOLCHANGER]PROBE_Z_START>
 
   ; --- quick air blast to clear the tool probe ---
-  M64 P7
+  M64 P22
   G4P0.5
-  M65 P7
+  M65 P22
   
   G53 G0 X#<_ini[TOOLCHANGER]PROBE_X> Y#<_ini[TOOLCHANGER]PROBE_Y>
   ; --- fast search ---
@@ -90,7 +90,7 @@ o<m210> sub
   (debug, M210: T#<tool> length #<len>)
 
   ; --- back out ---
-  M65 P7
+  M65 P22
   G53 G0 Z#<ztop>
   G53 G0 X#<xclr>
   o90 if [#<xclr> LT #<_ini[AXIS_X]MIN_LIMIT>]

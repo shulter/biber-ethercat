@@ -1,5 +1,5 @@
 ; on_abort — runs on every abort ([RS274NGC] ON_ABORT_COMMAND).
-; Flush air off, drawbar up, X limit back to the work area
+; Flush air and blow nozzle off, drawbar up, X limit back to the work area
 ; (tool change area off), X/Y acceleration restored, vacuum pump on/off pulses
 ; cleared (the pump itself keeps its state), dust hood up/down pulses cleared
 ; (the hood keeps its position), X oiler request cleared.
@@ -8,6 +8,7 @@
 
 o<on_abort> sub
   M65 P7
+  M65 P22
   M65 P0
   M65 P8
   M65 P1
