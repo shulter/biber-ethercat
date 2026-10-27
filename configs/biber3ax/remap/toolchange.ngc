@@ -127,7 +127,8 @@ o<toolchange> sub
         M65 P0            ; drawbar up: tool present only if it came along
         M66 P4 L4 Q3      ; wait for drawbar up
         #<up> = [#5399 EQ 0]
-        G4 P0.5           ; "tool present" flashes while the empty drawbar passes the clamp position (0.1 s too short)
+        G4 P0.3           ; measured after "released" low: empty drawbar flashes "present" at 135-170 ms,
+                          ; a tool shows "present" from 235 ms; 0.1 s caught the flash
         M66 P3 L0         ; tool present?
         #<ok> = [#<up> AND [#5399 EQ 0]]    ; drawbar up and tool gone
       o110 endif
