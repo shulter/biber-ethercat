@@ -88,7 +88,7 @@ Pocket positions and approach offsets: `toolchanger.ini` (`#INCLUDE`d into `bibe
   loaded tool. M5 at the start without waiting; the spindle must be stopped at the first pocket +
   X_OFFSET (waits up to 10 s, else abort).
 - **Deposit:** Z top → pocket + X_OFFSET → Z pocket → G1 into pocket → release + flush air → Z +RELEASE_Z →
-  drawbar up, tool must be gone (`din2-2` FALSE). Else: back down, clamp, move out, machine off (`halui.machine.off`), abort.
+  drawbar up, tool must be gone (`din2-2` FALSE). Else: no further move, machine off (`halui.machine.off`), abort; on_abort clamps the drawbar.
 - **Pick:** Z top → X +X_BACKOFF → pocket + X_OFFSET → above pocket → release + flush air → down to pocket Z → flush air off → clamp
   (must report clamped, else machine off) → out by X_OFFSET → Z top → X to work area.
 - **Boring tools (T101–107, T201–204):** HSK tool is swapped for the dummy T17, the VFD switches to the

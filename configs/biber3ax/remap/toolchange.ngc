@@ -127,22 +127,18 @@ o<toolchange> sub
         M65 P0            ; drawbar up: tool present only if it came along
         M66 P4 L4 Q3      ; wait for drawbar up
         #<up> = [#5399 EQ 0]
-        G4 P0.1           ; "tool present" flashes while the empty drawbar passes the clamp position
+        G4 P0.5           ; "tool present" flashes while the empty drawbar passes the clamp position (0.1 s too short)
         M66 P3 L0         ; tool present?
         #<ok> = [#<up> AND [#5399 EQ 0]]    ; drawbar up and tool gone
       o110 endif
 
       o120 if [#<ok> EQ 0]
-        ; tool stuck: put it back, clamp, move out, machine off
+        ; tool not released or still detected: stay where we are, machine off
+        ; (on_abort clamps the drawbar)
         M65 P7
-        G53 G1 Z#<pz>
-        M65 P0
-        M66 P3 L3 Q3
-        G53 G1 X[#<px> + #<off>]
-        (msg, Tool change: tool release unsuccessful, tool still deteced)
         M64 P9
         M66 P0 L0
-        (abort, Tool change: tool not released - machine off, operator must intervene)
+        (abort, Tool change: tool not released or still in the spindle - machine off, operator must intervene)
       o120 endif
       M61 Q0            ; tool is in its pocket: spindle empty if aborted from here
       #3990 = 0
