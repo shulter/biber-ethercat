@@ -84,6 +84,14 @@ net io-din2-1 => pyvcp.spindle-at-speed-led
 
 # Drawbar LEDs, straight from the HSK sensors (io.hal). Both off = drawbar up, no tool.
 net io-din2-2 => pyvcp.tool-clamped-led   # tool present and clamped
+
+# Reg pins down sensors 1-6 (io.hal)
+net io-din3-3 => pyvcp.reg-pin-1-down-led
+net io-din3-4 => pyvcp.reg-pin-2-down-led
+net io-din3-5 => pyvcp.reg-pin-3-down-led
+net io-din3-6 => pyvcp.reg-pin-4-down-led
+net io-din3-7 => pyvcp.reg-pin-5-down-led
+net io-din4-4 => pyvcp.reg-pin-6-down-led
 net io-din2-3 => pyvcp.drawbar-down-led   # tool released
 
 # Air pressure / vacuum ok LEDs, straight from the pressure switches (io.hal).

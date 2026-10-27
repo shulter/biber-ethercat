@@ -230,4 +230,21 @@
 </button>
 </table>
 
+<!-- reg pins down sensors 1-6 (io.hal), one row, LED left of its number -->
+<hbox>
+<label><text>"Reg pins down"</text><padx>6</padx></label>
+<led><halpin>"reg-pin-1-down-led"</halpin><size>14</size><on_color>"green"</on_color><off_color>"grey"</off_color></led>
+<label><text>"1"</text><padx>4</padx></label>
+<led><halpin>"reg-pin-2-down-led"</halpin><size>14</size><on_color>"green"</on_color><off_color>"grey"</off_color></led>
+<label><text>"2"</text><padx>4</padx></label>
+<led><halpin>"reg-pin-3-down-led"</halpin><size>14</size><on_color>"green"</on_color><off_color>"grey"</off_color></led>
+<label><text>"3"</text><padx>4</padx></label>
+<led><halpin>"reg-pin-4-down-led"</halpin><size>14</size><on_color>"green"</on_color><off_color>"grey"</off_color></led>
+<label><text>"4"</text><padx>4</padx></label>
+<led><halpin>"reg-pin-5-down-led"</halpin><size>14</size><on_color>"green"</on_color><off_color>"grey"</off_color></led>
+<label><text>"5"</text><padx>4</padx></label>
+<led><halpin>"reg-pin-6-down-led"</halpin><size>14</size><on_color>"green"</on_color><off_color>"grey"</off_color></led>
+<label><text>"6"</text><padx>4</padx></label>
+</hbox>
+
 </pyvcp>

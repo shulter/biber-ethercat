@@ -38,18 +38,18 @@ net io-din2-7 <= lcec.0.io-din2.din-7   # vacuum sensor, pressure ok (TRUE = ok)
 net io-din3-0 <= lcec.0.io-din3.din-0   # Pneumatic air sensor, pressure ok (TRUE = ok) — tool change
 # net io-din3-1 <= lcec.0.io-din3.din-1   # Dust hood is at position 1
 # net io-din3-2 <= lcec.0.io-din3.din-2   # Dust hood is at position 2
-# net io-din3-3 <= lcec.0.io-din3.din-3   # TODO: assign
-# net io-din3-4 <= lcec.0.io-din3.din-4   # TODO: assign
-# net io-din3-5 <= lcec.0.io-din3.din-5   # TODO: assign
-# net io-din3-6 <= lcec.0.io-din3.din-6   # TODO: assign
-# net io-din3-7 <= lcec.0.io-din3.din-7   # TODO: assign
+net io-din3-3 <= lcec.0.io-din3.din-3   # reg pin 1 down (TRUE = down, out of the way) — panel LED
+net io-din3-4 <= lcec.0.io-din3.din-4   # reg pin 2 down
+net io-din3-5 <= lcec.0.io-din3.din-5   # reg pin 3 down
+net io-din3-6 <= lcec.0.io-din3.din-6   # reg pin 4 down
+net io-din3-7 <= lcec.0.io-din3.din-7   # reg pin 5 down
 
 # --- EL1808 #4 (digital inputs, slave idx 8) ---
 net io-din4-0 <= lcec.0.io-din4.din-0   # pendant axis select dial, grey-code bit 0 — see pendant jog below
 net io-din4-1 <= lcec.0.io-din4.din-1   # pendant axis select dial, grey-code bit 1
 net io-din4-2 <= lcec.0.io-din4.din-2   # pendant axis select dial, grey-code bit 2
 net io-din4-3 <= lcec.0.io-din4.din-3   # pendant axis select dial, grey-code bit 3
-# net io-din4-4 <= lcec.0.io-din4.din-4   # TODO: assign
+net io-din4-4 <= lcec.0.io-din4.din-4   # reg pin 6 down
 # net io-din4-5 <= lcec.0.io-din4.din-5   # TODO: assign
 # net io-din4-6 <= lcec.0.io-din4.din-6   # TODO: assign
 # net io-din4-7 <= lcec.0.io-din4.din-7   # TODO: assign
