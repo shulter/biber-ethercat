@@ -129,3 +129,9 @@ net tc-area       <= motion.digital-out-08 => tc-area-or.in0
 net tc-area-check <= pyvcp.tc-area-check   => tc-area-or.in1
 net tc-area-on    <= tc-area-or.out        => tc-x-min-limit.sel pyvcp.tc-area-led
 net x-min-limit <= tc-x-min-limit.out => ini.0.min_limit ini.1.min_limit ini.x.min_limit
+
+# Workshop power from the Shelly Pro 3EM (shelly-power.py, polls 1/s; panel shows it, ok LED red if unreachable).
+loadusr -Wn shelly ./shelly-power.py 172.20.10.2
+net shop-power-kw   shelly.power-kw    => pyvcp.shop-kw
+net shop-session-kwh shelly.session-kwh => pyvcp.session-kwh
+net shelly-ok       shelly.ok          => pyvcp.shelly-ok-led

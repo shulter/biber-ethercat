@@ -122,6 +122,15 @@
 </bar>
 </table>
 
+<!-- workshop power, Shelly Pro 3EM (shelly-power.py); LED = Shelly reachable -->
+<hbox>
+<led><halpin>"shelly-ok-led"</halpin><size>14</size><on_color>"green"</on_color><off_color>"red"</off_color></led>
+<label><text>"Shop kW"</text><padx>4</padx></label>
+<number><halpin>"shop-kw"</halpin><format>"5.2f"</format><width>6</width></number>
+<label><text>"Session kWh"</text><padx>4</padx></label>
+<number><halpin>"session-kwh"</halpin><format>"6.2f"</format><width>7</width></number>
+</hbox>
+
 <!-- status LEDs, then toggles: LED left, its text / button right; one per row -->
 <table>
 <tablesticky sticky="w"/>
