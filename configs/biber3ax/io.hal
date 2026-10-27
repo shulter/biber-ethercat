@@ -32,7 +32,7 @@ net io-din2-3 <= lcec.0.io-din2.din-3   # HSK main spindle: tool released / draw
 net io-din2-4 <= lcec.0.io-din2.din-4   # HSK spindle: not turning (back EMF measurement, TRUE = not turning) — see drawbar-release below
 net io-din2-5 <= lcec.0.io-din2.din-5   # X horizontal drill aggregate is up (TRUE = up) — tool change
 net io-din2-6 <= lcec.0.io-din2.din-6   # Y horizontal drill aggregate is up (TRUE = up) — tool change
-# net io-din2-7 <= lcec.0.io-din2.din-7   # vacuum sensor, pressure ok
+net io-din2-7 <= lcec.0.io-din2.din-7   # vacuum sensor, pressure ok (TRUE = ok) — panel LED only
 
 # --- EL1808 #3 (digital inputs, slave idx 7) ---
 net io-din3-0 <= lcec.0.io-din3.din-0   # Pneumatic air sensor, pressure ok (TRUE = ok) — tool change

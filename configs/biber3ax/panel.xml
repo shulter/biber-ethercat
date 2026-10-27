@@ -2,7 +2,7 @@
 <!--
   Vantage 33M — PyVCP panel (AXIS, [DISPLAY] PYVCP), wired in postgui.hal.
   Servo load (average, % of rated torque) and speed (RPM), commanded spindle speed,
-  spindle / drawbar LEDs, vacuum pump and dust hood toggles, dust hood keep-up, tool change area.
+  spindle / drawbar / air / vacuum LEDs, vacuum pump and dust hood toggles, dust hood keep-up, tool change area.
   Bars: canvas_height < bar_height + 10 hides the min/max labels; the value
   is shown inside the bar.
 -->
@@ -157,6 +157,22 @@
   <off_color>"grey"</off_color>
 </led>
 <label><text>"Drawbar released"</text><padx>6</padx></label>
+<tablerow/>
+<led>
+  <halpin>"air-ok-led"</halpin>
+  <size>14</size>
+  <on_color>"green"</on_color>
+  <off_color>"red"</off_color>
+</led>
+<label><text>"Air pressure ok"</text><padx>6</padx></label>
+<tablerow/>
+<led>
+  <halpin>"vacuum-ok-led"</halpin>
+  <size>14</size>
+  <on_color>"green"</on_color>
+  <off_color>"red"</off_color>
+</led>
+<label><text>"Vacuum ok"</text><padx>6</padx></label>
 <tablerow/>
 <label><text>""</text></label>
 <label><text>""</text></label>

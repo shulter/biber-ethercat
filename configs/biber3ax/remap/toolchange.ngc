@@ -83,7 +83,7 @@ o<toolchange> sub
   #<hood> = #5399
   o<m201> call
   o34 if [#<hood>]
-    G4 P1             ; hood travel
+    G4 P0.5             ; hood travel
   o34 endif
 
   M5                  ; stop the spindle, checked at the first pocket + X_OFFSET
@@ -127,7 +127,7 @@ o<toolchange> sub
         M65 P0            ; drawbar up: tool present only if it came along
         M66 P4 L4 Q3      ; wait for drawbar up
         #<up> = [#5399 EQ 0]
-        G4 P0.5           ; "tool present" flashes while the empty drawbar passes the clamp position
+        G4 P0.1           ; "tool present" flashes while the empty drawbar passes the clamp position
         M66 P3 L0         ; tool present?
         #<ok> = [#<up> AND [#5399 EQ 0]]    ; drawbar up and tool gone
       o110 endif
@@ -173,11 +173,10 @@ o<toolchange> sub
       o210 endif
 
       G53 G0 Z[#<pz> + #<fz>]
-      M62 P7            ; flush air on for the last FLUSH_Z above the tool
+      M62 P7            ; flush air on from FLUSH_Z above the tool down to pocket Z
       G53 G0 Z[#<pz> + #<zchk>]
-      M63 P7            ; flush air off before seating: it keeps the tool from clamping
       G53 G1 Z#<pz>
-      M65 P7
+      M65 P7            ; flush air off at pocket Z, before clamping
       M65 P0            ; clamp
       M66 P3 L3 Q3      ; wait for tool present and clamped
       #<ok> = [#5399 EQ 1]

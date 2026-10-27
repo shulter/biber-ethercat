@@ -86,6 +86,10 @@ net io-din2-1 => pyvcp.spindle-at-speed-led
 net io-din2-2 => pyvcp.tool-clamped-led   # tool present and clamped
 net io-din2-3 => pyvcp.drawbar-down-led   # tool released
 
+# Air pressure / vacuum ok LEDs, straight from the pressure switches (io.hal).
+net io-din3-0 => pyvcp.air-ok-led
+net io-din2-7 => pyvcp.vacuum-ok-led
+
 # --- Dust hood toggle button + "down" LED ---
 # The button clocks the dust-hood flipflop (loaded and wired in io.hal), so
 # each press toggles the hood; works while a program runs, as it's pure HAL.
