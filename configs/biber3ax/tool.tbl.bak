@@ -10,7 +10,7 @@ T9  P9  Z99.433447  D6  ;end mill 6mm 2f straight
 T10  P10  Z140.091064  D8  ;tapered 2f ball D16/D8
 T11  P11  Z99.531677  D6  ;end mill 6 mm
 T12  P12  Z155.190818  D20  ;ball end mill 20 mm, 2 flute
-T13  P13  Z128.540962  ;corner rounding end mill R3 - set diameter
+T13  P13  Z134.403808  D16  ;corner rounding end mill R3 - set diameter
 T14  P14  Z114.596107  ;to be determined
 T15  P15  Z103.698012  ;to be determined
 T16  P16  Z97.331854  ;to be determined
