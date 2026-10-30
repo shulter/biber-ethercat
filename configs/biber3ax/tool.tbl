@@ -9,15 +9,15 @@ T8   P8   D+3.175000 Z+97.070129 ;end mill 3.175 mm
 T9   P9   D+6.000000 Z+99.433447 ;end mill 6mm 2f straight
 T10  P10  D+8.000000 Z+140.091064 ;tapered 2f ball D16/D8
 T11  P11  D+6.000000 Z+99.531677 ;end mill 6 mm
-T12  P12  D+20.000000 Z+155.190818 ;ball end mill 20 mm, 2 flute
+T12  P12  D+20.000000 Z+155.190818 ;3f rougher
 T13  P13  D+16.000000 Z+134.403808 ;3f finisher 16mm
 T14  P14  Z+114.596107 ;to be determined
 T15  P15  Z+103.698012 ;to be determined
 T16  P16  Z+97.331854 ;to be determined
-T17  P17  ;HSK dust seal dummy, in the spindle while boring
-T18  P18  Z+121.325118 ;to be determined
-T19  P19  Z+112.915656 ;to be determined
-T20  P20  Z+110.684897 ;to be determined
+T17  P17  Z+200.000000 ;HSK dust seal dummy, in the spindle while boring
+T18  P18  D+100.000000 Z+121.928032 ;2f Verstellmesserkopf
+T19  P19  D+6.000000 Z+112.915656 ;2f compr wood
+T20  P20  D+12.000000 Z+110.684897 ;backchamfer custom brazed
 T101 P101 ;vertical boring spindle 1 - measure X/Y/Z offset to HSK spindle
 T102 P102 ;vertical boring spindle 2 - measure X/Y/Z offset to HSK spindle
 T103 P103 ;vertical boring spindle 3 - measure X/Y/Z offset to HSK spindle
@@ -29,3 +29,4 @@ T201 P201 ;horizontal boring, X aggregate - measure X/Y/Z offset to HSK spindle
 T202 P202 ;horizontal boring, X aggregate - measure X/Y/Z offset to HSK spindle
 T203 P203 ;horizontal boring, Y aggregate - measure X/Y/Z offset to HSK spindle
 T204 P204 ;horizontal boring, Y aggregate - measure X/Y/Z offset to HSK spindle
+T21  P21  D+140.000000 Z+114.430000 ;4f 140mm planer Added 20261030
