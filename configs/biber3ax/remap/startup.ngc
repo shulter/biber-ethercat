@@ -1,5 +1,5 @@
 ; startup — RS274NGC_STARTUP_CODE: modal defaults, then reload the tool in the spindle.
-; #3990 = last tool set by M6 (persistent: listed in linuxcnc.var).
+; #3990 = last tool set by M6 or M61 (persistent: listed in linuxcnc.var).
 ; #<_accel_x/y/z> = current max accelerations (INI, updated by M300; see accel_restore.ngc).
 
 o<startup> sub

@@ -89,15 +89,15 @@ Pocket positions and approach offsets: `toolchanger.ini` (`#INCLUDE`d into `bibe
   X_OFFSET (waits up to 10 s, else abort).
 - **Deposit:** Z top → pocket + X_OFFSET → Z pocket → G1 into pocket → release + flush air → Z +RELEASE_Z →
   drawbar up, tool must be gone (`din2-2` FALSE). Else: no further move, machine off (`halui.machine.off`), abort; on_abort clamps the drawbar.
-- **Pick:** Z top (without a deposit: pocket + X_OFFSET) → flush air on + release → straight above pocket → down to pocket Z → flush air off → clamp
+- **Pick:** Z top (without a deposit: pocket + X_OFFSET) → flush air on + release → straight above pocket → blow nozzle on → down to pocket Z → flush air off → clamp → blow nozzle off
   (must report clamped, else machine off) → out by X_OFFSET → Z top → X to work area.
 - **Boring tools (T101–107, T201–204):** HSK tool is swapped for the dummy T17, the VFD switches to the
   boring motor + set 2 (spindle stopped), the selected spindle/aggregate goes down
   (`io-dout4.dout-1..7`, `io-dout3.dout-6` / `io-dout4.dout-0`) and stays down until the next M6, which
   raises everything first. X/Y/Z offsets to the HSK spindle: `tool.tbl`.
 - M6 ends with G43 for the new tool (G49 for T0); the spindle stays off.
-- Tool in spindle survives restart: M6 stores it in #3990 (persistent via `linuxcnc.var`),
-  `remap/startup.ngc` reloads it. A manual `M61 Q…` is not stored.
+- Tool in spindle survives restart: M6 and M61 (`remap/m61.ngc`) store it in #3990 (persistent via
+  `linuxcnc.var`), `remap/startup.ngc` reloads it.
 - Preview (`#<_task>` = 0) only sets the tool, no moves.
 
 ## M-codes
@@ -105,6 +105,7 @@ Pocket positions and approach offsets: `toolchanger.ini` (`#INCLUDE`d into `bibe
 | Code | Function |
 |------|----------|
 | M6 | Tool change, see above |
+| M61 Q… | Set the loaded tool without a change, stored for restart |
 | M220 / M221 | X soft limits: work area / extended into the tool change area |
 | M300 P*xy* [Q*z*] | Max acceleration X/Y [, Z] in mm/s², effective immediately (calls M100 + queue buster) |
 | M210 | Measure loaded tool length on the probe (`[TOOLCHANGER]PROBE_*`), write to tool table |

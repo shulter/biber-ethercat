@@ -1,0 +1,8 @@
+; M61 Q<tool> — set the loaded tool without a change, and persist it in #3990 (startup.ngc).
+; Inside this remap M61 is the built-in; toolchange.ngc's M61 lands here too.
+
+o<m61> sub
+  M61 Q#<q>
+  #3990 = #<q>
+o<m61> endsub
+M2
