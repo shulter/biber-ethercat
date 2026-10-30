@@ -7,7 +7,7 @@
 
 o<m220> sub
   M65 P8
-  G4 P0.2
+  G4 P0.05
   M66 P2 L0
 o<m220> endsub
 M2
