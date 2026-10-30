@@ -160,6 +160,7 @@ o<toolchange> sub
 
       G53 G0 X[#<px> + #<off>] Y#<py>
       o<tc_spindle_stopped> call
+      M64 P7            ; flush air on from in front of the pocket down to pocket Z
       G53 G0 X#<px>
       M64 P0            ; release
       M66 P4 L3 Q6      ; wait up to 6 s for tool released, then Z down
@@ -169,8 +170,6 @@ o<toolchange> sub
         (abort, Tool change: drawbar did not release at approach)
       o210 endif
 
-      G53 G0 Z[#<pz> + #<fz>]
-      M62 P7            ; flush air on from FLUSH_Z above the tool down to pocket Z
       G53 G0 Z[#<pz> + #<zchk>]
       G53 G1 Z#<pz>
       M65 P7            ; flush air off at pocket Z, before clamping
