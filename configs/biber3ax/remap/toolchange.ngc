@@ -148,7 +148,6 @@ o<toolchange> sub
       G53 G0 Z[#<pz> + #<zrel> + #<fz>]
       M63 P7            ; flush air off for the rest of the lift
       G53 G0 Z#<ztop>
-      G53 G0 X[#<px> + #<_ini[TOOLCHANGER]X_BACKOFF>]
     o100 endif
 
     ; --- pick the new tool ---
@@ -158,11 +157,13 @@ o<toolchange> sub
       #<py> = #<_tc_y>
       #<pz> = #<_tc_z>
 
-      G53 G0 X[#<px> + #<off>] Y#<py>
+      o205 if [#<old> EQ 0]
+        G53 G0 X[#<px> + #<off>] Y#<py>   ; no deposit: from the work area via the front
+      o205 endif
       o<tc_spindle_stopped> call
-      M64 P7            ; flush air on from in front of the pocket down to pocket Z
+      M64 P7            ; flush air on from here down to pocket Z
       M64 P0            ; release with the air: the closed drawbar blocks the air
-      G53 G0 X#<px>
+      G53 G0 X#<px> Y#<py>
       M66 P4 L3 Q6      ; wait up to 6 s for tool released, then Z down
       o210 if [#5399 NE 1]
         M65 P7
