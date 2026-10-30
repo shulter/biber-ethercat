@@ -161,8 +161,8 @@ o<toolchange> sub
       G53 G0 X[#<px> + #<off>] Y#<py>
       o<tc_spindle_stopped> call
       M64 P7            ; flush air on from in front of the pocket down to pocket Z
+      M64 P0            ; release with the air: the closed drawbar blocks the air
       G53 G0 X#<px>
-      M64 P0            ; release
       M66 P4 L3 Q6      ; wait up to 6 s for tool released, then Z down
       o210 if [#5399 NE 1]
         M65 P7
