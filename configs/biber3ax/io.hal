@@ -21,11 +21,11 @@ net io-din1-2 <= lcec.0.io-din1.din-2   # footswitch right — toggles vacuum pu
 net io-din1-3 <= lcec.0.io-din1.din-3   # footswitch left — toggles all reg pins up / down
 net io-din1-4 <= lcec.0.io-din1.din-4   # pendant button negative jog — see pendant jog below
 net io-din1-5 <= lcec.0.io-din1.din-5   # pendant button positive jog — see pendant jog below
-# net io-din1-6 <= lcec.0.io-din1.din-6   # pendant button F1 TBD
-# net io-din1-7 <= lcec.0.io-din1.din-7   # pendant button F2 TBD
+net io-din1-6 <= lcec.0.io-din1.din-6   # pendant button F1: cycle start / resume — see pendant cycle buttons below
+net io-din1-7 <= lcec.0.io-din1.din-7   # pendant button F2: feed hold / resume — see pendant cycle buttons below
 
 # --- EL1808 #2 (digital inputs, slave idx 6) ---
-# net io-din2-0 <= lcec.0.io-din2.din-0   # VFD not turning
+net io-din2-0 <= lcec.0.io-din2.din-0   # VFD not turning, either motor (KEB relay RLA, wiring diagram I1.30.3.1 "Stillstand"; TRUE = stopped, from the diagram only) — tool change
 net io-din2-1 <= lcec.0.io-din2.din-1   # VFD spindle at speed (TRUE = at speed) — see spindle at-speed wait below
 net io-din2-2 <= lcec.0.io-din2.din-2   # HSK main spindle: tool present and clamped (drawbar up without tool: FALSE) — see spindle interlock below
 net io-din2-3 <= lcec.0.io-din2.din-3   # HSK main spindle: tool released / drawbar down (TRUE = released) — see spindle interlock below
@@ -119,13 +119,19 @@ net hsk-contactor    => lcec.0.io-dout1.dout-6   # KEB I4: parameter set 5, HSK 
 # HSK spindle flange flush air (33Y7 Abblasdüse): M6 (motion.digital-out-07) OR
 # a 0.1 s pulse when the pendant release button is let go (tool clamps).
 # (edge can only be loadrt'd once: foot-left-edge / program-start-edge are
-# the reg pins' instances, see io-dout3 below.)
-loadrt edge names=clamp-flush-pulse,foot-left-edge,program-start-edge
+# the reg pins' instances, see io-dout3 below, foot-right-edge the vacuum pump's.)
+# Pendant button and foot switches only act while halui.program.is-idle: not
+# during a program or MDI, and not while paused, so nothing can be released
+# before a resume. Foot switches are gated after their edge, so a pedal held
+# until the program ends doesn't fire. The PyVCP buttons stay ungated.
+loadrt edge names=clamp-flush-pulse,foot-left-edge,program-start-edge,foot-right-edge,pendant-f1-edge,pendant-f2-edge,job-abort-edge
+addf pendant-release-gate servo-thread
 addf clamp-flush-pulse servo-thread
 addf tc-flush-or       servo-thread
 setp clamp-flush-pulse.in-edge      0           # falling edge
 setp clamp-flush-pulse.out-width-ns 100000000   # 0.1 s
-net io-din1-0      => clamp-flush-pulse.in
+net io-din1-0      => pendant-release-gate.in0
+net pendant-release <= pendant-release-gate.out   => clamp-flush-pulse.in drawbar-release.in-0
 net clamp-flush    <= clamp-flush-pulse.out       => tc-flush-or.in1
 net tc-flush-req   <= motion.digital-out-07       => tc-flush-or.in0
 net tc-flush-air   <= tc-flush-or.out             => lcec.0.io-dout1.dout-7
@@ -146,7 +152,7 @@ loadrt wcomp          names=x-still
 loadrt conv_bit_float names=x-moving-float
 loadrt integ          names=x-oil-time
 loadrt comp           names=x-oil-due
-loadrt oneshot        names=x-oil-pulse,x-oil-pause,x-oil-air
+loadrt oneshot        names=x-oil-pulse,x-oil-pause,x-oil-air,pendant-auto-pulse,pendant-run-pulse,pendant-pause-pulse,pendant-resume-pulse
 addf x-still        servo-thread
 addf x-moving       servo-thread
 addf x-moving-float servo-thread
@@ -186,6 +192,7 @@ net x-oil-air     <= x-oil-air.out      => lcec.0.io-dout2.dout-1   # Schmierung
 # The pump state is held in a flipflop (like the dust hood): M241 pulses
 # out-04 onto set, M240 pulses out-20 onto reset, the right foot switch or the
 # PyVCP button (postgui.hal) toggles it. Machine off doesn't stop the pump.
+# The foot switch only acts with no program running (foot-right-gate).
 # lut5 vacuum-pump-toggle (loaded in ethercat.hal): in-0 OR in-1 OR in-2 -> 0xFE, onto clk
 # (in-1 unused: the left foot switch toggles the reg pins).
 # Each port has separate open / close valves. The close valve (dout2-5 left,
@@ -194,8 +201,8 @@ net x-oil-air     <= x-oil-air.out      => lcec.0.io-dout2.dout-1   # Schmierung
 # closed from the moment HAL starts.
 # ("not" can only be loadrt'd once per HAL session, so the spindle-turning
 # instance for the PyVCP indicator — see the HSK spindle section below — is
-# loaded here too.)
-loadrt not names=vacuum-left-close,vacuum-right-close,spindle-turning
+# loaded here too, and gantry-skew-reset for the skew display in postgui.hal.)
+loadrt not names=vacuum-left-close,vacuum-right-close,spindle-turning,gantry-skew-reset
 addf vacuum-left-close  servo-thread
 addf vacuum-right-close servo-thread
 addf spindle-turning    servo-thread
@@ -205,14 +212,19 @@ net vacuum-right-open   <= motion.digital-out-06 => lcec.0.io-dout2.dout-6 vacuu
 net vacuum-right-closed <= vacuum-right-close.out => lcec.0.io-dout2.dout-7                        # vaccuum port right close
 
 loadrt flipflop names=vacuum-pump,dust-hood,reg-pins-left,reg-pins-right   # dust-hood, reg-pins-*: see io-dout3 below
+addf foot-right-edge    servo-thread
+addf foot-right-gate    servo-thread
 addf vacuum-pump-toggle servo-thread
 addf vacuum-pump     servo-thread
+setp foot-right-edge.in-edge 1
 setp vacuum-pump-toggle.function 0xFE
 net vacuum-pump-off-req <= motion.digital-out-20 => vacuum-pump.reset
 net vacuum-pump-on-req  <= motion.digital-out-04 => vacuum-pump.set
 net vacuum-pump-on      <= vacuum-pump.out       => lcec.0.io-dout1.dout-4   # Vacuum pump Enable Contactor
 net vacuum-pump-is-off  <= vacuum-pump.out-not   => vacuum-pump.data
-net io-din1-2                                    => vacuum-pump-toggle.in-0
+net io-din1-2                                    => foot-right-edge.in
+net foot-right-press    <= foot-right-edge.out   => foot-right-gate.in0
+net foot-right-idle     <= foot-right-gate.out   => vacuum-pump-toggle.in-0
 net vacuum-pump-clk     <= vacuum-pump-toggle.out => vacuum-pump.clk
 
 # --- EL1018 (fast digital inputs, 10us, slave idx 11) ---
@@ -255,11 +267,12 @@ net z-neg-lim <= lcec.0.io-din5.din-4 => joint.3.neg-lim-sw-in                  
 # - M231 / M232 (remap/m231.ngc, m232.ngc) raise left / right: pulse
 #   motion.digital-out-03 / -23 onto set. M230 lowers both: out-24 onto reset.
 # - Left foot switch (io-din1-3, rising edge): all down if any side is up,
-#   else all up.
+#   else all up. Only with no program running (foot-left-gate).
 # lut5, in-0 = foot edge, in-1 = left up, in-2 = right up, in-3 = M-code pulse:
 #   reg-left-set / reg-right-set  in-3 OR (in-0 AND NOT in-1 AND NOT in-2) -> 0xFF02
 #   reg-pins-down                 in-3 OR (in-0 AND (in-1 OR in-2))         -> 0xFFA8
 addf foot-left-edge  servo-thread
+addf foot-left-gate  servo-thread
 addf reg-left-set    servo-thread
 addf reg-right-set   servo-thread
 addf reg-pins-down   servo-thread
@@ -270,7 +283,8 @@ setp reg-left-set.function     0xFF02
 setp reg-right-set.function    0xFF02
 setp reg-pins-down.function    0xFFA8
 net io-din1-3                                    => foot-left-edge.in
-net foot-left-press    <= foot-left-edge.out     => reg-left-set.in-0 reg-right-set.in-0 reg-pins-down.in-0
+net foot-left-press    <= foot-left-edge.out     => foot-left-gate.in0
+net foot-left-idle     <= foot-left-gate.out     => reg-left-set.in-0 reg-right-set.in-0 reg-pins-down.in-0
 net reg-left-up-req    <= motion.digital-out-03  => reg-left-set.in-3
 net reg-right-up-req   <= motion.digital-out-23  => reg-right-set.in-3
 net reg-pins-down-req  <= motion.digital-out-24  => reg-pins-down.in-3
@@ -294,7 +308,7 @@ setp program-start-edge.in-edge      0
 setp program-start-edge.out-width-ns 100000000
 setp reg-pins-not-down.function    0x7FFFFFFF
 setp reg-pins-start-check.function 0x8088
-net program-idle     <= halui.program.is-idle   => program-start-edge.in
+net program-idle     <= halui.program.is-idle   => program-start-edge.in foot-left-gate.in1 foot-right-gate.in1 pendant-release-gate.in1
 net program-start    <= program-start-edge.out  => reg-pins-start-check.in-0
 net mode-auto        <= halui.mode.is-auto      => reg-pins-start-check.in-1
 net io-din3-3        => reg-pins-not-down.in-0
@@ -304,7 +318,7 @@ net io-din3-6        => reg-pins-not-down.in-3
 net io-din3-7        => reg-pins-not-down.in-4
 net reg-pins-not-down-1to5 <= reg-pins-not-down.out => reg-pins-start-check.in-2
 net io-din4-4        => reg-pins-start-check.in-3
-net reg-pins-up-at-start   <= reg-pins-start-check.out => halui.program.pause reg-pins-up-msg.trigger
+net reg-pins-up-at-start   <= reg-pins-start-check.out => pendant-pause-or.in0 reg-pins-up-msg.trigger
 
 # dout-1: HSK spindle drawbar — TRUE pushes the drawbar and releases the tool.
 # Interlocked in HAL (lut5 drawbar-release, loaded in ethercat.hal):
@@ -312,7 +326,8 @@ net reg-pins-up-at-start   <= reg-pins-start-check.out => halui.program.pause re
 #   release = (pendant button OR M250 request)
 #             AND spindle not turning (din2-4)  AND NOT spindle.0.on
 #
-# - Pendant button (io-din1-0): release only while held.
+# - Pendant button (io-din1-0): release only while held, and only with no
+#   program running (pendant-release-gate, see the flush air above).
 # - M250 / M251 (remap/m250.ngc, m251.ngc): set / clear the release request
 #   on motion.digital-out-00 (M64/M65 P0). M250 checks the same conditions
 #   itself first and aborts the program if they aren't met; the HAL interlock
@@ -324,7 +339,6 @@ net reg-pins-up-at-start   <= reg-pins-start-check.out => halui.program.pause re
 # (in-0 or in-1) → indexes 5, 6, 7 → function 0xE0.
 addf drawbar-release servo-thread
 setp drawbar-release.function 0xE0
-net io-din1-0             => drawbar-release.in-0
 net drawbar-release-req   <= motion.digital-out-00 => drawbar-release.in-1
 net io-din2-4             => drawbar-release.in-2 motion.digital-in-00
 net spindle-on            => drawbar-release.in-3 motion.digital-in-01
@@ -507,6 +521,59 @@ setp pendant-jog-speed.in1 1
 setp pendant-jog-speed.scale1 [HALUI]JOG_SPEED
 net pendant-jog-speed <= pendant-jog-speed.out-f => halui.axis.jog-speed
 
+# --- Pendant cycle buttons ---
+# F1 (din1-6): idle, machine on and homed -> AUTO mode, then run the loaded program;
+# paused -> resume. F2 (din1-7): running -> pause (feed hold); paused -> resume.
+# Decided on the one-cycle press edge, then stretched to 0.1 s so halui sees it:
+# a stretched press would resume the pause it just caused.
+# lut5, in-0 = press:
+#   pendant-start  F1, in-1 idle, in-2 machine on, in-3 homed -> index 15 -> 0x8000
+#   pendant-pause  F2, in-1 idle, in-2 paused: not idle, not paused -> index 1 -> 0x2
+#   pendant-resume in-0 F2 OR in-1 F1, AND in-2 paused -> indexes 5, 6, 7 -> 0xE0
+addf pendant-f1-edge      servo-thread
+addf pendant-f2-edge      servo-thread
+addf pendant-start        servo-thread
+addf pendant-pause        servo-thread
+addf pendant-resume       servo-thread
+addf pendant-auto-pulse   servo-thread
+addf pendant-run-pulse    servo-thread
+addf pendant-pause-pulse  servo-thread
+addf pendant-resume-pulse servo-thread
+addf pendant-pause-or     servo-thread
+setp pendant-f1-edge.in-edge 1
+setp pendant-f2-edge.in-edge 1
+setp pendant-start.function  0x8000
+setp pendant-pause.function  0x2
+setp pendant-resume.function 0xE0
+setp pendant-auto-pulse.width   0.1
+setp pendant-run-pulse.width    0.1
+setp pendant-pause-pulse.width  0.1
+setp pendant-resume-pulse.width 0.1
+setp pendant-run-pulse.rising   0   # run starts when the AUTO pulse ends
+setp pendant-run-pulse.falling  1
+net io-din1-6 => pendant-f1-edge.in
+net io-din1-7 => pendant-f2-edge.in
+net pendant-f1-press <= pendant-f1-edge.out => pendant-start.in-0 pendant-resume.in-1
+net pendant-f2-press <= pendant-f2-edge.out => pendant-pause.in-0 pendant-resume.in-0
+net program-idle     => pendant-start.in-1 pendant-pause.in-1
+net machine-enable   => pendant-start.in-2
+net all-homed        => pendant-start.in-3
+net program-paused   <= halui.program.is-paused => pendant-pause.in-2 pendant-resume.in-2
+net pendant-start-req <= pendant-start.out      => pendant-auto-pulse.in
+net pendant-auto      <= pendant-auto-pulse.out => halui.mode.auto pendant-run-pulse.in
+net pendant-run       <= pendant-run-pulse.out  => halui.program.run
+net pendant-pause-req <= pendant-pause.out      => pendant-pause-pulse.in
+net pendant-pause-out <= pendant-pause-pulse.out => pendant-pause-or.in1
+net program-pause     <= pendant-pause-or.out   => halui.program.pause
+net pendant-resume-req <= pendant-resume.out    => pendant-resume-pulse.in
+net pendant-resume-out <= pendant-resume-pulse.out => halui.program.resume
+
+# on_abort pulses out-25 for one cycle: stretched so machine-stats.py sees it (job status).
+addf job-abort-edge servo-thread
+setp job-abort-edge.in-edge      1
+setp job-abort-edge.out-width-ns 300000000
+net job-abort-req <= motion.digital-out-25 => job-abort-edge.in
+
 # --- Tool changer (M6, remap/toolchange.ngc) ---
 # Inputs for M66, machine-off request for faults the operator must clear.
 # out-08 (tool change area / X limit) is wired in postgui.hal.
@@ -515,6 +582,7 @@ net io-din2-2        => motion.digital-in-03   # tool present and clamped
 net io-din2-3        => motion.digital-in-04   # tool released
 net io-din2-5        => motion.digital-in-06   # X horizontal boring aggregate up
 net io-din2-6        => motion.digital-in-07   # Y horizontal boring aggregate up
+net io-din2-0        => motion.digital-in-09   # VFD not turning
 net all-homed        <= motion.is-all-homed => motion.digital-in-05
 net tc-machine-off   <= motion.digital-out-09 => halui.machine.off
 # T / built-in M6 handshakes: no hardware, M6 is remapped and sets the tool with M61

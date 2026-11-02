@@ -1,9 +1,14 @@
 ; startup — RS274NGC_STARTUP_CODE: modal defaults, then reload the tool in the spindle.
 ; #3990 = last tool set by M6 (persistent: listed in linuxcnc.var).
+; Boring tools don't survive a LinuxCNC restart (motor select and aggregate outputs
+; reset, spindles up), so the first run per session loads the dummy in the HSK spindle.
 ; #<_accel_x/y/z> = current max accelerations (INI, updated by M300; see accel_restore.ngc).
 
 o<startup> sub
-  G21 G40 G90 G94 G97 G64 P0.005
+  G21 G40 G90 G94 G97 G64 P0.03
+  o90 if [EXISTS[#<_accel_x>] EQ 0 AND [[#3990 GE 101 AND #3990 LE 107] OR [#3990 GE 201 AND #3990 LE 204]]]
+    #3990 = #<_ini[TOOLCHANGER]DUMMY_TOOL>
+  o90 endif
   o100 if [#3990 GT 0]
     M61 Q#3990
     G43

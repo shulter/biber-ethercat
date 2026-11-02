@@ -11,6 +11,8 @@ linuxcnc biber3ax.ini
 ```
 F1 (e-stop reset) → F2 (machine on) → home (Z, X tandem, Y).
 
+New install: `cp linuxcnc.var.example linuxcnc.var` (untracked; #3990 only persists if it's listed there).
+
 ### Absolute encoders (`biber3ax-abs.ini`)
 
 `linuxcnc biber3ax-abs.ini`: the first Machine On homes each joint once (no motion, no Home All, `abs-home.hal`), using the drives'
@@ -31,6 +33,7 @@ Re-measure after a battery/encoder alarm or multi-turn reset — otherwise every
 | `ethercat.hal` | Servos, e-stop loop, drive-ready check, spindle analog out |
 | `io.hal` | Beckhoff I/O and interlocks |
 | `postgui.hal`, `panel.xml` | PyVCP panel |
+| `machine-stats.py` | Drive error messages, job log, tool life, service counter |
 | `remap/*.ngc` | M-codes below |
 
 ## Bus
@@ -69,8 +72,8 @@ EL9110 is declared generic (vid `00000002`, pid `23963052`) — this lcec doesn'
 
 ## HSK tool release
 
-- Release output `io-dout3.dout-1` = (pendant `io-din1.din-0` OR M250) AND not turning (`io-din2.din-4`)
-  AND spindle off.
+- Release output `io-dout3.dout-1` = ((pendant `io-din1.din-0` AND no program) OR M250) AND not turning
+  (`io-din2.din-4`) AND spindle off. "No program" = `halui.program.is-idle`: running, paused or MDI blocks it.
 - `din2-2` = tool present and clamped; drawbar up without a tool: `din2-2` and `din2-3` both FALSE.
 - Spindle start needs a tool clamped: `din2-2` TRUE, `din2-3` FALSE, release off. Else
   `spindle.0.inhibit` + spindle amp fault.
@@ -85,8 +88,8 @@ Pocket positions and approach offsets: `toolchanger.ini` (`#INCLUDE`d into `bibe
   `postgui.hal`). M6 does M221 … M220 itself; any abort restores the work area (`on_abort.ngc`).
   Panel check button "Tool change area" does the same by hand, e.g. to jog out after an abort.
 - **Checks:** homed, air pressure (`io-din3.din-0`), tool sensor (`io-din2.din-2`) agrees with the
-  loaded tool. M5 at the start without waiting; the spindle must be stopped at the first pocket +
-  X_OFFSET (waits up to 10 s, else abort).
+  loaded tool. M5 at the start without waiting; HSK spindle and VFD (`io-din2.din-4`, `din-0`) must be
+  stopped at the first pocket + X_OFFSET and before the motor switches (up to 10 s each, else abort).
 - **Deposit:** Z top → pocket + X_OFFSET → Z pocket → G1 into pocket → release + flush air → Z +RELEASE_Z →
   drawbar up, tool must be gone (`din2-2` FALSE). Else: no further move, machine off (`halui.machine.off`), abort; on_abort clamps the drawbar.
 - **Pick:** Z top → X +X_BACKOFF → pocket + X_OFFSET → above pocket → release + flush air → down to pocket Z → flush air off → clamp
@@ -97,7 +100,8 @@ Pocket positions and approach offsets: `toolchanger.ini` (`#INCLUDE`d into `bibe
   raises everything first. X/Y/Z offsets to the HSK spindle: `tool.tbl`.
 - M6 ends with G43 for the new tool (G49 for T0); the spindle stays off.
 - Tool in spindle survives restart: M6 stores it in #3990 (persistent via `linuxcnc.var`),
-  `remap/startup.ngc` reloads it. A manual `M61 Q…` is not stored.
+  `remap/startup.ngc` reloads it; a boring tool comes back as `DUMMY_TOOL`, spindles up. A manual
+  `M61 Q…` is not stored.
 - Preview (`#<_task>` = 0) only sets the tool, no moves.
 
 ## M-codes
@@ -110,14 +114,29 @@ Pocket positions and approach offsets: `toolchanger.ini` (`#INCLUDE`d into `bibe
 | M210 | Measure loaded tool length on the probe (`[TOOLCHANGER]PROBE_*`), write to tool table |
 | M250 / M251 | Release tool (checks spindle off + not turning) / clamp |
 | M200 / M201 | Dust hood down / up (also panel toggle) |
-| M231 / M232 / M230 | Reg pins left up / right up / all down (left foot switch toggles all) |
-| M241 / M240 | Vacuum pump on / off |
+| M231 / M232 / M230 | Reg pins left up / right up / all down (left foot switch toggles all, only with no program) |
+| M241 / M240 | Vacuum pump on / off (right foot switch toggles, only with no program) |
 | M242 / M243 [P0] | Open [close] left / right vacuum gate (pump unchanged) |
 | M270 | X rack oiling cycle now (normally every 30 min of X movement) |
 
 ## Panel
 
 Servo load (average, % of rated torque) and speed per servo, commanded spindle speed, spindle-turning LED, vacuum pump and dust hood toggles.
+
+Grease row: hours to the next grease service, red LED and operator message when due, **Greased** restarts the count.
+X skew row: joint 0 - joint 1 position feedback in mm, and the largest |skew| since start (counted once all joints are homed).
+
+## Pendant
+
+- F1: idle, machine on and homed: AUTO and run the loaded program; paused: resume.
+- F2: running: pause (feed hold); paused: resume.
+
+## Stats (`machine-stats.py`)
+
+- `job-stats.csv`: one line per program: start, end, file, finished/aborted, run time without pauses, paused, cut time, cut metres, kWh, per tool. kWh is the whole workshop (Shelly).
+- `tool.tbl`: `ToolLife: 1h24 - 354m` in front of the comment, updated after each job. Totals live in `machine-stats.json`; edits to the ToolLife text are overwritten. New tool: `./machine-stats.py reset-tool 5`.
+- Cutting = feed or arc move with the spindle on, so air cutting counts.
+- `drive-faults.log`: drive error codes (603Fh), also shown as a LinuxCNC error. Look up the hex code in the A6 manual.
 
 ## Troubleshooting
 
