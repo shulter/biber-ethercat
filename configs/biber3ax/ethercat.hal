@@ -40,7 +40,9 @@ addf lcec.write-all           servo-thread
 # (and3/and4) once it's wired to a Beckhoff DI.
 # The physical emergency stop circuit is hardware-only and not controlled by
 # LinuxCNC; this loop is just LinuxCNC's internal e-stop state (F1).
-loadrt and2 names=estop-chain
+# (foot-*-gate / pendant-release-gate block the operator inputs while a program
+# runs, wired in io.hal — and2 can only be loadrt'd once.)
+loadrt and2 names=estop-chain,foot-left-gate,foot-right-gate,pendant-release-gate
 addf estop-chain servo-thread
 net ec-all-op         <= lcec.0.state-op             => estop-chain.in0
 net estop-user-enable <= iocontrol.0.user-enable-out => estop-chain.in1
@@ -52,11 +54,11 @@ net estop-ok          <= estop-chain.out             => iocontrol.0.emc-enable-i
 # shows OP on EtherCAT, so Machine On (F2) would succeed with dead drives.
 # Each joint's amp-fault-in is therefore:
 #
-#   drv-fault  OR  (amp-enable-out AND NOT stat-op-enabled, for > 1 s)
+#   drv-fault  OR  (amp-enable-out AND NOT stat-op-enabled, for > on-delay)
 #
-# so if a drive isn't operation-enabled within 1 s of F2 (or drops out of it
-# later, e.g. HV lost while running), LinuxCNC raises a joint amplifier fault
-# and switches machine power off. The 1 s on-delay covers the normal CiA402
+# so if a drive isn't operation-enabled within its on-delay of F2 (or drops out
+# of it later, e.g. HV lost while running), LinuxCNC raises a joint amplifier
+# fault and switches machine power off. The on-delay covers the normal CiA402
 # enable sequence; raise <joint>-not-op-delay.on-delay if a drive takes longer.
 # lut5 function 0x2: out = in-0 AND NOT in-1 (true only for index 1).
 # (drawbar-release, spindle-inhibit and spindle-tool-fault are the HSK tool
@@ -65,14 +67,14 @@ net estop-ok          <= estop-chain.out             => iocontrol.0.emc-enable-i
 # motor, horizontal-up-valve drives the boring aggregates' common up valve, pendant-* the pendant jog,
 # spindle-at-speed the spindle at-speed wait, reg-* the reg pins; all set up and wired in io.hal — lut5 can
 # only be loadrt'd once, so all its instances are loaded here.)
-loadrt lut5      names=x-left-not-op,x-right-not-op,y-not-op,z-not-op,drawbar-release,spindle-inhibit,spindle-tool-fault,spindle-cw-gate,spindle-ccw-gate,hsk-contactor-gate,boring-contactor-gate,horizontal-up-valve,pendant-x-plus,pendant-x-minus,pendant-y-plus,pendant-y-minus,pendant-z-plus,pendant-z-minus,pendant-so-up,pendant-so-down,pendant-jog-up,pendant-jog-down,vacuum-pump-toggle,spindle-at-speed,reg-left-set,reg-right-set,reg-pins-down,reg-pins-not-down,reg-pins-start-check
+loadrt lut5      names=x-left-not-op,x-right-not-op,y-not-op,z-not-op,drawbar-release,spindle-inhibit,spindle-tool-fault,spindle-cw-gate,spindle-ccw-gate,hsk-contactor-gate,boring-contactor-gate,horizontal-up-valve,pendant-x-plus,pendant-x-minus,pendant-y-plus,pendant-y-minus,pendant-z-plus,pendant-z-minus,pendant-so-up,pendant-so-down,pendant-jog-up,pendant-jog-down,vacuum-pump-toggle,spindle-at-speed,reg-left-set,reg-right-set,reg-pins-down,reg-pins-not-down,reg-pins-start-check,pendant-start,pendant-pause,pendant-resume
 # (z-brake-delay is the Z brake release delay, spindle-contactor-delay the HSK
 # spindle contactor off-delay, both set up and wired in io.hal — timedelay can
 # only be loadrt'd once, so all its instances are loaded here.)
 loadrt timedelay names=x-left-not-op-delay,x-right-not-op-delay,y-not-op-delay,z-not-op-delay,z-brake-delay,spindle-contactor-delay
 # (x-moving / x-oil-start are the X rack oiler's motion detect / trigger, dust-hood-up-or the
 # dust hood up request + keep-up override, both wired in io.hal.)
-loadrt or2       names=x-left-fault-or,x-right-fault-or,y-fault-or,z-fault-or,tc-flush-or,x-moving,x-oil-start,tc-area-or,dust-hood-up-or,blow-nozzle-or
+loadrt or2       names=x-left-fault-or,x-right-fault-or,y-fault-or,z-fault-or,tc-flush-or,x-moving,x-oil-start,tc-area-or,dust-hood-up-or,blow-nozzle-or,pendant-pause-or
 addf x-left-not-op         servo-thread
 addf x-right-not-op        servo-thread
 addf y-not-op              servo-thread

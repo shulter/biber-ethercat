@@ -1,5 +1,8 @@
 # Week Vantage 33M — LinuxCNC + EtherCAT Retrofit Plan
 
+Historical: the original plan, now completed. Paths and values below are as planned then (the bench
+config no longer exists); the live config is `configs/biber3ax/`.
+
 ## Machine Overview
 
 | Item | Detail |
@@ -11,7 +14,7 @@
 | Z axis | Direct-drive ball screw |
 | Fieldbus | EtherCAT via `lcec` + `cia402` HAL components |
 
-## Phase 1 — Workbench EtherCAT Bring-Up (current config)
+## Phase 1 — Workbench EtherCAT Bring-Up
 
 **Goal:** Prove bus communication, CiA 402 CSP mode, dual-motor gantry motion, and single-motor Y motion
 before installing on the machine.

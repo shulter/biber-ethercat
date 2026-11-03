@@ -4,7 +4,8 @@
 Parameter Cgg.xx = object 0x20gg:(xx+1), see the A6-EC manual ch. 7 / p. 201-203. Gains and speed FF
 only take effect with C00.04 auto-tuning mode = 0 (manual); otherwise the drive sets them itself.
 Values are shown in engineering units. Peak following error comes from the drives' 60F4
-PDO (lcec.0.<drive>.following-error, mm) via halcmd when LinuxCNC is running.
+PDO (mm), captured every servo cycle by fe-peak-<drive> (postgui.hal), read via halcmd when
+LinuxCNC is running.
 """
 import subprocess
 import tkinter as tk
@@ -155,7 +156,6 @@ class App:
         self.vars = {}     # (pos, sub) -> StringVar
         self.entries = {}
         self.labels = {}   # addr -> row label
-        self.peak = {pos: 0.0 for pos, _ in DRIVES}
         self.link = tk.BooleanVar(value=True)
 
         g = tk.Frame(root, padx=8, pady=8)
@@ -275,23 +275,24 @@ class App:
 
     def poll_fe(self):
         try:
-            out = subprocess.run(["halcmd", "-s", "show", "pin", "lcec.0."],
+            out = subprocess.run(["halcmd", "-s", "show", "pin", "fe-peak-"],
                                  capture_output=True, text=True, timeout=1).stdout
-            vals = {f[4]: float(f[3]) for f in map(str.split, out.splitlines())
-                    if len(f) >= 5 and f[4].endswith(".following-error")}
+            vals = {f[4]: float(f[3]) for f in map(str.split, out.splitlines()) if len(f) >= 5}
         except Exception:
             vals = {}
         for pos, name in DRIVES:
-            v = vals.get(f"lcec.0.{name}.following-error")
-            if v is None:
-                self.fe[pos].config(text="-")
-            else:
-                self.peak[pos] = max(self.peak[pos], abs(v))
-                self.fe[pos].config(text=f"{self.peak[pos]:.3f}")
+            hi, lo = vals.get(f"fe-peak-{name}.max"), vals.get(f"fe-peak-{name}.min")
+            self.fe[pos].config(text="-" if hi is None or lo is None else f"{max(hi, -lo):.3f}")
         self.root.after(100, self.poll_fe)
 
     def reset_peak(self):
-        self.peak = {pos: 0.0 for pos, _ in DRIVES}
+        # two halcmd runs: the pulse must span a servo cycle
+        for level in (1, 0):
+            script = "".join(f"setp fe-peak-{name}.reset {level}\n" for _, name in DRIVES)
+            try:
+                subprocess.run(["halcmd", "-f"], input=script, capture_output=True, text=True, timeout=1)
+            except Exception:
+                return
 
     def show_xml(self):
         # lcec <sdoConfig> entries (U16, little endian) to make the values permanent in ethercat-conf.xml

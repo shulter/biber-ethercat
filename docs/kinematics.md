@@ -33,6 +33,8 @@ Verified: 2000 mm workpiece read 2094.11 mm with the former straight-20T assumpt
 | **pos-scale** | 131072 / 5 = **26214.4** |
 | Max velocity @ 3000 rpm | 250 mm/s |
 
+Unconfirmed: the source of the 3000 rpm limit. The INI's Z speed is above it.
+
 ## Gantry
 
 - Motors are mirrored: joint 0 (x-left) `CIA402_POS_SCALE = -10924.342`, joint 1 (x-right) `+10924.342`.

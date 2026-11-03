@@ -10,7 +10,7 @@ LinuxCNC config for a Weeke Vantage 33M retrofit with StepperOnline A6 EtherCAT 
 ## Hardware
 
 - 4× StepperOnline A6 1 kW (CiA 402, Inovance SV660N OEM), 17-bit encoders
-- X: 10:1 → M2×20T rack & pinion; Y: 24T→60T belt → 25 mm screw; Z: direct 5 mm screw
+- X: 10:1 → helical M2 18T rack & pinion; Y: 24T→60T belt → 25 mm screw; Z: direct 5 mm screw
 - Beckhoff EK1100 + EL1808/EL2808/EL1018/EL9110/EL4032; KEB F5 VFD
 
 ## Prerequisites

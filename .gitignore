@@ -1,3 +1,13 @@
 .DS_Store
 *.expanded
 *.gen
+linuxcnc.var
+linuxcnc.var.bak
+tool.tbl.bak
+autosave.halscope
+__pycache__/
+machine-stats.json*
+job-stats.csv
+drive-faults.log
+tool-life.reset
+*.tmp

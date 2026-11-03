@@ -131,6 +131,25 @@
 <number><halpin>"session-kwh"</halpin><format>"6.2f"</format><width>7</width></number>
 </hbox>
 
+<!-- gantry skew X left - X right (postgui.hal), max = largest |skew| since start, after homing -->
+<hbox>
+<label><text>"X skew mm"</text><padx>4</padx></label>
+<number><halpin>"gantry-skew"</halpin><format>"+6.3f"</format><width>7</width></number>
+<label><text>"max"</text><padx>4</padx></label>
+<number><halpin>"gantry-skew-max"</halpin><format>"6.3f"</format><width>7</width></number>
+</hbox>
+
+<!-- grease service counter (machine-stats.py): LED = due, button after greasing restarts it -->
+<hbox>
+<led><halpin>"service-due-led"</halpin><size>14</size><on_color>"red"</on_color><off_color>"grey"</off_color></led>
+<label><text>"Grease in h"</text><padx>4</padx></label>
+<number><halpin>"service-hours"</halpin><format>"5.1f"</format><width>6</width></number>
+<button>
+  <halpin>"service-greased"</halpin>
+  <text>"Greased"</text>
+</button>
+</hbox>
+
 <!-- status LEDs, then toggles: LED left, its text / button right; one per row -->
 <table>
 <tablesticky sticky="w"/>

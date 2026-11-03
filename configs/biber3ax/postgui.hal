@@ -25,7 +25,7 @@ addf x-right-vel-conv    servo-thread
 addf y-vel-conv          servo-thread
 addf z-vel-conv          servo-thread
 
-loadrt abs names=x-left-vel-abs,x-right-vel-abs,y-vel-abs,z-vel-abs
+loadrt abs names=x-left-vel-abs,x-right-vel-abs,y-vel-abs,z-vel-abs,gantry-skew-abs
 addf x-left-vel-abs  servo-thread
 addf x-right-vel-abs servo-thread
 addf y-vel-abs       servo-thread
@@ -107,8 +107,8 @@ net dust-hood-down => pyvcp.dust-hood-down-led
 net dust-hood-keep-up <= pyvcp.dust-hood-keep-up => dust-hood-up-or.in1
 
 # --- Vacuum pump toggle button + "on" LED ---
-# ORed with the foot switches onto the vacuum-pump flipflop clk (io.hal);
-# works with the machine off too.
+# ORed with the foot switch onto the vacuum-pump flipflop clk (io.hal);
+# works with the machine off and during a program.
 net vacuum-pump-toggle-btn pyvcp.vacuum-pump-toggle => vacuum-pump-toggle.in-2
 net vacuum-pump-on => pyvcp.vacuum-pump-on-led
 
@@ -130,8 +130,57 @@ net tc-area-check <= pyvcp.tc-area-check   => tc-area-or.in1
 net tc-area-on    <= tc-area-or.out        => tc-x-min-limit.sel pyvcp.tc-area-led
 net x-min-limit <= tc-x-min-limit.out => ini.0.min_limit ini.1.min_limit ini.x.min_limit
 
+# Peak following error (mm, 60F4), per servo cycle, for tools/servo-tune.py (reads .max/.min, drives .reset).
+loadrt minmax names=fe-peak-x-left,fe-peak-x-right,fe-peak-y,fe-peak-z,gantry-skew-peak
+addf fe-peak-x-left  servo-thread
+addf fe-peak-x-right servo-thread
+addf fe-peak-y       servo-thread
+addf fe-peak-z       servo-thread
+net x-left-fe  <= lcec.0.x-left.following-error  => fe-peak-x-left.in
+net x-right-fe <= lcec.0.x-right.following-error => fe-peak-x-right.in
+net y-fe       <= lcec.0.y.following-error       => fe-peak-y.in
+net z-fe       <= lcec.0.z.following-error       => fe-peak-z.in
+
+# Gantry skew (mm) = joint.0 - joint.1 position feedback (X left - X right); panel shows it and its
+# max since start. Peak held in reset until all joints are homed (unhomed positions mean nothing).
+loadrt sum2 names=gantry-skew
+addf gantry-skew       servo-thread
+addf gantry-skew-abs   servo-thread
+addf gantry-skew-reset servo-thread
+addf gantry-skew-peak  servo-thread
+setp gantry-skew.gain1 -1
+net x-left-joint-fb  <= joint.0.pos-fb => gantry-skew.in0
+net x-right-joint-fb <= joint.1.pos-fb => gantry-skew.in1
+net gantry-skew      <= gantry-skew.out     => gantry-skew-abs.in pyvcp.gantry-skew
+net gantry-skew-abs  <= gantry-skew-abs.out => gantry-skew-peak.in
+net all-homed        => gantry-skew-reset.in
+net gantry-skew-reset <= gantry-skew-reset.out => gantry-skew-peak.reset
+net gantry-skew-max  <= gantry-skew-peak.max   => pyvcp.gantry-skew-max
+
 # Workshop power from the Shelly Pro 3EM (shelly-power.py, polls 1/s; panel shows it, ok LED red if unreachable).
 loadusr -Wn shelly ./shelly-power.py 172.20.10.2
 net shop-power-kw   shelly.power-kw    => pyvcp.shop-kw
 net shop-session-kwh shelly.session-kwh => pyvcp.session-kwh
 net shelly-ok       shelly.ok          => pyvcp.shelly-ok-led
+
+# Job log, tool life, service counter, drive error codes (machine-stats.py).
+loadusr -Wn mstats ./machine-stats.py [MAINTENANCE]GREASE_HOURS
+net program-idle     => mstats.program-idle
+net program-paused   => mstats.program-paused
+net mode-auto        => mstats.mode-auto
+net spindle-on       => mstats.spindle-on
+net machine-enable   => mstats.machine-on
+net shop-session-kwh => mstats.session-kwh
+net shelly-ok        => mstats.shelly-ok
+net mstats-in-position motion.in-position      => mstats.in-position
+net mstats-motion-type motion.motion-type      => mstats.motion-type
+net mstats-velocity    motion.current-vel      => mstats.current-vel
+net mstats-tool        iocontrol.0.tool-number => mstats.tool
+net job-aborted        job-abort-edge.out      => mstats.job-aborted
+net x-left-error-code  lcec.0.x-left.error-code  => mstats.error-0
+net x-right-error-code lcec.0.x-right.error-code => mstats.error-1
+net y-error-code       lcec.0.y.error-code       => mstats.error-2
+net z-error-code       lcec.0.z.error-code       => mstats.error-3
+net service-greased    pyvcp.service-greased     => mstats.service-reset
+net service-hours      mstats.service-hours-left => pyvcp.service-hours
+net service-due        mstats.service-due        => pyvcp.service-due-led
