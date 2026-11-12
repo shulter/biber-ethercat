@@ -1,0 +1,17 @@
+; probe_z — measure the stock height only (Probe tab), no G92.
+; Park the probe above the stock within [PROBE]Z_TRAVEL.
+
+o<probe_z> sub
+  o1 if [#<_task> EQ 0]
+    o<probe_z> return
+  o1 endif
+  o<probe_check> call
+  M5
+  M70
+  G21 G90 G94 G40 G49
+  o<probe_arm> call [1]
+  o<probe_top> call
+  o<probe_arm> call [0]
+  M72
+o<probe_z> endsub
+M2

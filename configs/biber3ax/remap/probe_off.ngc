@@ -1,0 +1,9 @@
+; probe_off — probe tip offset from the spindle ([PROBE]X/Y_OFFSET, machine frame) turned into the
+; current (rotated, see probe_skew) work frame. Sets globals #<_pox> #<_poy>.
+
+o<probe_off> sub
+  #<rot> = #[5230 + 20 * [#5220 - 1]]
+  #<_pox> = [#<_ini[PROBE]X_OFFSET> * COS[#<rot>] + #<_ini[PROBE]Y_OFFSET> * SIN[#<rot>]]
+  #<_poy> = [#<_ini[PROBE]Y_OFFSET> * COS[#<rot>] - #<_ini[PROBE]X_OFFSET> * SIN[#<rot>]]
+o<probe_off> endsub
+M2

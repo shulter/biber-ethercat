@@ -1,0 +1,11 @@
+; probe_top — touch the stock top downwards at the current X/Y, back to the start.
+; Needs G49 and the probe extended. Shows the top surface (current coordinates,
+; tip bottom, Z_OFFSET included) on the Probe tab via motion.analog-out-00; returns the
+; trigger Z (spindle position) in #<_value>.
+
+o<probe_top> sub
+  o<probe_point> call [2] [-1] [#<_ini[PROBE]Z_TRAVEL>]
+  #<hit> = #<_value>
+  M68 E0 Q[#<hit> + #<_ini[PROBE]Z_OFFSET>]
+o<probe_top> endsub [#<hit>]
+M2

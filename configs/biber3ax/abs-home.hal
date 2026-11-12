@@ -1,4 +1,4 @@
-# biber3ax-abs.ini only (added by abs-ini.sh): home each joint once, on the first Machine On —
+# Added by biber3ax-abs.sh: home each joint once, on the first Machine On —
 # instant with absolute encoders, no motion. AXIS then switches to world mode. Chained, as only
 # one joint can home at a time: joint 0 when on and unhomed, joint n when n-1 homed and n not.
 # xor2 works as "a AND NOT b" for the chain, since joint n can't be homed before n-1.

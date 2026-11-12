@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Probe tab (AXIS [DISPLAY] EMBED_TAB_*, component "probe"): workpiece probe cycles.
+  Buttons -> halui.mdi-command-NN (postgui.hal) -> remap/probe_*.ngc. Settings: [PROBE].
+  Park the probe above the stock, over it ~10 mm in from the bottom left corner (hole / pin: over its centre).
+-->
+<pyvcp>
+<table>
+<tablesticky sticky="w"/>
+
+<tablerow/>
+<label><text>"Probe"</text></label>
+<button><halpin>"extend"</halpin><text>"Extend"</text><width>9</width></button>
+<button><halpin>"retract"</halpin><text>"Retract"</text><width>9</width></button>
+
+<tablerow/>
+<label><text>"Stock height"</text></label>
+<button><halpin>"z-top"</halpin><text>"Z top"</text><width>9</width></button>
+<number><halpin>"stock-height"</halpin><format>"8.2f"</format></number>
+
+<tablerow/>
+<label><text>"Edge to 0"</text></label>
+<button><halpin>"x-edge"</halpin><text>"X (left)"</text><width>9</width></button>
+<button><halpin>"y-edge"</halpin><text>"Y (bottom)"</text><width>9</width></button>
+
+<tablerow/>
+<label><text>"Skew"</text></label>
+<button><halpin>"skew-bottom"</halpin><text>"Bottom edge"</text><width>11</width></button>
+<button><halpin>"skew-left"</halpin><text>"Left edge"</text><width>11</width></button>
+
+<tablerow/>
+<label><text>"Feature dia"</text></label>
+<spinbox><halpin>"diameter"</halpin><min_>1</min_><max_>500</max_><initval>20</initval><resolution>0.5</resolution><format>"6.1f"</format></spinbox>
+<tablerow/>
+<label><text>"Centre to 0"</text></label>
+<button><halpin>"hole"</halpin><text>"Hole"</text><width>9</width></button>
+<button><halpin>"pin"</halpin><text>"Pin"</text><width>9</width></button>
+<tablerow/>
+<label><text>"Measured dia"</text></label>
+<number><halpin>"measured-dia"</halpin><format>"8.2f"</format></number>
+
+<tablerow/>
+<label><text>"Reset"</text></label>
+<button><halpin>"clear"</halpin><text>"Clear G92 + rot"</text><width>16</width></button>
+
+<tablerow/>
+<label><text>"Every cycle probes the stock top first."</text></label>
+<tablerow/>
+<label><text>"Order: skew, then X, Y."</text></label>
+</table>
+</pyvcp>

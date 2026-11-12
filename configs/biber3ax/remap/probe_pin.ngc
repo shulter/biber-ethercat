@@ -1,0 +1,76 @@
+; probe_pin — find a pin's (boss) centre and diameter; centre -> X0 Y0 with G92.
+; Park the probe above the pin, roughly centred. Expected diameter: "Feature dia" on the
+; Probe tab (motion.analog-in-00), used to get clear of the pin.
+; The pin top is probed first (shown on the tab), then the probe goes out past the pin on -X,
+; EDGE_DEPTH below the top, touches +X, lifts over, touches -X from +X, centres in X and
+; does the same in Y. The measured diameter (mean of X and Y) shows on the tab
+; (motion.analog-out-01). Wall = trigger + tip offset + direction * tip radius.
+
+o<probe_pin> sub
+  o1 if [#<_task> EQ 0]
+    o<probe_pin> return
+  o1 endif
+
+  M66 E0 L0
+  #<dia> = #5399
+  o2 if [#<dia> LE 0]
+    (abort, probe_pin: set Feature dia on the Probe tab first)
+  o2 endif
+  #<r>    = [#<_ini[PROBE]TIP_DIAMETER> / 2]
+  #<out>  = [#<dia> / 2 + #<_ini[PROBE]EDGE_CLEAR>]
+  #<trav> = [#<_ini[PROBE]EDGE_CLEAR> + #<_ini[PROBE]TRAVEL>]
+  #<lift> = #<_ini[PROBE]LIFT>
+  #<depth> = #<_ini[PROBE]EDGE_DEPTH>
+
+  o<probe_check> call
+  M5
+  M70
+  G21 G90 G94 G40 G49
+  o<probe_arm> call [1]
+  o<probe_off> call
+
+  #<_psx> = #<_x>
+  #<_psy> = #<_y>
+  #<_psz> = #<_z>
+  o<probe_top> call
+  #<_pz> = #<_value>
+  F#<_ini[PROBE]FAST_FEED>
+
+  ; X: from the left (moves +X), then from the right (moves -X)
+  G1 Z[#<_pz> + #<lift>]
+  G1 X[#<_psx> - #<out>]
+  G1 Z[#<_pz> - #<depth>]
+  o<probe_point> call [0] [1] [#<trav>]
+  #<xa> = [#<_value> + #<_pox> + #<r>]
+  G1 Z[#<_pz> + #<lift>]
+  G1 X[#<_psx> + #<out>]
+  G1 Z[#<_pz> - #<depth>]
+  o<probe_point> call [0] [-1] [#<trav>]
+  #<xb> = [#<_value> + #<_pox> - #<r>]
+  #<cx> = [[#<xa> + #<xb>] / 2]
+  #<dx> = [#<xb> - #<xa>]
+
+  ; Y: centred in X, from the bottom (moves +Y), then from the top (moves -Y)
+  G1 Z[#<_pz> + #<lift>]
+  G1 X[#<cx> - #<_pox>] Y[#<_psy> - #<out>]
+  G1 Z[#<_pz> - #<depth>]
+  o<probe_point> call [1] [1] [#<trav>]
+  #<ya> = [#<_value> + #<_poy> + #<r>]
+  G1 Z[#<_pz> + #<lift>]
+  G1 Y[#<_psy> + #<out>]
+  G1 Z[#<_pz> - #<depth>]
+  o<probe_point> call [1] [-1] [#<trav>]
+  #<yb> = [#<_value> + #<_poy> - #<r>]
+  #<cy> = [[#<ya> + #<yb>] / 2]
+  #<dy> = [#<yb> - #<ya>]
+
+  o<probe_leave> call
+  o<probe_arm> call [0]
+
+  M68 E1 Q[[#<dx> + #<dy>] / 2]
+  G92 X[#<_x> - #<cx>] Y[#<_y> - #<cy>]
+  (debug, Probe: pin centre set to X0 Y0. Diameter X #<dx> Y #<dy>)
+
+  M72
+o<probe_pin> endsub
+M2

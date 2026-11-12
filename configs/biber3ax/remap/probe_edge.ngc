@@ -1,0 +1,45 @@
+; probe_edge — probe a stock edge and put it at 0 with G92.
+; #1 axis (0 X, 1 Y), #2 direction of the probe move (+1: left / bottom edge, -1: right / top edge).
+; Park the probe above the stock, over it near that corner (see probe_approach). The stock
+; top is probed first (shown on the tab), then the edge EDGE_DEPTH below it. The hit is
+; corrected by the tip radius and [PROBE]X/Y_OFFSET (tip centre minus spindle), turned into
+; the rotated frame (probe_skew). The G92 value is chosen so the edge reads 0 at the
+; start point the probe returns to. G49 during the cycle, G43 restored by M72.
+
+o<probe_edge> sub
+  o1 if [#<_task> EQ 0]
+    o<probe_edge> return
+  o1 endif
+
+  #<ax>  = #1
+  #<dir> = #2
+  o2 if [[#<ax> LT 0] OR [#<ax> GT 1]]
+    (abort, probe_edge: axis must be 0 or 1)
+  o2 endif
+
+  o<probe_check> call
+  M5
+  M70
+  G21 G90 G94 G40 G49
+  o<probe_arm> call [1]
+
+  o<probe_approach> call [#<ax>] [#<dir>]
+  o<probe_point> call [#<ax>] [#<dir>] [#<_ini[PROBE]EDGE_CLEAR> + #<_ini[PROBE]TRAVEL>]
+  #<hit> = #<_value>
+  o<probe_leave> call
+
+  o<probe_arm> call [0]
+
+  o<probe_off> call
+  #<r> = [#<_ini[PROBE]TIP_DIAMETER> / 2]
+  o10 if [#<ax> EQ 0]
+    G92 X[#<_x> - #<hit> - #<_pox> - #<dir> * #<r>]
+    (debug, Probe: X edge set to X0)
+  o10 else
+    G92 Y[#<_y> - #<hit> - #<_poy> - #<dir> * #<r>]
+    (debug, Probe: Y edge set to Y0)
+  o10 endif
+
+  M72
+o<probe_edge> endsub
+M2

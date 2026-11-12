@@ -1,23 +1,16 @@
 #!/bin/sh
-# Run by the #INCLUDE in biber3ax-abs.ini: writes biber3ax.ini (its #INCLUDEs expanded) to
-# biber3ax-abs.ini.gen with HOME_ABSOLUTE_ENCODER = 2 and the [ABS_ENCODER] offset at the top of
-# each [JOINT_n] (LinuxCNC 2.9 takes the first match, shadowing the switch homing values), no
-# HOME_SEQUENCE (no Home All), plus abs-home.hal (homes each joint on the first Machine On).
-# Prints the file name. "abs-ini.sh measure": print the offsets (LinuxCNC running, homed, at rest).
+# Starts LinuxCNC (2.9 or 2.10, whichever "linuxcnc" is in PATH) with the absolute encoders: writes
+# biber3ax.ini (its #INCLUDEs expanded) to biber3ax-abs.ini.gen with HOME_ABSOLUTE_ENCODER = 2 and the
+# [ABS_ENCODER] offset of biber3ax-abs.ini at the top of each [JOINT_n] (LinuxCNC takes the first
+# match, shadowing the switch homing values), no HOME_SEQUENCE (no Home All), plus abs-home.hal
+# (homes each joint on the first Machine On). Extra arguments go to linuxcnc.
+# "biber3ax-abs.sh measure": print the offsets (LinuxCNC running, homed, at rest).
 cd "$(dirname "$0")" || exit 1
 
-# Error dialog, then stop the linuxcnc launcher — an empty #INCLUDE would start its INI update wizard.
 fail() {
-    echo "abs-ini.sh: $1" >&2
-    [ -n "$DISPLAY" ] && printf 'wm withdraw .\ntk_messageBox -icon error -title biber3ax-abs.ini -message {%s}\nexit\n' "$1" |
+    echo "biber3ax-abs.sh: $1" >&2
+    [ -n "$DISPLAY" ] && printf 'wm withdraw .\ntk_messageBox -icon error -title biber3ax-abs -message {%s}\nexit\n' "$1" |
         wish8.6 >/dev/null 2>&1
-    # topmost "linuxcnc" ancestor = the launcher (its subshells have the same name)
-    p=$$ top=
-    while [ "$p" -gt 1 ]; do
-        p=$(awk '{ print $4 }' /proc/$p/stat)
-        [ "$(cat /proc/$p/comm)" = linuxcnc ] && top=$p
-    done
-    [ -n "$top" ] && kill $top
     exit 1
 }
 
@@ -51,5 +44,5 @@ sec ~ /^\[JOINT_/ && $1 == "HOME_SEQUENCE" { next }
 [ -z "$missing" ] || fail "Not set in [ABS_ENCODER] of biber3ax-abs.ini:
 $missing
 
-Home with biber3ax.ini, then run ./abs-ini.sh measure."
-echo $out
+Home with biber3ax.ini, then run ./biber3ax-abs.sh measure."
+exec linuxcnc "$@" "$PWD/$out"

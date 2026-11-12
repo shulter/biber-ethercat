@@ -149,7 +149,6 @@ net blow-nozzle     <= blow-nozzle-or.out         => lcec.0.io-dout3.dout-4
 # X moves while |joint.0.vel-cmd| >= 0.1 mm/s; integ sums the moving seconds.
 # Not persistent: restarts at 0 with LinuxCNC.
 loadrt wcomp          names=x-still
-loadrt conv_bit_float names=x-moving-float
 loadrt integ          names=x-oil-time
 loadrt comp           names=x-oil-due
 loadrt oneshot        names=x-oil-pulse,x-oil-pause,x-oil-air,pendant-auto-pulse,pendant-run-pulse,pendant-pause-pulse,pendant-resume-pulse
@@ -228,7 +227,14 @@ net foot-right-idle     <= foot-right-gate.out   => vacuum-pump-toggle.in-0
 net vacuum-pump-clk     <= vacuum-pump-toggle.out => vacuum-pump.clk
 
 # --- EL1018 (fast digital inputs, 10us, slave idx 11) ---
-net tool-probe <= lcec.0.io-din5.din-0-not => motion.probe-input   # Tool height probe (M210), TRUE = triggered (NC)
+# motion.probe-input = tool height probe OR workpiece probe (Probe tab, remap/probe_*.ngc).
+net tool-probe <= lcec.0.io-din5.din-0-not => probe-or.in0   # Tool height probe (M210), TRUE = triggered (NC)
+net probe-trig <= probe-or.out             => motion.probe-input
+addf probe-or servo-thread
+# Workpiece probe: TODO wire (free pins: io-din5 din-5..7 fast; EL2808 outputs). Unwired = never triggers.
+# Extend via M62/M63 P[PROBE]EXTEND_DOUT (motion.digital-out-26), retracted again on abort.
+# net wp-probe  <= lcec.0.io-din5.din-5-not => probe-or.in1   # TRUE = triggered
+# net wp-probe-extend <= motion.digital-out-26 => lcec.0.io-doutN.dout-N
 
 # Limit switches, din-1..din-4. Each axis homes onto one of its limit
 # switches, which doubles as the home switch (HOME_IGNORE_LIMITS = YES in the
@@ -490,7 +496,6 @@ net pendant-z-minus <= pendant-z-minus.out => halui.axis.z.minus
 # Dial position 8: buttons step the jog speed: [HALUI]JOG_SPEED + count *
 # JOG_SPEED_STEP, count -5..18 (500..12000 mm/min with 3000 / 500).
 loadrt updown names=pendant-jog-count
-loadrt scaled_s32_sums names=pendant-jog-speed
 addf pendant-so-up       servo-thread
 addf pendant-so-down     servo-thread
 addf pendant-jog-up      servo-thread

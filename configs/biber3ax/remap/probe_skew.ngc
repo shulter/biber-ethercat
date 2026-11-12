@@ -1,0 +1,60 @@
+; probe_skew — measure stock rotation from two touches along one edge and rotate
+; the work coordinate system to it (G10 L2 P0 R, added to any rotation already set).
+; #1 probed axis (1: touches in Y, edge runs along X; 0: touches in X, edge runs along Y),
+; #2 direction of the probe move (+1 / -1). Park the probe as for probe_edge: stock top
+; first, then both touches EDGE_DEPTH below it, the second [PROBE]SKEW_DIST further along
+; +X (or +Y). The probe returns to the start.
+; The rotation moves X/Y zero: set the origin afterwards with probe_edge.
+
+o<probe_skew> sub
+  o1 if [#<_task> EQ 0]
+    o<probe_skew> return
+  o1 endif
+
+  #<ax>   = #1
+  #<dir>  = #2
+  #<dist> = #<_ini[PROBE]SKEW_DIST>
+  #<trav> = [#<_ini[PROBE]EDGE_CLEAR> + #<_ini[PROBE]TRAVEL>]
+  o2 if [[#<ax> LT 0] OR [#<ax> GT 1]]
+    (abort, probe_skew: axis must be 0 or 1)
+  o2 endif
+
+  o<probe_check> call
+  M5
+  M70
+  G21 G90 G94 G40 G49
+  o<probe_arm> call [1]
+
+  o<probe_approach> call [#<ax>] [#<dir>]
+  o<probe_point> call [#<ax>] [#<dir>] [#<trav>]
+  #<h1> = #<_value>
+  F#<_ini[PROBE]FAST_FEED>
+  o10 if [#<ax> EQ 1]
+    G1 X[#<_x> + #<dist>]
+  o10 else
+    G1 Y[#<_y> + #<dist>]
+  o10 endif
+  o<probe_point> call [#<ax>] [#<dir>] [#<trav>]
+  #<h2> = #<_value>
+  o<probe_leave> call
+
+  o<probe_arm> call [0]
+
+  ; edge along X rising in Y = turned counter-clockwise; edge along Y moving to -X likewise
+  o20 if [#<ax> EQ 1]
+    #<ang> = ATAN[#<h2> - #<h1>] / [#<dist>]
+  o20 else
+    #<ang> = ATAN[#<h1> - #<h2>] / [#<dist>]
+  o20 endif
+  o30 if [ABS[#<ang>] GT #<_ini[PROBE]MAX_SKEW>]
+    (abort, Probe: skew over MAX_SKEW - probe hit something else? Nothing changed)
+  o30 endif
+
+  #<rot> = #[5230 + 20 * [#5220 - 1]]
+  #<new> = [#<rot> + #<ang>]
+  G10 L2 P0 R#<new>
+  (debug, Probe: stock turned #<ang> deg, rotation now #<new> deg. Set X/Y zero again)
+
+  M72
+o<probe_skew> endsub
+M2

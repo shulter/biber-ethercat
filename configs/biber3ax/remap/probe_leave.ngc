@@ -1,0 +1,9 @@
+; probe_leave — end of the edge and skew cycles: lift, back to the start point set by probe_approach.
+
+o<probe_leave> sub
+  F#<_ini[PROBE]FAST_FEED>
+  G1 Z[#<_pz> + #<_ini[PROBE]LIFT>]
+  G1 X#<_psx> Y#<_psy>
+  G1 Z#<_psz>
+o<probe_leave> endsub
+M2

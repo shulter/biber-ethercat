@@ -1,0 +1,8 @@
+; probe_clear — drop the G92 offset and the rotation of the current work coordinate system.
+
+o<probe_clear> sub
+  G92.1
+  G10 L2 P0 R0
+  (debug, Probe: G92 and rotation cleared)
+o<probe_clear> endsub
+M2

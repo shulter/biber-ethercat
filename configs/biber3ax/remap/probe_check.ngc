@@ -1,0 +1,13 @@
+; probe_check — common preconditions of the probe cycles (aborts if not met).
+
+o<probe_check> sub
+  M66 P5 L0
+  o10 if [#5399 NE 1]
+    (abort, Probe: machine not homed)
+  o10 endif
+  M66 P2 L0
+  o11 if [#5399 NE 1]
+    (abort, Probe: no air pressure)
+  o11 endif
+o<probe_check> endsub
+M2

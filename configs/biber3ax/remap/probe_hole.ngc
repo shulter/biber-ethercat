@@ -1,0 +1,67 @@
+; probe_hole — find a hole's centre and diameter; centre -> X0 Y0 with G92.
+; Park the probe above the hole, roughly centred (off by less than radius - tip radius).
+; Expected diameter: "Feature dia" on the Probe tab (motion.analog-in-00).
+; The stock top is probed first, HOLE_TOP_MARGIN beyond the hole wall on +X; the probe then
+; goes EDGE_DEPTH below it, touches +X / -X, centres in X, touches +Y / -Y, centres in Y.
+; The measured diameter (mean of X and Y) shows on the tab (motion.analog-out-01).
+; Wall = trigger + tip offset + direction * tip radius. G92 is set at the start point.
+
+o<probe_hole> sub
+  o1 if [#<_task> EQ 0]
+    o<probe_hole> return
+  o1 endif
+
+  M66 E0 L0
+  #<dia> = #5399
+  o2 if [#<dia> LE #<_ini[PROBE]TIP_DIAMETER>]
+    (abort, probe_hole: set Feature dia on the Probe tab first)
+  o2 endif
+  #<r>    = [#<_ini[PROBE]TIP_DIAMETER> / 2]
+  #<trav> = [#<dia> / 2 + #<_ini[PROBE]TRAVEL>]
+
+  o<probe_check> call
+  M5
+  M70
+  G21 G90 G94 G40 G49
+  o<probe_arm> call [1]
+  o<probe_off> call
+
+  ; stock top beside the hole
+  #<_psx> = #<_x>
+  #<_psy> = #<_y>
+  #<_psz> = #<_z>
+  F#<_ini[PROBE]FAST_FEED>
+  G1 X[#<_psx> + #<dia> / 2 + #<_ini[PROBE]HOLE_TOP_MARGIN>]
+  o<probe_top> call
+  #<_pz> = #<_value>
+  G1 Z[#<_pz> + #<_ini[PROBE]LIFT>]
+  G1 X#<_psx> Y#<_psy>
+  G1 Z[#<_pz> - #<_ini[PROBE]EDGE_DEPTH>]
+
+  ; X: wall + (probe moves +X) and wall - (moves -X)
+  o<probe_point> call [0] [1] [#<trav>]
+  #<xa> = [#<_value> + #<_pox> + #<r>]
+  o<probe_point> call [0] [-1] [#<trav>]
+  #<xb> = [#<_value> + #<_pox> - #<r>]
+  #<cx> = [[#<xa> + #<xb>] / 2]
+  #<dx> = [#<xa> - #<xb>]
+  G1 X[#<cx> - #<_pox>]
+
+  ; Y
+  o<probe_point> call [1] [1] [#<trav>]
+  #<ya> = [#<_value> + #<_poy> + #<r>]
+  o<probe_point> call [1] [-1] [#<trav>]
+  #<yb> = [#<_value> + #<_poy> - #<r>]
+  #<cy> = [[#<ya> + #<yb>] / 2]
+  #<dy> = [#<ya> - #<yb>]
+
+  o<probe_leave> call
+  o<probe_arm> call [0]
+
+  M68 E1 Q[[#<dx> + #<dy>] / 2]
+  G92 X[#<_x> - #<cx>] Y[#<_y> - #<cy>]
+  (debug, Probe: hole centre set to X0 Y0. Diameter X #<dx> Y #<dy>)
+
+  M72
+o<probe_hole> endsub
+M2

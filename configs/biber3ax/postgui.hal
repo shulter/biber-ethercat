@@ -3,8 +3,9 @@
 # GUI (and its PyVCP panel, component name "pyvcp") has started — the
 # pyvcp.* pins created by the panel's widgets don't exist until then, so
 # this can't live in ethercat.hal.
+# The *-vel-conv instances are loaded by compat.tcl.
 #
-# Each realtime component (conv_s32_float, scale, abs) can only be loadrt'd
+# Each realtime component (scale, abs) can only be loadrt'd
 # once per HAL session, even with multiple named instances. The *-vel-scale
 # instances are loaded+addf'd in ethercat.hal together with spindle-scale, so
 # they are only setp'd/netted here.
@@ -19,7 +20,6 @@
 # Verify this against the A6/SV660N drive parameters; if the drive reports
 # SI-scaled velocity instead, the *-vel-scale.gain values below are wrong.
 
-loadrt conv_s32_float names=x-left-vel-conv,x-right-vel-conv,y-vel-conv,z-vel-conv
 addf x-left-vel-conv     servo-thread
 addf x-right-vel-conv    servo-thread
 addf y-vel-conv          servo-thread
@@ -184,3 +184,18 @@ net z-error-code       lcec.0.z.error-code       => mstats.error-3
 net service-greased    pyvcp.service-greased     => mstats.service-reset
 net service-hours      mstats.service-hours-left => pyvcp.service-hours
 net service-due        mstats.service-due        => pyvcp.service-due-led
+
+# --- Probe tab (probe-tab.xml, component "probe"): buttons run the [HALUI] MDI_COMMANDs, same order ---
+net probe-btn-z      probe.z-top        => halui.mdi-command-00
+net probe-btn-x      probe.x-edge       => halui.mdi-command-01
+net probe-btn-y      probe.y-edge       => halui.mdi-command-02
+net probe-btn-sx     probe.skew-bottom  => halui.mdi-command-03
+net probe-btn-sy     probe.skew-left    => halui.mdi-command-04
+net probe-btn-hole   probe.hole          => halui.mdi-command-05
+net probe-btn-pin    probe.pin           => halui.mdi-command-06
+net probe-btn-clear  probe.clear        => halui.mdi-command-07
+net probe-btn-ext    probe.extend       => halui.mdi-command-08
+net probe-btn-ret    probe.retract      => halui.mdi-command-09
+net probe-stock-height motion.analog-out-00 => probe.stock-height   # stock top, set by every probe cycle
+net probe-feature-dia  motion.analog-out-01 => probe.measured-dia   # hole / pin diameter measured
+net probe-dia-entry    probe.diameter       => motion.analog-in-00  # expected hole / pin diameter

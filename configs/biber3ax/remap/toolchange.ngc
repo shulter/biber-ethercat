@@ -45,6 +45,7 @@ o<toolchange> sub
   #<off>  = #<_ini[TOOLCHANGER]X_OFFSET>
   #<zchk> = #<_ini[TOOLCHANGER]Z_CHECK>
   #<zrel> = #<_ini[TOOLCHANGER]RELEASE_Z>
+  #<zlift> = #<_ini[TOOLCHANGER]LIFT_CHECK_Z>
   #<fz>   = #<_ini[TOOLCHANGER]FLUSH_Z>
   #<ztop> = #<_ini[AXIS_Z]MAX_LIMIT>
   F#<_ini[TOOLCHANGER]FEED>
@@ -97,9 +98,7 @@ o<toolchange> sub
     (abort, Tool change: spindle holds a tool but none is loaded - remove it or set it with M61)
   o35 endif
   o36 if [#<old> GT 0 AND #<present> NE 1]
-    (debug, Tool change: T#<old> is loaded but the spindle is empty - skipping deposit)
-    #<old> = 0
-    M61 Q0
+    (abort, Tool change: T#<old> is loaded but the spindle reports no clamped tool - check the spindle, M61 Q0 if it is empty)
   o36 endif
 
   G53 G0 Z#<ztop>
@@ -124,7 +123,14 @@ o<toolchange> sub
       M66 P4 L3 Q3      ; wait up to 3 s for tool released
       #<ok> = [#5399 EQ 1]
       o110 if [#<ok>]
-        G53 G1 Z[#<pz> + #<zrel>]
+        ; slow first lift, then check the clamp is still open before going on
+        G53 G1 Z[#<pz> + #<zlift>] F#<_ini[TOOLCHANGER]LIFT_CHECK_FEED>
+        F#<_ini[TOOLCHANGER]FEED>
+        M66 P4 L0         ; tool released?
+        #<ok> = [#5399 EQ 1]
+      o110 endif
+      o115 if [#<ok>]
+        G53 G0 Z[#<pz> + #<zrel>]
         M65 P0            ; drawbar up: tool present only if it came along
         M66 P4 L4 Q3      ; wait for drawbar up
         #<up> = [#5399 EQ 0]
@@ -132,15 +138,16 @@ o<toolchange> sub
                           ; a tool shows "present" from 235 ms; 0.1 s caught the flash
         M66 P3 L0         ; tool present?
         #<ok> = [#<up> AND [#5399 EQ 0]]    ; drawbar up and tool gone
-      o110 endif
+      o115 endif
 
       o120 if [#<ok> EQ 0]
-        ; tool not released or still detected: stay where we are, machine off
+        ; tool not released, clamp closed during the lift or tool still detected:
+        ; stay where we are, machine off
         ; (on_abort clamps the drawbar)
         M65 P7
         M64 P9
         M66 P0 L0
-        (abort, Tool change: tool not released or still in the spindle - machine off, operator must intervene)
+        (abort, Tool change: tool not released, clamp closed during the lift or tool still in the spindle - machine off, operator must intervene)
       o120 endif
       M61 Q0            ; tool is in its pocket: spindle empty if aborted from here
 

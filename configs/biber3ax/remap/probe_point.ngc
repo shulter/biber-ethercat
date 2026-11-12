@@ -1,0 +1,73 @@
+; probe_point — one touch along one axis, then back to the start point.
+; #1 axis (0 X, 1 Y, 2 Z), #2 direction (+1 / -1), #3 search distance. Returns the trigger position
+; in the current coordinates (call with G49: no tool length offset) in #<_value>.
+; Fast search over #3, back off, slow touch over 2 x BACKOFF.
+
+o<probe_point> sub
+  #<ax>   = #1
+  #<dir>  = #2
+  #<trav> = #3
+  #<sx>   = #<_x>
+  #<sy>   = #<_y>
+  #<sz>   = #<_z>
+  #<back> = #<_ini[PROBE]BACKOFF>
+
+  ; --- fast search ---
+  #<tx> = #<sx>
+  #<ty> = #<sy>
+  #<tz> = #<sz>
+  o11 if [#<ax> EQ 0]
+    #<tx> = [#<sx> + #<dir> * #<trav>]
+  o11 elseif [#<ax> EQ 1]
+    #<ty> = [#<sy> + #<dir> * #<trav>]
+  o11 else
+    #<tz> = [#<sz> + #<dir> * #<trav>]
+  o11 endif
+  F#<_ini[PROBE]FAST_FEED>
+  G38.3 X#<tx> Y#<ty> Z#<tz>
+  o20 if [#5070 NE 1]
+    (abort, Probe: no contact within TRAVEL, or probe not extended / not wired)
+  o20 endif
+  #<hit> = #5061
+  o21 if [#<ax> EQ 1]
+    #<hit> = #5062
+  o21 elseif [#<ax> EQ 2]
+    #<hit> = #5063
+  o21 endif
+
+  ; --- back off, slow touch ---
+  #<tx> = #<sx>
+  #<ty> = #<sy>
+  #<tz> = #<sz>
+  o30 if [#<ax> EQ 0]
+    #<tx> = [#<hit> - #<dir> * #<back>]
+  o30 elseif [#<ax> EQ 1]
+    #<ty> = [#<hit> - #<dir> * #<back>]
+  o30 else
+    #<tz> = [#<hit> - #<dir> * #<back>]
+  o30 endif
+  G1 X#<tx> Y#<ty> Z#<tz>
+  o31 if [#<ax> EQ 0]
+    #<tx> = [#<hit> + #<dir> * #<back>]
+  o31 elseif [#<ax> EQ 1]
+    #<ty> = [#<hit> + #<dir> * #<back>]
+  o31 else
+    #<tz> = [#<hit> + #<dir> * #<back>]
+  o31 endif
+  F#<_ini[PROBE]FEED>
+  G38.3 X#<tx> Y#<ty> Z#<tz>
+  o40 if [#5070 NE 1]
+    (abort, Probe: no contact on the slow touch)
+  o40 endif
+  #<hit> = #5061
+  o41 if [#<ax> EQ 1]
+    #<hit> = #5062
+  o41 elseif [#<ax> EQ 2]
+    #<hit> = #5063
+  o41 endif
+
+  ; --- back to the start ---
+  F#<_ini[PROBE]FAST_FEED>
+  G1 X#<sx> Y#<sy> Z#<sz>
+o<probe_point> endsub [#<hit>]
+M2

@@ -13,14 +13,14 @@ F1 (e-stop reset) → F2 (machine on) → home (Z, X tandem, Y).
 
 New install: `cp linuxcnc.var.example linuxcnc.var` (untracked; #3990 only persists if it's listed there).
 
-### Absolute encoders (`biber3ax-abs.ini`)
+### Absolute encoders (`biber3ax-abs.sh`)
 
-`linuxcnc biber3ax-abs.ini`: the first Machine On homes each joint once (no motion, no Home All, `abs-home.hal`), using the drives'
-battery-backed absolute position. Otherwise identical: `abs-ini.sh` regenerates it from
-`biber3ax.ini` on every start. Setup, once:
+`./biber3ax-abs.sh` (instead of `linuxcnc biber3ax.ini`, LinuxCNC 2.9 or 2.10): the first Machine On homes each joint once
+(no motion, no Home All, `abs-home.hal`), using the drives' battery-backed absolute position. Otherwise identical: it
+regenerates `biber3ax-abs.ini.gen` from `biber3ax.ini` and the offsets in `biber3ax-abs.ini` on every start. Setup, once:
 
 1. A6 drives: absolute encoder mode on, battery fitted, multi-turn data reset (drive manual).
-2. Home with `biber3ax.ini`, then `./abs-ini.sh measure` → offsets into `[ABS_ENCODER]`.
+2. Home with `biber3ax.ini`, then `./biber3ax-abs.sh measure` → offsets into `[ABS_ENCODER]`.
 
 Re-measure after a battery/encoder alarm or multi-turn reset — otherwise every position is wrong.
 
@@ -29,12 +29,14 @@ Re-measure after a battery/encoder alarm or multi-turn reset — otherwise every
 | File | Content |
 |------|---------|
 | `biber3ax.ini` | Machine, joints, homing, remaps |
+| `compat.tcl` | Loads the components LinuxCNC 2.10 renamed (2.9 and 2.10) |
 | `ethercat-conf.xml` | Bus layout / PDO mapping |
 | `ethercat.hal` | Servos, e-stop loop, drive-ready check, spindle analog out |
 | `io.hal` | Beckhoff I/O and interlocks |
 | `postgui.hal`, `panel.xml` | PyVCP panel |
 | `machine-stats.py` | Drive error messages, job log, tool life, service counter |
-| `remap/*.ngc` | M-codes below |
+| `remap/*.ngc` | M-codes below, `probe_*.ngc` probe cycles |
+| `probe-tab.xml` | AXIS Probe tab (buttons -> `[HALUI]MDI_COMMAND`, `postgui.hal`) |
 
 ## Bus
 
@@ -90,7 +92,7 @@ Pocket positions and approach offsets: `toolchanger.ini` (`#INCLUDE`d into `bibe
 - **Checks:** homed, air pressure (`io-din3.din-0`), tool sensor (`io-din2.din-2`) agrees with the
   loaded tool. M5 at the start without waiting; HSK spindle and VFD (`io-din2.din-4`, `din-0`) must be
   stopped at the first pocket + X_OFFSET and before the motor switches (up to 10 s each, else abort).
-- **Deposit:** Z top → pocket + X_OFFSET → Z pocket → G1 into pocket → release + flush air → Z +RELEASE_Z →
+- **Deposit:** Z top → pocket + X_OFFSET → Z pocket → G1 into pocket → release + flush air → G1 +LIFT_CHECK_Z at LIFT_CHECK_FEED, clamp still open? → G0 Z +RELEASE_Z →
   drawbar up, tool must be gone (`din2-2` FALSE). Else: no further move, machine off (`halui.machine.off`), abort; on_abort clamps the drawbar.
 - **Pick:** Z top (without a deposit: pocket + X_OFFSET) → flush air on + release → straight above pocket → blow nozzle on → down to pocket Z → flush air off → clamp → blow nozzle off
   (must report clamped, else machine off) → out by X_OFFSET → Z top → X to work area.
@@ -118,6 +120,15 @@ Pocket positions and approach offsets: `toolchanger.ini` (`#INCLUDE`d into `bibe
 | M241 / M240 | Vacuum pump on / off (right foot switch toggles, only with no program) |
 | M242 / M243 [P0] | Open [close] left / right vacuum gate (pump unchanged) |
 | M270 | X rack oiling cycle now (normally every 30 min of X movement) |
+
+## Workpiece probe (Probe tab)
+
+Pneumatic probe, `[PROBE]` in the INI. Park it above the stock, over it ~10 mm in from the bottom left corner. Every cycle
+first touches the stock top (height shown on the tab, no G92), lifts, goes out past the edge, drops `EDGE_DEPTH` below the
+top and touches the edge. X/Y edge cycles put the hit at 0 with G92 (tip radius and `X/Y_OFFSET` included, G49 during the
+touch). Skew touches an edge twice and sets the work coordinate rotation (`G10 L2 P0 R`); order: skew, then X, Y. Hole / Pin: park over the centre, enter the expected diameter; the centre goes to X0 Y0 (G92) and the measured diameter shows.
+Clear drops G92 and rotation.
+**Not wired yet:** probe signal and extend output are TODO in `io.hal`; set `X/Y/Z_OFFSET` and `EXTEND_DOUT`.
 
 ## Panel
 

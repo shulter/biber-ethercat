@@ -1,0 +1,12 @@
+; probe_arm — extend (#1 = 1) or retract (#1 = 0) the pneumatic workpiece probe.
+; Output [PROBE]EXTEND_DOUT (M62/M63: in step with the motion queue), then wait EXTEND_TIME.
+
+o<probe_arm> sub
+  o10 if [#1 NE 0]
+    M62 P#<_ini[PROBE]EXTEND_DOUT>
+  o10 else
+    M63 P#<_ini[PROBE]EXTEND_DOUT>
+  o10 endif
+  G4 P#<_ini[PROBE]EXTEND_TIME>
+o<probe_arm> endsub
+M2
