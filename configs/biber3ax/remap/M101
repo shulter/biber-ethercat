@@ -1,7 +1,21 @@
 #!/bin/bash
 # M101 P<x> Q<y> — max acceleration [mm/s²] of X (P, joints 0/1) and Y (Q, joint 2) separately.
 # Used by accel_rapid.ngc / accel_restore.ngc / on_abort.ngc to set and restore X/Y after RAPID_ACCEL_XY. Missing/zero values are left unchanged.
-set_acc() { [ -n "$2" ] && awk "BEGIN{exit !($2 > 0)}" && for p in $1; do halcmd setp "$p" "$2" || exit 1; done; }
+# Jerk = acceleration x 25 (~40 ms ramp, S-curve planner); skipped on 2.9 (no jerk pins).
+set_acc() {
+    [ -n "$2" ] && awk "BEGIN{exit !($2 > 0)}" || return 0
+    for p in $1; do
+        halcmd setp "$p" "$2" || exit 1
+        j=${p/max_acceleration/max_jerk}
+        halcmd getp "$j" >/dev/null 2>&1 && { halcmd setp "$j" "$(awk "BEGIN{print $2 * 25}")" || exit 1; }
+    done
+}
+# Path jerk cap = largest axis jerk
+set_traj_jerk() {
+    halcmd getp ini.traj_max_jerk >/dev/null 2>&1 || return 0
+    halcmd setp ini.traj_max_jerk "$(for a in x y z; do halcmd getp ini.$a.max_jerk; done | sort -g | tail -1)"
+}
 set_acc "ini.0.max_acceleration ini.1.max_acceleration ini.x.max_acceleration" "$1"
 set_acc "ini.2.max_acceleration ini.y.max_acceleration" "$2"
+set_traj_jerk
 exit 0
